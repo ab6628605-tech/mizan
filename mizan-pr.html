@@ -1,0 +1,1337 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MIZAN · طلبات الشراء</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@200;300;400;500;600&family=Inter:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #08090E;
+    --surface: #0E1018;
+    --line: rgba(255,255,255,0.05);
+    --line-strong: rgba(201,169,97,0.2);
+    --gold: #C9A961;
+    --gold-bright: #E8CE8B;
+    --copper: #B87333;
+    --ice: #9DC4E8;
+    --emerald: #6EE7A0;
+    --rose: #F0A0B0;
+    --amber: #F0C474;
+    --violet: #B8A5E8;
+    --text: #EDEDED;
+    --text-dim: #7A8090;
+    --text-mute: #4A5060;
+  }
+  * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+  html, body {
+    background: var(--bg); color: var(--text);
+    font-family: 'IBM Plex Sans Arabic', 'Inter', sans-serif;
+    overflow-x: hidden; font-weight: 300;
+  }
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-thumb { background: rgba(201,169,97,0.15); border-radius: 10px; }
+
+  .aura {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background:
+      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(201,169,97,0.08), transparent 60%),
+      radial-gradient(ellipse 60% 40% at 100% 100%, rgba(157,196,232,0.04), transparent 60%);
+  }
+
+  .display { font-family: 'Inter', sans-serif; font-weight: 200; letter-spacing: -0.04em; line-height: 0.95; }
+  .label { font-size: 11px; letter-spacing: 0.25em; color: var(--text-mute); text-transform: uppercase; font-weight: 500; }
+  .eyebrow { font-size: 12px; color: var(--text-dim); }
+  .hairline { height: 1px; background: var(--line); }
+  .hairline-gold { height: 1px; background: linear-gradient(90deg, transparent, var(--gold), transparent); opacity: 0.5; }
+
+  .link { color: var(--text-dim); font-size: 13px; cursor: pointer; transition: color 0.3s; }
+  .link:hover { color: var(--gold-bright); }
+  .back-link { color: var(--text-dim); font-size: 13px; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 6px; }
+  .back-link:hover { color: var(--gold-bright); gap: 10px; }
+
+  .hero-number {
+    font-family: 'Inter', sans-serif;
+    font-weight: 200;
+    font-size: clamp(64px, 10vw, 132px);
+    letter-spacing: -0.05em;
+    line-height: 0.85;
+    background: linear-gradient(180deg, #FFFFFF 0%, #6A7080 90%);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .hero-number .unit {
+    font-size: 0.32em; color: var(--gold); -webkit-text-fill-color: var(--gold);
+    margin-right: 14px; font-weight: 300; letter-spacing: 0;
+  }
+
+  /* ===== Filter Bar ===== */
+  .filter-bar {
+    display: flex; align-items: center; gap: 4px;
+    padding: 4px;
+    border-radius: 99px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--line);
+    width: fit-content;
+  }
+  .filter-chip {
+    padding: 8px 16px; border-radius: 99px;
+    font-size: 12px; color: var(--text-dim);
+    cursor: pointer; transition: all 0.3s ease;
+    font-family: inherit; background: transparent; border: none;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .filter-chip:hover { color: var(--text); }
+  .filter-chip.active {
+    color: var(--gold-bright);
+    background: rgba(201,169,97,0.08);
+  }
+  .filter-chip .count {
+    font-family: 'Inter'; font-size: 11px;
+    padding: 1px 6px; border-radius: 99px;
+    background: rgba(255,255,255,0.05);
+    color: var(--text-mute);
+  }
+  .filter-chip.active .count {
+    background: rgba(201,169,97,0.15);
+    color: var(--gold-bright);
+  }
+
+  /* ===== PR Row ===== */
+  .pr-row {
+    display: grid;
+    grid-template-columns: 140px 1fr 160px 140px 100px;
+    gap: 24px;
+    align-items: center;
+    padding: 22px 4px;
+    border-bottom: 1px solid var(--line);
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.16,1,0.3,1);
+    position: relative;
+  }
+  .pr-row:hover {
+    padding-right: 16px;
+    background: linear-gradient(90deg, transparent, rgba(201,169,97,0.02));
+  }
+  .pr-row:hover .pr-title { color: var(--gold-bright); }
+
+  .pr-id {
+    font-family: 'Inter';
+    font-size: 12px;
+    color: var(--text-mute);
+    letter-spacing: 0.05em;
+  }
+  .pr-title {
+    font-size: 15px; font-weight: 400;
+    color: var(--text);
+    transition: color 0.3s ease;
+    margin-bottom: 4px;
+  }
+  .pr-meta { font-size: 12px; color: var(--text-mute); }
+
+  .pr-amount {
+    font-family: 'Inter'; font-size: 18px; font-weight: 300;
+    letter-spacing: -0.02em; text-align: left;
+  }
+
+  /* ===== Approval chain mini ===== */
+  .appr-chain {
+    display: flex; align-items: center; gap: 4px;
+  }
+  .appr-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.06);
+    position: relative;
+    transition: all 0.3s ease;
+  }
+  .appr-dot.done {
+    background: var(--emerald);
+    box-shadow: 0 0 6px var(--emerald);
+  }
+  .appr-dot.current {
+    background: var(--gold);
+    box-shadow: 0 0 8px var(--gold);
+    animation: pulseDot 1.5s infinite;
+  }
+  .appr-dot.rejected {
+    background: var(--rose);
+    box-shadow: 0 0 6px var(--rose);
+  }
+  @keyframes pulseDot {
+    0%,100% { transform: scale(1); }
+    50% { transform: scale(1.4); }
+  }
+  .appr-line {
+    width: 8px; height: 1px;
+    background: rgba(255,255,255,0.08);
+  }
+  .appr-line.done { background: rgba(110,231,160,0.3); }
+
+  /* ===== Status Pill ===== */
+  .stat-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 11px; padding: 5px 10px; border-radius: 99px;
+    letter-spacing: 0.02em;
+  }
+  .pill-draft { background: rgba(255,255,255,0.04); color: var(--text-mute); }
+  .pill-pending { background: rgba(240,196,116,0.1); color: var(--amber); }
+  .pill-approved { background: rgba(110,231,160,0.1); color: var(--emerald); }
+  .pill-rejected { background: rgba(240,160,176,0.1); color: var(--rose); }
+  .pill-converted { background: rgba(157,196,232,0.1); color: var(--ice); }
+
+  .dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+
+  /* ===== Buttons ===== */
+  .btn-primary {
+    padding: 12px 26px; border-radius: 99px;
+    background: linear-gradient(135deg, var(--gold-bright), var(--gold), var(--copper));
+    color: #08090E; font-weight: 600; font-size: 13px;
+    border: none; cursor: pointer; font-family: inherit;
+    transition: all 0.3s cubic-bezier(0.16,1,0.3,1);
+    box-shadow: 0 10px 30px -8px rgba(201,169,97,0.5);
+    display: inline-flex; align-items: center; gap: 8px;
+    letter-spacing: 0.02em;
+  }
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 40px -8px rgba(201,169,97,0.7);
+  }
+  .btn-outline {
+    padding: 11px 22px; border-radius: 99px;
+    background: transparent;
+    color: var(--gold-bright); font-weight: 500; font-size: 12px;
+    border: 1px solid rgba(201,169,97,0.3); cursor: pointer; font-family: inherit;
+    transition: all 0.3s ease;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .btn-outline:hover {
+    border-color: var(--gold-bright);
+    background: rgba(201,169,97,0.05);
+  }
+  .btn-min {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 0; color: var(--gold-bright); font-size: 13px;
+    background: transparent; border: none; cursor: pointer;
+    transition: all 0.3s ease; font-family: inherit;
+  }
+  .btn-min:hover { color: var(--text); letter-spacing: 0.05em; }
+
+  /* ===== Form ===== */
+  .form-label {
+    display: block;
+    font-size: 11px; letter-spacing: 0.15em;
+    color: var(--text-mute); text-transform: uppercase;
+    margin-bottom: 8px; font-weight: 500;
+  }
+  .input-field {
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--line);
+    color: var(--text);
+    font-size: 13px;
+    font-family: inherit;
+    outline: none;
+    transition: all 0.3s ease;
+    font-weight: 300;
+  }
+  .input-field:focus {
+    border-color: rgba(201,169,97,0.4);
+    background: rgba(201,169,97,0.03);
+  }
+  .input-field::placeholder { color: var(--text-mute); }
+  textarea.input-field { resize: vertical; min-height: 80px; line-height: 1.7; }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  @media (max-width: 700px) { .form-grid { grid-template-columns: 1fr; } }
+
+  /* ===== Approval chain full ===== */
+  .approval-flow {
+    display: flex; align-items: center;
+    gap: 0;
+    padding: 24px 0;
+  }
+  .appr-step {
+    flex: 1;
+    display: flex; flex-direction: column;
+    align-items: center;
+    text-align: center;
+    position: relative;
+  }
+  .appr-step-circle {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 8px;
+    transition: all 0.4s ease;
+    position: relative; z-index: 2;
+  }
+  .appr-step.done .appr-step-circle {
+    background: rgba(110,231,160,0.1);
+    border-color: var(--emerald);
+    color: var(--emerald);
+  }
+  .appr-step.current .appr-step-circle {
+    background: rgba(201,169,97,0.1);
+    border-color: var(--gold);
+    color: var(--gold-bright);
+    box-shadow: 0 0 20px rgba(201,169,97,0.3);
+    animation: pulseStep 1.8s infinite;
+  }
+  @keyframes pulseStep {
+    0%,100% { box-shadow: 0 0 20px rgba(201,169,97,0.3); }
+    50% { box-shadow: 0 0 30px rgba(201,169,97,0.5); }
+  }
+  .appr-step-label { font-size: 11px; color: var(--text-mute); }
+  .appr-step.done .appr-step-label,
+  .appr-step.current .appr-step-label { color: var(--text-dim); }
+  .appr-step-name { font-size: 12px; color: var(--text); margin-top: 2px; font-weight: 400; }
+
+  .appr-connector {
+    position: absolute; top: 17px;
+    height: 1px; background: rgba(255,255,255,0.06);
+    z-index: 1;
+    left: 50%; right: -50%;
+  }
+  .appr-connector.done { background: rgba(110,231,160,0.3); }
+  .appr-step:last-child .appr-connector { display: none; }
+
+  /* ===== Two-column layout ===== */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 60px;
+  }
+  @media (max-width: 1000px) {
+    .two-col { grid-template-columns: 1fr; gap: 40px; }
+  }
+
+  /* ===== Animations ===== */
+  .fade-in { opacity: 0; animation: fadeIn 0.9s cubic-bezier(0.16,1,0.3,1) forwards; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  .f1 { animation-delay: 0.05s; } .f2 { animation-delay: 0.15s; } .f3 { animation-delay: 0.25s; }
+  .f4 { animation-delay: 0.35s; } .f5 { animation-delay: 0.45s; } .f6 { animation-delay: 0.55s; }
+
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* ===== Sidebar ===== */
+  .side {
+    position: fixed; top: 0; right: 0; bottom: 0; width: 60px;
+    z-index: 30; display: flex; flex-direction: column; align-items: center;
+    padding: 28px 0; gap: 4px; border-left: 1px solid var(--line);
+  }
+  .side-icon {
+    width: 40px; height: 40px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-mute); cursor: pointer; transition: all 0.3s ease;
+    position: relative;
+  }
+  .side-icon:hover { color: var(--text); }
+  .side-icon.active { color: var(--gold-bright); }
+  .side-icon.active::after {
+    content: ''; position: absolute; right: -10px;
+    width: 3px; height: 3px; border-radius: 50%; background: var(--gold);
+  }
+  .main { padding-right: 60px; position: relative; z-index: 10; }
+  @media (max-width: 900px) {
+    .side { width: 100%; height: 56px; top: auto; bottom: 0; right: 0; flex-direction: row; padding: 0 16px; justify-content: space-around; border-left: none; border-top: 1px solid var(--line); }
+    .main { padding-right: 0; padding-bottom: 72px; }
+    .pr-row { grid-template-columns: 110px 1fr auto; gap: 14px; padding: 16px 4px; }
+    .pr-row > *:nth-child(3),
+    .pr-row > *:nth-child(4) { display: none; }
+  }
+
+  /* ===== Toast ===== */
+  .toast-wrap { position: fixed; top: 24px; left: 50%; transform: translateX(-50%); z-index: 999; display: flex; flex-direction: column; gap: 10px; align-items: center; }
+  .toast-min {
+    padding: 12px 22px; border-radius: 99px;
+    background: rgba(14,16,24,0.95); backdrop-filter: blur(20px);
+    border: 1px solid rgba(201,169,97,0.2);
+    font-size: 13px; color: var(--text);
+    display: flex; align-items: center; gap: 12px;
+    animation: fadeIn 0.5s cubic-bezier(0.16,1,0.3,1);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    white-space: nowrap;
+  }
+
+  /* ===== Detail card ===== */
+  .detail-card {
+    padding: 28px;
+    border-radius: 20px;
+    background: linear-gradient(180deg, rgba(201,169,97,0.03), transparent);
+    border: 1px solid var(--line-strong);
+  }
+
+  .info-row {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 20px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 13px;
+    align-items: baseline;
+  }
+  .info-row:last-child { border-bottom: none; }
+  .info-row .k { color: var(--text-mute); font-size: 12px; }
+  .info-row .v { color: var(--text); }
+  .info-row .v.mono { font-family: 'Inter'; font-weight: 400; letter-spacing: 0.02em; }
+
+  /* ===== Item line ===== */
+  .item-line {
+    display: grid;
+    grid-template-columns: 40px 1fr 100px 100px 120px;
+    gap: 16px;
+    align-items: center;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 13px;
+  }
+  .item-line:last-child { border-bottom: none; }
+  .item-num {
+    width: 26px; height: 26px; border-radius: 8px;
+    background: rgba(201,169,97,0.06);
+    border: 1px solid rgba(201,169,97,0.15);
+    color: var(--gold);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Inter'; font-size: 11px;
+  }
+  .item-line .col-right { text-align: left; font-family: 'Inter'; font-weight: 300; }
+
+  @media (max-width: 700px) {
+    .item-line { grid-template-columns: 34px 1fr auto; gap: 12px; }
+    .item-line > *:nth-child(3),
+    .item-line > *:nth-child(4) { display: none; }
+  }
+</style>
+</head>
+<body class="min-h-screen">
+
+<div class="aura"></div>
+<div class="toast-wrap" id="toastWrap"></div>
+
+<!-- ========== SIDEBAR ========== -->
+<aside class="side">
+  <div class="mb-6">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#E8CE8B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 3v18M5 8l7-5 7 5M5 8l-2 8h4zM19 8l2 8h-4z"/>
+    </svg>
+  </div>
+  <div class="side-icon" data-page="home" title="الرئيسية">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+  </div>
+  <div class="side-icon active" data-page="pr" title="طلبات الشراء">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg>
+  </div>
+  <div class="side-icon" data-page="offers" title="العروض">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+  </div>
+  <div class="side-icon" data-page="compare" title="المقارنة">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="12" y1="3" x2="12" y2="21"/><polyline points="5 8 12 3 19 8"/><path d="M3 8l-1 6h8L9 8M21 8l1 6h-8l1-6"/></svg>
+  </div>
+  <div class="side-icon" data-page="suppliers" title="الموردون">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+  </div>
+  <div class="side-icon" data-page="reports" title="التقارير">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+  </div>
+  <div class="flex-1"></div>
+  <div class="side-icon" id="soundToggle" title="الصوت" style="color: var(--gold);">
+    <svg id="soundOn" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+    <svg id="soundOff" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="display:none;"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+  </div>
+</aside>
+
+<!-- ========== MAIN ========== -->
+<main class="main">
+  <div class="max-w-[1200px] mx-auto px-8 md:px-14 py-12 md:py-16">
+
+    <!-- ============ VIEW: LIST ============ -->
+    <div class="view active" id="viewList">
+
+      <!-- Header -->
+      <header class="flex items-center justify-between mb-16 fade-in f1">
+        <div class="flex items-center gap-8">
+          <span class="label">MIZAN</span>
+          <div class="hairline-gold w-12 hidden md:block"></div>
+          <span class="eyebrow hidden md:block">طلبات الشراء</span>
+        </div>
+        <button class="btn-primary" onclick="openCreate()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          طلب شراء جديد
+        </button>
+      </header>
+
+      <!-- Hero -->
+      <section class="mb-20 fade-in f2">
+        <p class="label mb-6">إجمالي الطلبات المفتوحة</p>
+        <div class="flex items-baseline gap-6 flex-wrap">
+          <h1 class="hero-number">
+            <span id="openCount">0</span>
+          </h1>
+          <div class="flex items-center gap-2 mb-4">
+            <span class="dot" style="background: var(--amber); box-shadow: 0 0 8px var(--amber);"></span>
+            <span style="color: var(--amber); font-size: 13px;">3 بانتظار موافقتك</span>
+          </div>
+        </div>
+        <div class="hairline mt-10"></div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-8 mt-8 max-w-3xl">
+          <div>
+            <p class="label mb-2">مسودات</p>
+            <p style="font-size: 22px; font-family: 'Inter'; font-weight: 300;" data-count="4">0</p>
+          </div>
+          <div>
+            <p class="label mb-2">قيد الموافقة</p>
+            <p style="font-size: 22px; font-family: 'Inter'; font-weight: 300; color: var(--amber);" data-count="7">0</p>
+          </div>
+          <div>
+            <p class="label mb-2">معتمدة هذا الشهر</p>
+            <p style="font-size: 22px; font-family: 'Inter'; font-weight: 300; color: var(--emerald);" data-count="18">0</p>
+          </div>
+          <div>
+            <p class="label mb-2">متوسط الموافقة</p>
+            <p style="font-size: 22px; font-family: 'Inter'; font-weight: 300;">2.4 يوم</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Filters -->
+      <section class="mb-8 fade-in f3">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <div class="filter-bar">
+            <button class="filter-chip active" data-filter="all">الكل <span class="count" id="countAll">0</span></button>
+            <button class="filter-chip" data-filter="draft">مسودة <span class="count" id="countDraft">0</span></button>
+            <button class="filter-chip" data-filter="pending">قيد الموافقة <span class="count" id="countPending">0</span></button>
+            <button class="filter-chip" data-filter="approved">معتمدة <span class="count" id="countApproved">0</span></button>
+            <button class="filter-chip" data-filter="rejected">مرفوضة <span class="count" id="countRejected">0</span></button>
+            <button class="filter-chip" data-filter="converted">تحولت إلى PO <span class="count" id="countConverted">0</span></button>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 10px; padding: 10px 18px; border-radius: 99px; background: rgba(255,255,255,0.02); border: 1px solid var(--line); max-width: 320px; flex: 1;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-mute)" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="searchInput" placeholder="ابحث برقم الطلب، العنوان، مقدم الطلب..." style="flex: 1; background: transparent; border: none; outline: none; color: var(--text); font-size: 13px; font-family: inherit;">
+          </div>
+        </div>
+      </section>
+
+      <!-- List -->
+      <section class="fade-in f4">
+        <div id="prList"></div>
+      </section>
+
+      <footer class="mt-24 fade-in f5">
+        <div class="hairline mb-6"></div>
+        <div class="flex items-center justify-between flex-wrap gap-4">
+          <p class="label">MIZAN · PURCHASE REQUESTS</p>
+          <p class="eyebrow" id="footerCount">— طلب</p>
+        </div>
+      </footer>
+
+    </div>
+
+    <!-- ============ VIEW: DETAIL ============ -->
+    <div class="view" id="viewDetail">
+
+      <header class="flex items-center justify-between mb-12 fade-in f1">
+        <div class="flex items-center gap-8">
+          <span class="back-link" onclick="backToList()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+            كل الطلبات
+          </span>
+          <div class="hairline-gold w-12 hidden md:block"></div>
+          <span class="eyebrow hidden md:block" id="detailId">PR-2025-0142</span>
+        </div>
+        <div class="flex items-center gap-3">
+          <button class="btn-outline" onclick="printPR()">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            طباعة
+          </button>
+          <button class="btn-primary" onclick="approvePR()" id="approveBtn">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+            اعتماد الطلب
+          </button>
+        </div>
+      </header>
+
+      <div class="two-col">
+
+        <div>
+          <section class="mb-10 fade-in f2">
+            <h1 class="display" style="font-size: clamp(28px, 4vw, 44px); margin-bottom: 12px;" id="detailTitle">
+              توريد أجهزة شبكات — الدفعة الثالثة
+            </h1>
+            <div class="flex items-center gap-6 flex-wrap">
+              <span id="detailStatusPill" class="stat-pill pill-pending">
+                <span class="dot" style="background: var(--amber);"></span>
+                قيد الموافقة
+              </span>
+              <span class="eyebrow" id="detailMeta">طلبه محمد العمري · قسم تقنية المعلومات · قبل 3 أيام</span>
+            </div>
+          </section>
+
+          <!-- Approval flow -->
+          <section class="mb-12 fade-in f3">
+            <p class="label mb-4">مسار الموافقات</p>
+            <div class="approval-flow" id="approvalFlow">
+              <!-- Populated by JS -->
+            </div>
+          </section>
+
+          <!-- Info grid -->
+          <section class="mb-12 fade-in f4">
+            <p class="label mb-4">تفاصيل الطلب</p>
+            <div class="detail-card" style="padding: 4px 28px;">
+              <div class="info-row">
+                <span class="k">القسم الطالب</span>
+                <span class="v">تقنية المعلومات</span>
+              </div>
+              <div class="info-row">
+                <span class="k">مقدم الطلب</span>
+                <span class="v">محمد العمري · مدير البنية التحتية</span>
+              </div>
+              <div class="info-row">
+                <span class="k">الميزانية المخصصة</span>
+                <span class="v mono">$280,000</span>
+              </div>
+              <div class="info-row">
+                <span class="k">مركز التكلفة</span>
+                <span class="v mono">CC-IT-0420</span>
+              </div>
+              <div class="info-row">
+                <span class="k">تاريخ الحاجة</span>
+                <span class="v">15 نوفمبر 2025</span>
+              </div>
+              <div class="info-row">
+                <span class="k">الأولوية</span>
+                <span class="v" style="color: var(--amber);">عادية</span>
+              </div>
+              <div class="info-row">
+                <span class="k">المبرر</span>
+                <span class="v" style="line-height: 1.8;">توسعة مركز البيانات الفرعي لتغطية 4 مواقع جديدة. البنية الحالية لا تستوعب الزيادة المتوقعة بـ 40% في عدد المستخدمين.</span>
+              </div>
+            </div>
+          </section>
+
+          <!-- Items -->
+          <section class="mb-12 fade-in f5">
+            <div class="flex items-baseline justify-between mb-4">
+              <p class="label">الأصناف المطلوبة</p>
+              <span class="eyebrow">12 صنفاً · إجمالي 248,000$</span>
+            </div>
+            <div class="detail-card" style="padding: 4px 28px;">
+              <div class="item-line">
+                <div class="item-num">01</div>
+                <div>
+                  <p style="color: var(--text);">Switch Cisco Catalyst 9300 — 48 port</p>
+                  <p class="pr-meta">Cisco · 5 سنوات ضمان</p>
+                </div>
+                <div class="col-right">4</div>
+                <div class="col-right">$8,400</div>
+                <div class="col-right" style="color: var(--gold-bright);">$33,600</div>
+              </div>
+              <div class="item-line">
+                <div class="item-num">02</div>
+                <div>
+                  <p style="color: var(--text);">Firewall Fortinet FortiGate 600F</p>
+                  <p class="pr-meta">Fortinet · ترخيص 3 سنوات</p>
+                </div>
+                <div class="col-right">2</div>
+                <div class="col-right">$18,500</div>
+                <div class="col-right" style="color: var(--gold-bright);">$37,000</div>
+              </div>
+              <div class="item-line">
+                <div class="item-num">03</div>
+                <div>
+                  <p style="color: var(--text);">UPS APC Smart-UPS 10KVA</p>
+                  <p class="pr-meta">APC · مع بطاريات ممتدة</p>
+                </div>
+                <div class="col-right">3</div>
+                <div class="col-right">$12,200</div>
+                <div class="col-right" style="color: var(--gold-bright);">$36,600</div>
+              </div>
+              <div class="item-line">
+                <div class="item-num">04</div>
+                <div>
+                  <p style="color: var(--text);">Rack 42U مع نظام تبريد</p>
+                  <p class="pr-meta">Rittal · مع تبريد جانبي</p>
+                </div>
+                <div class="col-right">4</div>
+                <div class="col-right">$9,800</div>
+                <div class="col-right" style="color: var(--gold-bright);">$39,200</div>
+              </div>
+              <div class="item-line" style="opacity: 0.5;">
+                <div class="item-num">…</div>
+                <div>
+                  <p style="color: var(--text);">8 أصناف إضافية</p>
+                  <p class="pr-meta">عرض الكل</p>
+                </div>
+                <div class="col-right">—</div>
+                <div class="col-right">—</div>
+                <div class="col-right">$101,600</div>
+              </div>
+            </div>
+          </section>
+
+        </div>
+
+        <!-- Right sidebar -->
+        <aside>
+          <section class="mb-10 fade-in f3">
+            <p class="label mb-4">التوقيتات</p>
+            <div class="detail-card">
+              <div class="info-row">
+                <span class="k">أُنشئ</span>
+                <span class="v mono">2025-10-05</span>
+              </div>
+              <div class="info-row">
+                <span class="k">آخر تحديث</span>
+                <span class="v mono">قبل 4 ساعات</span>
+              </div>
+              <div class="info-row">
+                <span class="k">مفتوح منذ</span>
+                <span class="v mono" style="color: var(--amber);">3 أيام</span>
+              </div>
+              <div class="info-row">
+                <span class="k">متوسط المرحلة</span>
+                <span class="v mono">1.2 يوم</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="mb-10 fade-in f4">
+            <p class="label mb-4">الأثر المالي</p>
+            <div class="detail-card">
+              <div class="info-row">
+                <span class="k">المبلغ المطلوب</span>
+                <span class="v mono" style="color: var(--gold-bright); font-size: 16px;">$248,000</span>
+              </div>
+              <div class="info-row">
+                <span class="k">الميزانية</span>
+                <span class="v mono">$280,000</span>
+              </div>
+              <div class="info-row">
+                <span class="k">المتبقي</span>
+                <span class="v mono" style="color: var(--emerald);">$32,000</span>
+              </div>
+              <div class="info-row">
+                <span class="k">نسبة الاستهلاك</span>
+                <span class="v mono">88.6%</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="fade-in f5">
+            <p class="label mb-4">إجراءات سريعة</p>
+            <div class="space-y-2">
+              <button class="btn-min" onclick="playTone(660,0.08); showToast('→ فتح RFQ', 'info')">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                إرسال RFQ للموردين
+              </button>
+              <button class="btn-min" onclick="playTone(660,0.08); showToast('→ محادثة مع مقدم الطلب', 'info')">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                محادثة مع مقدم الطلب
+              </button>
+              <button class="btn-min" onclick="playTone(660,0.08); showToast('→ طلب تعديل', 'info')">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                طلب تعديل
+              </button>
+              <button class="btn-min" onclick="rejectPR()" style="color: var(--rose);">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                رفض الطلب
+              </button>
+            </div>
+          </section>
+        </aside>
+
+      </div>
+    </div>
+
+    <!-- ============ VIEW: CREATE ============ -->
+    <div class="view" id="viewCreate">
+
+      <header class="flex items-center justify-between mb-12 fade-in f1">
+        <div class="flex items-center gap-8">
+          <span class="back-link" onclick="backToList()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+            إلغاء
+          </span>
+          <div class="hairline-gold w-12 hidden md:block"></div>
+          <span class="eyebrow hidden md:block">طلب شراء جديد</span>
+        </div>
+        <div class="flex items-center gap-3">
+          <button class="btn-outline" onclick="saveDraft()">حفظ كمسودة</button>
+          <button class="btn-primary" onclick="submitPR()">
+            إرسال للاعتماد
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <section class="mb-12 fade-in f2" style="max-width: 720px;">
+        <h1 class="display" style="font-size: clamp(32px, 5vw, 52px); margin-bottom: 12px;">
+          طلب شراء <span style="color: var(--gold-bright); font-weight: 300;">جديد</span>
+        </h1>
+        <p class="eyebrow" style="line-height: 1.9;">املأ التفاصيل، أضف الأصناف، وأرسله لسلسلة الاعتماد.</p>
+      </section>
+
+      <section class="mb-12 fade-in f3" style="max-width: 720px;">
+        <p class="label mb-6">المعلومات الأساسية</p>
+
+        <div class="mb-6">
+          <label class="form-label">عنوان الطلب</label>
+          <input type="text" class="input-field" placeholder="مثال: توريد أجهزة شبكات — الدفعة الرابعة" id="newTitle">
+        </div>
+
+        <div class="form-grid mb-6">
+          <div>
+            <label class="form-label">القسم</label>
+            <select class="input-field">
+              <option>تقنية المعلومات</option>
+              <option>العمليات</option>
+              <option>المالية</option>
+              <option>الموارد البشرية</option>
+              <option>التسويق</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label">الأولوية</label>
+            <select class="input-field">
+              <option>عادية</option>
+              <option>عالية</option>
+              <option>عاجلة</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-grid mb-6">
+          <div>
+            <label class="form-label">تاريخ الحاجة</label>
+            <input type="date" class="input-field">
+          </div>
+          <div>
+            <label class="form-label">الميزانية المخصصة ($)</label>
+            <input type="number" class="input-field" placeholder="280000">
+          </div>
+        </div>
+
+        <div class="mb-6">
+          <label class="form-label">المبرر</label>
+          <textarea class="input-field" placeholder="اشرح لماذا هذا الطلب ضروري..."></textarea>
+        </div>
+      </section>
+
+      <section class="mb-12 fade-in f4" style="max-width: 720px;">
+        <div class="flex items-baseline justify-between mb-6">
+          <p class="label">الأصناف</p>
+          <button class="btn-outline" onclick="addItem()">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            إضافة صنف
+          </button>
+        </div>
+
+        <div id="itemsContainer">
+          <div class="detail-card mb-4" style="padding: 20px;">
+            <div class="form-grid mb-3">
+              <input type="text" class="input-field" placeholder="اسم الصنف">
+              <input type="text" class="input-field" placeholder="المواصفات (اختياري)">
+            </div>
+            <div style="display: grid; grid-template-columns: 100px 140px 1fr; gap: 14px; align-items: center;">
+              <input type="number" class="input-field" placeholder="الكمية" value="1">
+              <input type="number" class="input-field" placeholder="سعر الوحدة">
+              <div style="text-align: left; font-family: 'Inter'; color: var(--text-mute); font-size: 13px;">الإجمالي: —</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="mb-12 fade-in f5" style="max-width: 720px;">
+        <p class="label mb-6">سلسلة الموافقات المتوقعة</p>
+        <div class="approval-flow" id="createFlow">
+          <div class="appr-step">
+            <div class="appr-step-circle">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            </div>
+            <span class="appr-step-label">القسم</span>
+            <span class="appr-step-name">مدير البنية</span>
+          </div>
+          <div class="appr-step">
+            <div class="appr-step-circle">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+            </div>
+            <span class="appr-step-label">المشتريات</span>
+            <span class="appr-step-name">أنت</span>
+          </div>
+          <div class="appr-step">
+            <div class="appr-step-circle">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            </div>
+            <span class="appr-step-label">المالية</span>
+            <span class="appr-step-name">سارة العلي</span>
+          </div>
+          <div class="appr-step">
+            <div class="appr-step-circle">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2z"/><path d="M12 6v6l4 2"/></svg>
+            </div>
+            <span class="appr-step-label">التنفيذي</span>
+            <span class="appr-step-name">م. أحمد</span>
+          </div>
+        </div>
+        <p class="eyebrow" style="margin-top: 16px; font-size: 12px;">
+          ⓘ بما أن المبلغ $248,000 يتجاوز حد $100,000، فسيصل الطلب للموافقة التنفيذية.
+        </p>
+      </section>
+
+    </div>
+
+  </div>
+</main>
+
+<script>
+/* ============ AUDIO ============ */
+let soundOn = true, audioCtx;
+function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+function playTone(freq, dur, type='sine', vol=0.06) {
+  if (!soundOn) return;
+  initAudio();
+  const o = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  o.type = type; o.frequency.value = freq;
+  g.gain.setValueAtTime(0, audioCtx.currentTime);
+  g.gain.linearRampToValueAtTime(vol, audioCtx.currentTime + 0.01);
+  g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+  o.connect(g); g.connect(audioCtx.destination);
+  o.start(); o.stop(audioCtx.currentTime + dur);
+}
+
+document.getElementById('soundToggle').addEventListener('click', function() {
+  soundOn = !soundOn;
+  document.getElementById('soundOn').style.display = soundOn ? 'block' : 'none';
+  document.getElementById('soundOff').style.display = soundOn ? 'none' : 'block';
+  this.style.color = soundOn ? 'var(--gold)' : 'var(--text-mute)';
+  if (soundOn) playTone(880, 0.1);
+});
+
+/* ============ TOAST ============ */
+function showToast(text, type = 'info') {
+  const colors = { info: 'var(--ice)', success: 'var(--emerald)', warning: 'var(--gold)', danger: 'var(--rose)' };
+  const t = document.createElement('div');
+  t.className = 'toast-min';
+  t.innerHTML = `<span class="dot" style="background: ${colors[type]}; box-shadow: 0 0 8px ${colors[type]};"></span>${text}`;
+  document.getElementById('toastWrap').appendChild(t);
+  setTimeout(() => {
+    t.style.opacity = '0'; t.style.transform = 'translateY(-20px)';
+    t.style.transition = 'all 0.4s ease';
+    setTimeout(() => t.remove(), 400);
+  }, 4500);
+}
+
+/* ============ DATA ============ */
+const requests = [
+  {
+    id: 'PR-2025-0142',
+    title: 'توريد أجهزة شبكات — الدفعة الثالثة',
+    requester: 'محمد العمري',
+    department: 'تقنية المعلومات',
+    amount: 248000,
+    status: 'pending',
+    step: 2,
+    daysOpen: 3,
+    items: 12
+  },
+  {
+    id: 'PR-2025-0141',
+    title: 'صيانة سنوية لنظام التكييف المركزي',
+    requester: 'خالد السالم',
+    department: 'العمليات',
+    amount: 86500,
+    status: 'pending',
+    step: 1,
+    daysOpen: 1,
+    items: 3
+  },
+  {
+    id: 'PR-2025-0140',
+    title: 'تراخيص Adobe Creative Cloud — 50 مستخدم',
+    requester: 'نور الهاشم',
+    department: 'التسويق',
+    amount: 24000,
+    status: 'approved',
+    step: 4,
+    daysOpen: 2,
+    items: 1
+  },
+  {
+    id: 'PR-2025-0139',
+    title: 'أجهزة حاسوب محمولة للفريق الجديد',
+    requester: 'ريم خليل',
+    department: 'الموارد البشرية',
+    amount: 42000,
+    status: 'converted',
+    step: 4,
+    daysOpen: 6,
+    items: 15
+  },
+  {
+    id: 'PR-2025-0138',
+    title: 'تراخيص برمجيات ERP إضافية',
+    requester: 'سامي الدرويش',
+    department: 'تقنية المعلومات',
+    amount: 156000,
+    status: 'pending',
+    step: 2,
+    daysOpen: 4,
+    items: 8
+  },
+  {
+    id: 'PR-2025-0137',
+    title: 'توريد أثاث مكتبي للقسم الجديد',
+    requester: 'ليلى منصور',
+    department: 'الموارد البشرية',
+    amount: 68000,
+    status: 'rejected',
+    step: 3,
+    daysOpen: 8,
+    items: 22
+  },
+  {
+    id: 'PR-2025-0136',
+    title: 'خدمات استشارية لأمن المعلومات',
+    requester: 'فيصل النعيمي',
+    department: 'تقنية المعلومات',
+    amount: 95000,
+    status: 'draft',
+    step: 0,
+    daysOpen: 0,
+    items: 1
+  }
+];
+
+const statusConfig = {
+  draft:     { label: 'مسودة',           cls: 'pill-draft',      color: 'var(--text-mute)' },
+  pending:   { label: 'قيد الموافقة',    cls: 'pill-pending',    color: 'var(--amber)' },
+  approved:  { label: 'معتمدة',          cls: 'pill-approved',   color: 'var(--emerald)' },
+  rejected:  { label: 'مرفوضة',          cls: 'pill-rejected',   color: 'var(--rose)' },
+  converted: { label: 'تحولت إلى PO',    cls: 'pill-converted',  color: 'var(--ice)' }
+};
+
+const approvalChain = ['مدير القسم', 'المشتريات', 'المالية', 'التنفيذي'];
+
+/* ============ FORMAT ============ */
+function formatMoney(n) {
+  if (n >= 1000000) return '$' + (n / 1000000).toFixed(2) + 'M';
+  if (n >= 1000) return '$' + (n / 1000).toFixed(0) + 'K';
+  return '$' + n;
+}
+
+/* ============ RENDER LIST ============ */
+let activeFilter = 'all';
+let searchTerm = '';
+
+function renderList() {
+  const list = document.getElementById('prList');
+  list.innerHTML = '';
+
+  let filtered = requests.filter(r => {
+    if (activeFilter !== 'all' && r.status !== activeFilter) return false;
+    if (searchTerm && !r.id.toLowerCase().includes(searchTerm.toLowerCase()) &&
+        !r.title.toLowerCase().includes(searchTerm.toLowerCase()) &&
+        !r.requester.toLowerCase().includes(searchTerm.toLowerCase())) return false;
+    return true;
+  });
+
+  if (filtered.length === 0) {
+    list.innerHTML = `<div style="padding: 80px 20px; text-align: center;">
+      <p class="eyebrow">لا توجد طلبات مطابقة</p>
+    </div>`;
+    document.getElementById('footerCount').textContent = '0 طلب';
+    return;
+  }
+
+  filtered.forEach((r, i) => {
+    const cfg = statusConfig[r.status];
+    const row = document.createElement('div');
+    row.className = 'pr-row';
+    row.style.animation = 'fadeIn 0.5s cubic-bezier(0.16,1,0.3,1) forwards';
+    row.style.animationDelay = (i * 0.04) + 's';
+    row.style.opacity = '0';
+
+    // Approval chain mini
+    let chainHTML = '<div class="appr-chain">';
+    for (let s = 0; s < 4; s++) {
+      let dotCls = 'appr-dot';
+      if (r.status === 'rejected' && s === r.step) dotCls += ' rejected';
+      else if (s < r.step) dotCls += ' done';
+      else if (s === r.step && r.status === 'pending') dotCls += ' current';
+      else if (r.status === 'approved' || r.status === 'converted') dotCls += ' done';
+      chainHTML += `<span class="${dotCls}"></span>`;
+      if (s < 3) {
+        const lineDone = (s < r.step || r.status === 'approved' || r.status === 'converted');
+        chainHTML += `<span class="appr-line${lineDone ? ' done' : ''}"></span>`;
+      }
+    }
+    chainHTML += '</div>';
+
+    row.innerHTML = `
+      <div>
+        <p class="pr-id">${r.id}</p>
+        <p class="pr-meta" style="margin-top: 2px;">${r.items} صنف</p>
+      </div>
+      <div>
+        <p class="pr-title">${r.title}</p>
+        <p class="pr-meta">${r.requester} · ${r.department}</p>
+      </div>
+      <div>
+        ${chainHTML}
+        <p class="pr-meta" style="margin-top: 6px;">${r.status === 'pending' ? 'بانتظار ' + approvalChain[r.step] : statusConfig[r.status].label}</p>
+      </div>
+      <div style="text-align: left;">
+        <p class="pr-amount">${formatMoney(r.amount)}</p>
+      </div>
+      <div style="text-align: left;">
+        <span class="stat-pill ${cfg.cls}">
+          <span class="dot" style="background: ${cfg.color}; box-shadow: 0 0 6px ${cfg.color};"></span>
+          ${cfg.label}
+        </span>
+      </div>
+    `;
+    row.onclick = () => openDetail(r);
+    list.appendChild(row);
+  });
+
+  document.getElementById('footerCount').textContent = filtered.length + ' طلب';
+}
+
+/* ============ COUNTS ============ */
+function updateCounts() {
+  document.getElementById('countAll').textContent = requests.length;
+  document.getElementById('countDraft').textContent = requests.filter(r => r.status === 'draft').length;
+  document.getElementById('countPending').textContent = requests.filter(r => r.status === 'pending').length;
+  document.getElementById('countApproved').textContent = requests.filter(r => r.status === 'approved').length;
+  document.getElementById('countRejected').textContent = requests.filter(r => r.status === 'rejected').length;
+  document.getElementById('countConverted').textContent = requests.filter(r => r.status === 'converted').length;
+  document.getElementById('openCount').textContent = requests.filter(r => r.status === 'pending' || r.status === 'draft').length;
+}
+
+/* ============ FILTERS ============ */
+document.querySelectorAll('.filter-chip').forEach(chip => {
+  chip.addEventListener('click', function() {
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+    this.classList.add('active');
+    activeFilter = this.dataset.filter;
+    playTone(660, 0.06);
+    renderList();
+  });
+});
+
+document.getElementById('searchInput').addEventListener('input', e => {
+  searchTerm = e.target.value;
+  renderList();
+});
+
+/* ============ VIEWS ============ */
+function showView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view' + name.charAt(0).toUpperCase() + name.slice(1)).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* ============ DETAIL ============ */
+let currentPR = null;
+
+function openDetail(r) {
+  currentPR = r;
+  document.getElementById('detailId').textContent = r.id;
+  document.getElementById('detailTitle').textContent = r.title;
+  document.getElementById('detailMeta').textContent = `${r.requester} · ${r.department} · قبل ${r.daysOpen} أيام`;
+
+  const cfg = statusConfig[r.status];
+  const pill = document.getElementById('detailStatusPill');
+  pill.className = 'stat-pill ' + cfg.cls;
+  pill.innerHTML = `<span class="dot" style="background: ${cfg.color}; box-shadow: 0 0 6px ${cfg.color};"></span>${cfg.label}`;
+
+  // Approval flow
+  const flow = document.getElementById('approvalFlow');
+  flow.innerHTML = '';
+  approvalChain.forEach((name, i) => {
+    const step = document.createElement('div');
+    let cls = 'appr-step';
+    let icon = '';
+    if (r.status === 'rejected' && i === r.step) {
+      cls += ' rejected';
+      icon = '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>';
+    } else if (i < r.step || r.status === 'approved' || r.status === 'converted') {
+      cls += ' done';
+      icon = '<polyline points="20 6 9 17 4 12"/>';
+    } else if (i === r.step && r.status === 'pending') {
+      cls += ' current';
+      icon = '<circle cx="12" cy="12" r="3"/>';
+    } else {
+      icon = '<circle cx="12" cy="12" r="3"/>';
+    }
+
+    step.className = cls;
+    step.innerHTML = `
+      <div class="appr-step-circle">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">${icon}</svg>
+      </div>
+      <span class="appr-step-label">${name}</span>
+      <span class="appr-step-name">${i === 0 ? r.requester : i === 1 ? 'أنت' : i === 2 ? 'سارة العلي' : 'م. أحمد'}</span>
+      ${i < 3 ? `<div class="appr-connector${i < r.step ? ' done' : ''}"></div>` : ''}
+    `;
+    flow.appendChild(step);
+  });
+
+  // Approve button
+  const btn = document.getElementById('approveBtn');
+  if (r.status === 'pending' && r.step === 1) {
+    btn.style.display = 'inline-flex';
+  } else {
+    btn.style.display = 'none';
+  }
+
+  showView('detail');
+  playTone(660, 0.08);
+}
+
+function backToList() {
+  showView('list');
+  playTone(500, 0.08);
+}
+
+function openCreate() {
+  showView('create');
+  playTone(660, 0.08);
+  setTimeout(() => playTone(880, 0.1), 80);
+}
+
+function approvePR() {
+  if (!currentPR) return;
+  playTone(660, 0.1);
+  setTimeout(() => playTone(880, 0.12), 100);
+  setTimeout(() => playTone(1174, 0.2), 200);
+  showToast('✅ تم اعتماد الطلب — سيُحوّل للقسم التالي', 'success');
+  setTimeout(() => {
+    currentPR.status = 'pending';
+    currentPR.step = Math.min(3, currentPR.step + 1);
+    if (currentPR.step === 3) currentPR.status = 'approved';
+    backToList();
+    renderList();
+    updateCounts();
+  }, 1500);
+}
+
+function rejectPR() {
+  playTone(330, 0.15, 'triangle', 0.08);
+  showToast('⚠️ سيُطلب سبب الرفض', 'warning');
+  if (currentPR) {
+    currentPR.status = 'rejected';
+    currentPR.step = currentPR.step;
+  }
+  setTimeout(() => {
+    backToList();
+    renderList();
+    updateCounts();
+  }, 1500);
+}
+
+function printPR() {
+  playTone(880, 0.1);
+  showToast('🖨️ جارٍ تجهيز الملف للطباعة', 'info');
+}
+
+/* ============ CREATE FLOW ============ */
+function addItem() {
+  const container = document.getElementById('itemsContainer');
+  const div = document.createElement('div');
+  div.className = 'detail-card mb-4';
+  div.style.padding = '20px';
+  div.style.animation = 'fadeIn 0.5s cubic-bezier(0.16,1,0.3,1)';
+  div.innerHTML = `
+    <div class="form-grid mb-3">
+      <input type="text" class="input-field" placeholder="اسم الصنف">
+      <input type="text" class="input-field" placeholder="المواصفات (اختياري)">
+    </div>
+    <div style="display: grid; grid-template-columns: 100px 140px 1fr; gap: 14px; align-items: center;">
+      <input type="number" class="input-field" placeholder="الكمية" value="1">
+      <input type="number" class="input-field" placeholder="سعر الوحدة">
+      <div style="text-align: left; font-family: 'Inter'; color: var(--text-mute); font-size: 13px;">الإجمالي: —</div>
+    </div>
+  `;
+  container.appendChild(div);
+  playTone(660, 0.08);
+}
+
+function saveDraft() {
+  playTone(660, 0.08);
+  showToast('📝 تم حفظ الطلب كمسودة', 'info');
+  setTimeout(() => backToList(), 1000);
+}
+
+function submitPR() {
+  playTone(660, 0.1); setTimeout(() => playTone(880, 0.15), 100); setTimeout(() => playTone(1174, 0.2), 220);
+  showToast('✅ تم إرسال الطلب للاعتماد', 'success');
+  setTimeout(() => {
+    const newPR = {
+      id: 'PR-2025-' + (143 + Math.floor(Math.random() * 100)),
+      title: document.getElementById('newTitle').value || 'طلب شراء جديد',
+      requester: 'أنت',
+      department: 'تقنية المعلومات',
+      amount: 100000 + Math.random() * 200000,
+      status: 'pending',
+      step: 0,
+      daysOpen: 0,
+      items: 1
+    };
+    requests.unshift(newPR);
+    backToList();
+    renderList();
+    updateCounts();
+  }, 1500);
+}
+
+/* ============ COUNTERS ============ */
+function animateCount(el) {
+  const target = parseInt(el.dataset.count);
+  const dur = 1400;
+  const start = performance.now();
+  function step(now) {
+    const p = Math.min((now - start) / dur, 1);
+    const eased = 1 - Math.pow(1 - p, 4);
+    el.textContent = Math.floor(target * eased).toLocaleString('en-US');
+    if (p < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+/* ============ NAV ============ */
+document.querySelectorAll('.side-icon[data-page]').forEach(n => {
+  n.addEventListener('click', function() {
+    document.querySelectorAll('.side-icon').forEach(x => x.classList.remove('active'));
+    this.classList.add('active');
+    playTone(660, 0.06);
+  });
+});
+
+/* ============ INIT ============ */
+window.addEventListener('load', () => {
+  document.body.addEventListener('click', () => initAudio(), { once: true });
+
+  setTimeout(() => playTone(523, 0.15, 'sine', 0.04), 400);
+  setTimeout(() => playTone(659, 0.15, 'sine', 0.04), 550);
+  setTimeout(() => playTone(784, 0.2, 'sine', 0.04), 700);
+
+  updateCounts();
+  document.querySelectorAll('[data-count]').forEach(animateCount);
+  renderList();
+});
+</script>
+</body>
+</html>

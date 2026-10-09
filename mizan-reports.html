@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MIZAN · التقارير والتحليلات</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@200;300;400;500;600&family=Inter:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #08090E;
+    --surface: #0E1018;
+    --line: rgba(255,255,255,0.05);
+    --line-strong: rgba(201,169,97,0.2);
+    --gold: #C9A961;
+    --gold-bright: #E8CE8B;
+    --copper: #B87333;
+    --ice: #9DC4E8;
+    --emerald: #6EE7A0;
+    --rose: #F0A0B0;
+    --amber: #F0C474;
+    --text: #EDEDED;
+    --text-dim: #7A8090;
+    --text-mute: #4A5060;
+  }
+  * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+  html, body {
+    background: var(--bg); color: var(--text);
+    font-family: 'IBM Plex Sans Arabic', 'Inter', sans-serif;
+    overflow-x: hidden; font-weight: 300;
+  }
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-thumb { background: rgba(201,169,97,0.15); border-radius: 10px; }
+
+  .aura {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background:
+      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(201,169,97,0.08), transparent 60%),
+      radial-gradient(ellipse 60% 40% at 100% 100%, rgba(157,196,232,0.04), transparent 60%);
+  }
+
+  .display { font-family: 'Inter', sans-serif; font-weight: 200; letter-spacing: -0.04em; line-height: 0.95; }
+  .label { font-size: 11px; letter-spacing: 0.25em; color: var(--text-mute); text-transform: uppercase; font-weight: 500; }
+  .eyebrow { font-size: 12px; color: var(--text-dim); }
+  .hairline { height: 1px; background: var(--line); }
+  .hairline-gold { height: 1px; background: linear-gradient(90deg, transparent, var(--gold), transparent); opacity: 0.5; }
+
+  .link { color: var(--text-dim); font-size: 13px; cursor: pointer; transition: color 0.3s; }
+  .link:hover { color: var(--gold-bright); }
+
+  .hero-number {
+    font-family: 'Inter', sans-serif;
+    font-weight: 200;
+    font-size: clamp(64px, 10vw, 132px);
+    letter-spacing: -0.05em;
+    line-height: 0.85;
+    background: linear-gradient(180deg, #FFFFFF 0%, #6A7080 90%);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .hero-number .unit {
+    font-size: 0.32em; color: var(--gold); -webkit-text-fill-color: var(--gold);
+    margin-right: 14px; font-weight: 300; letter-spacing: 0;
+  }
+
+  /* ===== Chart ===== */
+  .chart-wrap {
+    position: relative;
+    width: 100%;
+    padding: 20px 0;
+  }
+  .chart-svg { width: 100%; height: 260px; display: block; }
+  .chart-line {
+    fill: none;
+    stroke: url(#lineGrad);
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    filter: drop-shadow(0 0 6px rgba(232,206,139,0.3));
+  }
+  .chart-area {
+    fill: url(#areaGrad);
+  }
+  .chart-dot {
+    fill: var(--bg);
+    stroke: var(--gold-bright);
+    stroke-width: 1.5;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  .chart-dot:hover {
+    r: 6;
+    fill: var(--gold-bright);
+    filter: drop-shadow(0 0 8px var(--gold));
+  }
+  .chart-grid line {
+    stroke: rgba(255,255,255,0.04);
+    stroke-width: 1;
+    stroke-dasharray: 2 4;
+  }
+  .chart-label {
+    font-family: 'Inter';
+    font-size: 9px;
+    fill: var(--text-mute);
+    letter-spacing: 0.1em;
+  }
+
+  /* ===== Category bars ===== */
+  .cat-row {
+    display: grid;
+    grid-template-columns: 140px 1fr 80px;
+    gap: 20px;
+    align-items: center;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--line);
+    transition: all 0.4s ease;
+    cursor: pointer;
+  }
+  .cat-row:hover {
+    padding-right: 8px;
+  }
+  .cat-row:hover .cat-name { color: var(--gold-bright); }
+  .cat-name {
+    font-size: 13px; color: var(--text);
+    transition: color 0.3s ease;
+  }
+  .cat-track {
+    height: 3px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .cat-fill {
+    height: 100%;
+    border-radius: 99px;
+    transition: width 0.8s cubic-bezier(0.16,1,0.3,1);
+  }
+  .cat-value {
+    text-align: left;
+    font-family: 'Inter'; font-size: 14px;
+    font-weight: 300;
+  }
+
+  /* ===== Anomaly list ===== */
+  .anom-row {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 16px;
+    align-items: center;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--line);
+    transition: all 0.4s ease;
+    cursor: pointer;
+  }
+  .anom-row:hover {
+    padding-right: 8px;
+  }
+  .anom-row:hover .anom-title { color: var(--gold-bright); }
+  .anom-icon {
+    width: 34px; height: 34px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    border: 1px solid;
+    flex-shrink: 0;
+  }
+  .anom-title {
+    font-size: 13px; color: var(--text);
+    transition: color 0.3s ease;
+    margin-bottom: 2px;
+  }
+  .anom-meta { font-size: 11px; color: var(--text-mute); }
+  .anom-value {
+    font-family: 'Inter'; font-size: 14px;
+    font-weight: 400; text-align: left;
+  }
+
+  /* ===== KPI strip ===== */
+  .kpi-strip {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    padding: 24px 0;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  .kpi-item {
+    flex: 1;
+    display: flex; flex-direction: column;
+    padding: 0 24px;
+    border-right: 1px solid var(--line);
+  }
+  .kpi-item:last-child { border-right: none; }
+  .kpi-item:first-child { padding-right: 0; }
+  .kpi-value {
+    font-family: 'Inter'; font-weight: 300;
+    font-size: 26px; letter-spacing: -0.02em;
+    margin-top: 6px;
+  }
+  .kpi-delta {
+    font-size: 11px; margin-top: 4px;
+    display: inline-flex; align-items: center; gap: 4px;
+  }
+  @media (max-width: 700px) {
+    .kpi-strip { flex-wrap: wrap; }
+    .kpi-item { flex: 1 1 50%; border-right: none; border-bottom: 1px solid var(--line); padding: 16px; }
+    .kpi-item:last-child { border-bottom: none; }
+    .cat-row { grid-template-columns: 100px 1fr 70px; gap: 12px; }
+  }
+
+  /* ===== Time filter ===== */
+  .time-filter {
+    display: flex; align-items: center; gap: 4px;
+    padding: 4px;
+    border-radius: 99px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--line);
+    width: fit-content;
+  }
+  .time-chip {
+    padding: 8px 14px; border-radius: 99px;
+    font-size: 12px; color: var(--text-dim);
+    cursor: pointer; transition: all 0.3s ease;
+    font-family: inherit; background: transparent; border: none;
+  }
+  .time-chip:hover { color: var(--text); }
+  .time-chip.active {
+    color: var(--gold-bright);
+    background: rgba(201,169,97,0.08);
+  }
+
+  /* ===== Buttons ===== */
+  .btn-min {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 0; color: var(--gold-bright); font-size: 13px;
+    background: transparent; border: none; cursor: pointer;
+    transition: all 0.3s ease; font-family: inherit;
+  }
+  .btn-min:hover { color: var(--text); letter-spacing: 0.05em; }
+
+  .btn-outline {
+    padding: 10px 20px; border-radius: 99px;
+    background: transparent;
+    color: var(--gold-bright); font-weight: 500; font-size: 13px;
+    border: 1px solid rgba(201,169,97,0.3); cursor: pointer; font-family: inherit;
+    transition: all 0.3s ease;
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .btn-outline:hover {
+    border-color: var(--gold-bright);
+    background: rgba(201,169,97,0.05);
+  }
+
+  /* ===== Animations ===== */
+  .fade-in { opacity: 0; animation: fadeIn 0.9s cubic-bezier(0.16,1,0.3,1) forwards; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  .f1 { animation-delay: 0.05s; } .f2 { animation-delay: 0.15s; } .f3 { animation-delay: 0.25s; }
+  .f4 { animation-delay: 0.35s; } .f5 { animation-delay: 0.45s; } .f6 { animation-delay: 0.55s; }
+  .f7 { animation-delay: 0.65s; }
+
+  /* ===== Sidebar ===== */
+  .side {
+    position: fixed; top: 0; right: 0; bottom: 0; width: 60px;
+    z-index: 30; display: flex; flex-direction: column; align-items: center;
+    padding: 28px 0; gap: 4px; border-left: 1px solid var(--line);
+  }
+  .side-icon {
+    width: 40px; height: 40px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-mute); cursor: pointer; transition: all 0.3s ease;
+    position: relative;
+  }
+  .side-icon:hover { color: var(--text); }
+  .side-icon.active { color: var(--gold-bright); }
+  .side-icon.active::after {
+    content: ''; position: absolute; right: -10px;
+    width: 3px; height: 3px; border-radius: 50%; background: var(--gold);
+  }
+  .main { padding-right: 60px; position: relative; z-index: 10; }
+  @media (max-width: 800px) {
+    .side { width: 100%; height: 56px; top: auto; bottom: 0; right: 0; flex-direction: row; padding: 0 16px; justify-content: space-around; border-left: none; border-top: 1px solid var(--line); }
+    .main { padding-right: 0; padding-bottom: 72px; }
+  }
+
+  /* ===== Toast ===== */
+  .toast-wrap { position: fixed; top: 24px; left: 50%; transform: translateX(-50%); z-index: 999; display: flex; flex-direction: column; gap: 10px; align-items: center; }
+  .toast-min {
+    padding: 12px 22px; border-radius: 99px;
+    background: rgba(14,16,24,0.95); backdrop-filter: blur(20px);
+    border: 1px solid rgba(201,169,97,0.2);
+    font-size: 13px; color: var(--text);
+    display: flex; align-items: center; gap: 12px;
+    animation: fadeIn 0.5s cubic-bezier(0.16,1,0.3,1);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    white-space: nowrap;
+  }
+  .dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+
+  /* Chart tooltip */
+  .chart-tip {
+    position: absolute;
+    padding: 8px 14px;
+    border-radius: 10px;
+    background: rgba(14,16,24,0.98);
+    border: 1px solid rgba(201,169,97,0.3);
+    font-size: 11px;
+    color: var(--text);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    white-space: nowrap;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    z-index: 10;
+  }
+  .chart-tip.show { opacity: 1; }
+  .chart-tip .tip-val {
+    font-family: 'Inter'; color: var(--gold-bright);
+    font-size: 14px; display: block; margin-top: 2px;
+  }
+</style>
+</head>
+<body class="min-h-screen">
+
+<div class="aura"></div>
+<div class="toast-wrap" id="toastWrap"></div>
+
+<!-- ========== SIDEBAR ========== -->
+<aside class="side">
+  <div class="mb-6">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#E8CE8B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 3v18M5 8l7-5 7 5M5 8l-2 8h4zM19 8l2 8h-4z"/>
+    </svg>
+  </div>
+  <div class="side-icon" data-page="home" title="الرئيسية">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+  </div>
+  <div class="side-icon" data-page="offers" title="العروض">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+  </div>
+  <div class="side-icon" data-page="compare" title="المقارنة">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="12" y1="3" x2="12" y2="21"/><polyline points="5 8 12 3 19 8"/><path d="M3 8l-1 6h8L9 8M21 8l1 6h-8l1-6"/></svg>
+  </div>
+  <div class="side-icon" data-page="suppliers" title="الموردون">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+  </div>
+  <div class="side-icon active" data-page="reports" title="التقارير">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+  </div>
+  <div class="flex-1"></div>
+  <div class="side-icon" id="soundToggle" title="الصوت" style="color: var(--gold);">
+    <svg id="soundOn" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+    <svg id="soundOff" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="display:none;"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+  </div>
+</aside>
+
+<!-- ========== MAIN ========== -->
+<main class="main">
+  <div class="max-w-[1200px] mx-auto px-8 md:px-14 py-12 md:py-16">
+
+    <!-- ===== TOP BAR ===== -->
+    <header class="flex items-center justify-between mb-16 fade-in f1">
+      <div class="flex items-center gap-8">
+        <span class="label">MIZAN</span>
+        <div class="hairline-gold w-12 hidden md:block"></div>
+        <span class="eyebrow hidden md:block">التقارير والتحليلات</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <button class="btn-outline" onclick="exportPDF()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          تصدير
+        </button>
+      </div>
+    </header>
+
+    <!-- ===== HERO ===== -->
+    <section class="mb-20 fade-in f2">
+      <p class="label mb-6">إجمالي التوفير المحقق · 2025</p>
+      <div class="flex items-baseline gap-6 flex-wrap">
+        <h1 class="hero-number">
+          <span class="unit">$</span><span id="totalSavings">0</span><span class="unit" style="margin-right:0; margin-left:8px;">M</span>
+        </h1>
+        <div class="flex items-center gap-2 mb-4">
+          <span class="dot" style="background: var(--emerald); box-shadow: 0 0 8px var(--emerald);"></span>
+          <span style="color: var(--emerald); font-size: 13px;">+22.4% عن 2024</span>
+        </div>
+      </div>
+      <p class="eyebrow mt-6" style="max-width: 620px; line-height: 1.9; font-size: 13px;">
+        التوفير الناتج عن التفاوض الذكي، توحيد الموردين، وتحسين شروط الدفع — مقاساً مقابل الأسعار المرجعية للسوق.
+      </p>
+    </section>
+
+    <!-- ===== CHART SECTION ===== -->
+    <section class="mb-20 fade-in f3">
+      <div class="flex flex-wrap items-baseline justify-between gap-4 mb-8">
+        <h2 class="label">منحنى التوفير</h2>
+        <div class="time-filter">
+          <button class="time-chip" data-period="3m">3 أشهر</button>
+          <button class="time-chip" data-period="6m">6 أشهر</button>
+          <button class="time-chip active" data-period="12m">12 شهراً</button>
+          <button class="time-chip" data-period="ytd">منذ بداية العام</button>
+        </div>
+      </div>
+
+      <div class="chart-wrap" id="chartWrap">
+        <svg class="chart-svg" viewBox="0 0 1000 260" preserveAspectRatio="none" id="mainChart">
+          <defs>
+            <linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stop-color="#B87333" stop-opacity="0.6"/>
+              <stop offset="50%" stop-color="#E8CE8B"/>
+              <stop offset="100%" stop-color="#C9A961"/>
+            </linearGradient>
+            <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#C9A961" stop-opacity="0.15"/>
+              <stop offset="100%" stop-color="#C9A961" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+
+          <!-- Grid lines -->
+          <g class="chart-grid" id="chartGrid">
+            <line x1="0" y1="52" x2="1000" y2="52"/>
+            <line x1="0" y1="104" x2="1000" y2="104"/>
+            <line x1="0" y1="156" x2="1000" y2="156"/>
+            <line x1="0" y1="208" x2="1000" y2="208"/>
+          </g>
+
+          <!-- Area + Line (populated by JS) -->
+          <path class="chart-area" id="chartArea" d=""/>
+          <path class="chart-line" id="chartLine" d=""/>
+
+          <!-- Dots -->
+          <g id="chartDots"></g>
+
+          <!-- X labels -->
+          <g id="chartLabels"></g>
+        </svg>
+
+        <div class="chart-tip" id="chartTip"></div>
+      </div>
+    </section>
+
+    <!-- ===== KPI STRIP ===== -->
+    <section class="mb-20 fade-in f4">
+      <div class="kpi-strip">
+        <div class="kpi-item">
+          <span class="label">دورة الشراء</span>
+          <span class="kpi-value">12.4 يوم</span>
+          <span class="kpi-delta" style="color: var(--emerald);">↓ 18% أسرع</span>
+        </div>
+        <div class="kpi-item">
+          <span class="label">الالتزام بالمواعيد</span>
+          <span class="kpi-value">94.2%</span>
+          <span class="kpi-delta" style="color: var(--emerald);">↑ 3.1 نقطة</span>
+        </div>
+        <div class="kpi-item">
+          <span class="label">موردون معتمدون</span>
+          <span class="kpi-value">86</span>
+          <span class="kpi-delta" style="color: var(--ice);">+12 جديد</span>
+        </div>
+        <div class="kpi-item">
+          <span class="label">العقود النشطة</span>
+          <span class="kpi-value">142</span>
+          <span class="kpi-delta" style="color: var(--text-mute);">8 تنتهي قريباً</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== CATEGORY BREAKDOWN ===== -->
+    <section class="mb-20 fade-in f5">
+      <div class="flex items-baseline justify-between mb-6">
+        <h2 class="label">الإنفاق حسب الفئة</h2>
+        <span class="eyebrow">هذا العام</span>
+      </div>
+
+      <div id="categoriesList">
+        <!-- Populated by JS -->
+      </div>
+    </section>
+
+    <!-- ===== ANOMALIES ===== -->
+    <section class="mb-20 fade-in f6">
+      <div class="flex items-baseline justify-between mb-6">
+        <h2 class="label">تنبيهات وتحليلات ذكية</h2>
+        <span class="eyebrow">اكتشفها الذكاء الاصطناعي</span>
+      </div>
+
+      <div id="anomaliesList">
+        <!-- Populated by JS -->
+      </div>
+    </section>
+
+    <!-- ===== FOOTER ===== -->
+    <footer class="mt-24 fade-in f7">
+      <div class="hairline mb-6"></div>
+      <div class="flex items-center justify-between flex-wrap gap-4">
+        <p class="label">MIZAN · ANALYTICS ENGINE</p>
+        <p class="eyebrow">آخر تحليل: قبل 4 دقائق</p>
+      </div>
+    </footer>
+
+  </div>
+</main>
+
+<script>
+/* ============ AUDIO ============ */
+let soundOn = true, audioCtx;
+function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+function playTone(freq, dur, type='sine', vol=0.06) {
+  if (!soundOn) return;
+  initAudio();
+  const o = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  o.type = type; o.frequency.value = freq;
+  g.gain.setValueAtTime(0, audioCtx.currentTime);
+  g.gain.linearRampToValueAtTime(vol, audioCtx.currentTime + 0.01);
+  g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+  o.connect(g); g.connect(audioCtx.destination);
+  o.start(); o.stop(audioCtx.currentTime + dur);
+}
+
+document.getElementById('soundToggle').addEventListener('click', function() {
+  soundOn = !soundOn;
+  document.getElementById('soundOn').style.display = soundOn ? 'block' : 'none';
+  document.getElementById('soundOff').style.display = soundOn ? 'none' : 'block';
+  this.style.color = soundOn ? 'var(--gold)' : 'var(--text-mute)';
+  if (soundOn) playTone(880, 0.1);
+});
+
+/* ============ TOAST ============ */
+function showToast(text, type = 'info') {
+  const colors = { info: 'var(--ice)', success: 'var(--emerald)', warning: 'var(--gold)', danger: 'var(--rose)' };
+  const t = document.createElement('div');
+  t.className = 'toast-min';
+  t.innerHTML = `<span class="dot" style="background: ${colors[type]}; box-shadow: 0 0 8px ${colors[type]};"></span>${text}`;
+  document.getElementById('toastWrap').appendChild(t);
+  setTimeout(() => {
+    t.style.opacity = '0'; t.style.transform = 'translateY(-20px)';
+    t.style.transition = 'all 0.4s ease';
+    setTimeout(() => t.remove(), 400);
+  }, 4500);
+}
+
+/* ============ CHART DATA ============ */
+const chartData = {
+  '3m': {
+    values: [820, 1180, 1420],
+    labels: ['أغسطس', 'سبتمبر', 'أكتوبر']
+  },
+  '6m': {
+    values: [520, 680, 740, 820, 1180, 1420],
+    labels: ['مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر']
+  },
+  '12m': {
+    values: [420, 510, 580, 620, 680, 740, 620, 820, 1080, 1180, 1320, 1420],
+    labels: ['نوفمبر', 'ديسمبر', 'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر']
+  },
+  'ytd': {
+    values: [620, 680, 740, 620, 820, 1080, 1180, 1320, 1420],
+    labels: ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر']
+  }
+};
+
+let currentPeriod = '12m';
+
+function drawChart() {
+  const data = chartData[currentPeriod].values;
+  const labels = chartData[currentPeriod].labels;
+  const max = Math.max(...data) * 1.15;
+  const min = 0;
+  const W = 1000, H = 260;
+  const padX = 40, padY = 30;
+  const usableW = W - padX * 2;
+  const usableH = H - padY * 2;
+
+  const points = data.map((v, i) => {
+    const x = padX + (i / (data.length - 1 || 1)) * usableW;
+    const y = padY + usableH - ((v - min) / (max - min)) * usableH;
+    return { x, y, v, label: labels[i] };
+  });
+
+  // Build line path with smooth curve
+  let linePath = `M ${points[0].x} ${points[0].y}`;
+  for (let i = 1; i < points.length; i++) {
+    const prev = points[i - 1];
+    const curr = points[i];
+    const cpx1 = prev.x + (curr.x - prev.x) * 0.5;
+    const cpx2 = prev.x + (curr.x - prev.x) * 0.5;
+    linePath += ` C ${cpx1} ${prev.y}, ${cpx2} ${curr.y}, ${curr.x} ${curr.y}`;
+  }
+
+  // Area path
+  const areaPath = linePath + ` L ${points[points.length - 1].x} ${H} L ${points[0].x} ${H} Z`;
+
+  // Animate line drawing
+  const lineEl = document.getElementById('chartLine');
+  const areaEl = document.getElementById('chartArea');
+  lineEl.setAttribute('d', linePath);
+  areaEl.setAttribute('d', areaPath);
+
+  const length = lineEl.getTotalLength();
+  lineEl.style.strokeDasharray = length;
+  lineEl.style.strokeDashoffset = length;
+  lineEl.style.transition = 'none';
+  void lineEl.getBoundingClientRect();
+  lineEl.style.transition = 'stroke-dashoffset 1.6s cubic-bezier(0.16,1,0.3,1)';
+  lineEl.style.strokeDashoffset = 0;
+
+  areaEl.style.opacity = 0;
+  areaEl.style.transition = 'opacity 1.2s ease 0.4s';
+  void areaEl.getBoundingClientRect();
+  areaEl.style.opacity = 1;
+
+  // Dots
+  const dotsG = document.getElementById('chartDots');
+  dotsG.innerHTML = '';
+  points.forEach((p, i) => {
+    const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    c.setAttribute('class', 'chart-dot');
+    c.setAttribute('cx', p.x);
+    c.setAttribute('cy', p.y);
+    c.setAttribute('r', 4);
+    c.style.opacity = 0;
+    c.style.transition = `opacity 0.4s ease ${0.8 + i * 0.05}s`;
+    c.dataset.index = i;
+    dotsG.appendChild(c);
+    requestAnimationFrame(() => c.style.opacity = 1);
+
+    c.addEventListener('mouseenter', e => {
+      showChartTip(p, e);
+      playTone(660 + i * 30, 0.05, 'sine', 0.03);
+    });
+    c.addEventListener('mouseleave', hideChartTip);
+  });
+
+  // X labels
+  const labelsG = document.getElementById('chartLabels');
+  labelsG.innerHTML = '';
+  points.forEach((p, i) => {
+    // Show only some labels if many points
+    const showEvery = points.length > 8 ? Math.ceil(points.length / 8) : 1;
+    if (i % showEvery !== 0 && i !== points.length - 1) return;
+
+    const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    t.setAttribute('class', 'chart-label');
+    t.setAttribute('x', p.x);
+    t.setAttribute('y', H - 8);
+    t.setAttribute('text-anchor', 'middle');
+    t.textContent = p.label;
+    labelsG.appendChild(t);
+  });
+}
+
+function showChartTip(point, event) {
+  const tip = document.getElementById('chartTip');
+  const wrap = document.getElementById('chartWrap');
+  const rect = wrap.getBoundingClientRect();
+  const svgRect = document.getElementById('mainChart').getBoundingClientRect();
+
+  const scaleX = svgRect.width / 1000;
+  const scaleY = svgRect.height / 260;
+
+  const x = point.x * scaleX + svgRect.left - rect.left;
+  const y = point.y * scaleY + svgRect.top - rect.top;
+
+  tip.innerHTML = `${point.label}<span class="tip-val">$${point.v}K</span>`;
+  tip.style.left = x + 'px';
+  tip.style.top = (y - 60) + 'px';
+  tip.style.transform = 'translateX(-50%)';
+  tip.classList.add('show');
+}
+
+function hideChartTip() {
+  document.getElementById('chartTip').classList.remove('show');
+}
+
+/* ============ PERIOD CHIPS ============ */
+document.querySelectorAll('.time-chip').forEach(chip => {
+  chip.addEventListener('click', function() {
+    document.querySelectorAll('.time-chip').forEach(c => c.classList.remove('active'));
+    this.classList.add('active');
+    currentPeriod = this.dataset.period;
+    playTone(660, 0.06);
+    drawChart();
+  });
+});
+
+/* ============ CATEGORIES ============ */
+const categories = [
+  { name: 'تقنية المعلومات',   value: 8420000, pct: 100, color: 'var(--gold-bright)' },
+  { name: 'الطاقة والمرافق',   value: 5240000, pct: 62,  color: 'var(--gold)' },
+  { name: 'الاتصالات',         value: 4180000, pct: 50,  color: 'var(--ice)' },
+  { name: 'الخدمات المهنية',   value: 2860000, pct: 34,  color: 'var(--emerald)' },
+  { name: 'المعدات الصناعية',  value: 1940000, pct: 23,  color: 'var(--amber)' },
+  { name: 'خدمات عامة',        value: 1180000, pct: 14,  color: 'var(--rose)' }
+];
+
+function renderCategories() {
+  const list = document.getElementById('categoriesList');
+  list.innerHTML = '';
+  const total = categories.reduce((a, c) => a + c.value, 0);
+
+  categories.forEach((cat, i) => {
+    const row = document.createElement('div');
+    row.className = 'cat-row';
+    row.style.animation = 'fadeIn 0.6s cubic-bezier(0.16,1,0.3,1) forwards';
+    row.style.animationDelay = (i * 0.06) + 's';
+    row.style.opacity = '0';
+    row.innerHTML = `
+      <span class="cat-name">${cat.name}</span>
+      <div class="cat-track">
+        <div class="cat-fill" style="width: 0%; background: linear-gradient(90deg, ${cat.color}, ${cat.color}88);"></div>
+      </div>
+      <span class="cat-value">$${(cat.value / 1000000).toFixed(2)}M</span>
+    `;
+    row.onclick = () => {
+      playTone(660, 0.06);
+      showToast(`→ تفاصيل فئة ${cat.name}`, 'info');
+    };
+    list.appendChild(row);
+
+    setTimeout(() => {
+      row.querySelector('.cat-fill').style.width = cat.pct + '%';
+    }, 200 + i * 60);
+  });
+}
+
+/* ============ ANOMALIES ============ */
+const anomalies = [
+  {
+    icon: 'rise',
+    color: 'var(--rose)',
+    title: 'ارتفاع سعر شاذ في بند "صيانة شبكات"',
+    meta: 'مورد: TechSource Ltd · +32% عن المتوسط',
+    value: '+$48K'
+  },
+  {
+    icon: 'calendar',
+    color: 'var(--gold)',
+    title: '3 عقود رئيسية تنتهي خلال 45 يوماً',
+    meta: 'Huawei · Siemens · Oracle',
+    value: '3 عقود'
+  },
+  {
+    icon: 'saving',
+    color: 'var(--emerald)',
+    title: 'فرصة توحيد موردين في "خدمات الاتصالات"',
+    meta: 'دمج STC و Mobily · توفير محتمل',
+    value: '$320K'
+  },
+  {
+    icon: 'delay',
+    color: 'var(--amber)',
+    title: 'دورة شراء أطول من المعتاد',
+    meta: 'بند: أجهزة حاسوب · +6 أيام عن المتوسط',
+    value: '+18 يوم'
+  },
+  {
+    icon: 'duplicate',
+    color: 'var(--ice)',
+    title: 'أوامر شراء مكررة محتملة',
+    meta: 'Aramco Services · أمران متشابهان بـ 48 ساعة',
+    value: '2 أمر'
+  }
+];
+
+const iconPaths = {
+  rise: '<polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>',
+  calendar: '<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
+  saving: '<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
+  delay: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+  duplicate: '<rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>'
+};
+
+function renderAnomalies() {
+  const list = document.getElementById('anomaliesList');
+  list.innerHTML = '';
+  anomalies.forEach((a, i) => {
+    const row = document.createElement('div');
+    row.className = 'anom-row';
+    row.style.animation = 'fadeIn 0.6s cubic-bezier(0.16,1,0.3,1) forwards';
+    row.style.animationDelay = (i * 0.06) + 's';
+    row.style.opacity = '0';
+    row.innerHTML = `
+      <div class="anom-icon" style="background: ${a.color}15; border-color: ${a.color}40; color: ${a.color};">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          ${iconPaths[a.icon]}
+        </svg>
+      </div>
+      <div>
+        <p class="anom-title">${a.title}</p>
+        <p class="anom-meta">${a.meta}</p>
+      </div>
+      <span class="anom-value" style="color: ${a.color};">${a.value}</span>
+    `;
+    row.onclick = () => {
+      playTone(660, 0.08);
+      showToast('→ ' + a.title, 'info');
+    };
+    list.appendChild(row);
+  });
+}
+
+/* ============ EXPORT ============ */
+function exportPDF() {
+  playTone(880, 0.1); setTimeout(() => playTone(1174, 0.15), 100);
+  showToast('📄 جارٍ تجهيز التقرير...', 'success');
+  setTimeout(() => {
+    showToast('(هذه شاشة تجريبية — التصدير قادم)', 'info');
+  }, 1400);
+}
+
+/* ============ HERO COUNTER ============ */
+function animateTotalSavings() {
+  const el = document.getElementById('totalSavings');
+  const total = 14.28;
+  const dur = 1800;
+  const start = performance.now();
+  function step(now) {
+    const p = Math.min((now - start) / dur, 1);
+    const eased = 1 - Math.pow(1 - p, 4);
+    el.textContent = (total * eased).toFixed(2);
+    if (p < 1) requestAnimationFrame(step);
+    else el.textContent = total.toFixed(2);
+  }
+  requestAnimationFrame(step);
+}
+
+/* ============ NAV ============ */
+document.querySelectorAll('.side-icon[data-page]').forEach(n => {
+  n.addEventListener('click', function() {
+    document.querySelectorAll('.side-icon').forEach(x => x.classList.remove('active'));
+    this.classList.add('active');
+    playTone(660, 0.06);
+  });
+});
+
+/* ============ INIT ============ */
+window.addEventListener('load', () => {
+  document.body.addEventListener('click', () => initAudio(), { once: true });
+
+  setTimeout(() => playTone(523, 0.15, 'sine', 0.04), 400);
+  setTimeout(() => playTone(659, 0.15, 'sine', 0.04), 550);
+  setTimeout(() => playTone(784, 0.2, 'sine', 0.04), 700);
+
+  animateTotalSavings();
+  setTimeout(() => drawChart(), 500);
+  renderCategories();
+  renderAnomalies();
+});
+</script>
+</body>
+</html>
+

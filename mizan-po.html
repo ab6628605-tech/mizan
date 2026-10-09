@@ -1,0 +1,1630 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MIZAN · أوامر الشراء</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@200;300;400;500;600&family=Inter:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #08090E;
+    --surface: #0E1018;
+    --line: rgba(255,255,255,0.05);
+    --line-strong: rgba(201,169,97,0.2);
+    --gold: #C9A961;
+    --gold-bright: #E8CE8B;
+    --copper: #B87333;
+    --ice: #9DC4E8;
+    --emerald: #6EE7A0;
+    --rose: #F0A0B0;
+    --amber: #F0C474;
+    --violet: #B8A5E8;
+    --text: #EDEDED;
+    --text-dim: #7A8090;
+    --text-mute: #4A5060;
+  }
+  * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+  html, body {
+    background: var(--bg); color: var(--text);
+    font-family: 'IBM Plex Sans Arabic', 'Inter', sans-serif;
+    overflow-x: hidden; font-weight: 300;
+  }
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-thumb { background: rgba(201,169,97,0.15); border-radius: 10px; }
+
+  .aura {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background:
+      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(201,169,97,0.08), transparent 60%),
+      radial-gradient(ellipse 60% 40% at 100% 100%, rgba(157,196,232,0.04), transparent 60%);
+  }
+
+  .display { font-family: 'Inter', sans-serif; font-weight: 200; letter-spacing: -0.04em; line-height: 0.95; }
+  .label { font-size: 11px; letter-spacing: 0.25em; color: var(--text-mute); text-transform: uppercase; font-weight: 500; }
+  .eyebrow { font-size: 12px; color: var(--text-dim); }
+  .hairline { height: 1px; background: var(--line); }
+  .hairline-gold { height: 1px; background: linear-gradient(90deg, transparent, var(--gold), transparent); opacity: 0.5; }
+
+  .link { color: var(--text-dim); font-size: 13px; cursor: pointer; transition: color 0.3s; }
+  .link:hover { color: var(--gold-bright); }
+  .back-link { color: var(--text-dim); font-size: 13px; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 6px; }
+  .back-link:hover { color: var(--gold-bright); gap: 10px; }
+
+  .hero-number {
+    font-family: 'Inter', sans-serif;
+    font-weight: 200;
+    font-size: clamp(64px, 10vw, 132px);
+    letter-spacing: -0.05em;
+    line-height: 0.85;
+    background: linear-gradient(180deg, #FFFFFF 0%, #6A7080 90%);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .hero-number .unit {
+    font-size: 0.32em; color: var(--gold); -webkit-text-fill-color: var(--gold);
+    margin-right: 14px; font-weight: 300; letter-spacing: 0;
+  }
+
+  /* ===== Filter Bar ===== */
+  .filter-bar {
+    display: flex; align-items: center; gap: 4px;
+    padding: 4px; border-radius: 99px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--line);
+    width: fit-content;
+    overflow-x: auto;
+    max-width: 100%;
+  }
+  .filter-bar::-webkit-scrollbar { height: 0; }
+  .filter-chip {
+    padding: 8px 14px; border-radius: 99px;
+    font-size: 12px; color: var(--text-dim);
+    cursor: pointer; transition: all 0.3s ease;
+    font-family: inherit; background: transparent; border: none;
+    display: inline-flex; align-items: center; gap: 6px;
+    white-space: nowrap;
+  }
+  .filter-chip:hover { color: var(--text); }
+  .filter-chip.active { color: var(--gold-bright); background: rgba(201,169,97,0.08); }
+  .filter-chip .count {
+    font-family: 'Inter'; font-size: 11px;
+    padding: 1px 6px; border-radius: 99px;
+    background: rgba(255,255,255,0.05); color: var(--text-mute);
+  }
+  .filter-chip.active .count { background: rgba(201,169,97,0.15); color: var(--gold-bright); }
+
+  /* ===== PO Row ===== */
+  .po-row {
+    display: grid;
+    grid-template-columns: 130px 1fr 180px 140px 130px;
+    gap: 24px;
+    align-items: center;
+    padding: 22px 4px;
+    border-bottom: 1px solid var(--line);
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.16,1,0.3,1);
+    position: relative;
+  }
+  .po-row:hover {
+    padding-right: 16px;
+    background: linear-gradient(90deg, transparent, rgba(201,169,97,0.02));
+  }
+  .po-row:hover .po-title { color: var(--gold-bright); }
+
+  .po-id {
+    font-family: 'Inter';
+    font-size: 12px;
+    color: var(--text-mute);
+    letter-spacing: 0.05em;
+  }
+  .po-title {
+    font-size: 15px; font-weight: 400;
+    color: var(--text);
+    transition: color 0.3s ease;
+    margin-bottom: 4px;
+  }
+  .po-meta { font-size: 12px; color: var(--text-mute); }
+  .po-supplier {
+    display: flex; align-items: center; gap: 10px;
+  }
+  .po-sup-avatar {
+    width: 30px; height: 30px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Inter'; font-size: 10px; font-weight: 600;
+    border: 1px solid;
+    flex-shrink: 0;
+  }
+  .po-amount {
+    font-family: 'Inter'; font-size: 18px; font-weight: 300;
+    letter-spacing: -0.02em; text-align: left;
+  }
+
+  /* ===== Status Pill ===== */
+  .stat-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 11px; padding: 5px 10px; border-radius: 99px;
+    letter-spacing: 0.02em;
+  }
+  .pill-draft     { background: rgba(255,255,255,0.04); color: var(--text-mute); }
+  .pill-sent      { background: rgba(157,196,232,0.1); color: var(--ice); }
+  .pill-confirmed { background: rgba(184,165,232,0.1); color: var(--violet); }
+  .pill-progress  { background: rgba(240,196,116,0.1); color: var(--amber); }
+  .pill-received  { background: rgba(110,231,160,0.1); color: var(--emerald); }
+  .pill-closed    { background: rgba(110,231,160,0.06); color: #4A9A6E; }
+  .pill-cancelled { background: rgba(240,160,176,0.1); color: var(--rose); }
+
+  .dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+  .pulse-dot { animation: pulseDot 2s infinite; }
+  @keyframes pulseDot {
+    0%,100% { opacity: 1; }
+    50% { opacity: 0.35; }
+  }
+
+  /* ===== Buttons ===== */
+  .btn-primary {
+    padding: 12px 26px; border-radius: 99px;
+    background: linear-gradient(135deg, var(--gold-bright), var(--gold), var(--copper));
+    color: #08090E; font-weight: 600; font-size: 13px;
+    border: none; cursor: pointer; font-family: inherit;
+    transition: all 0.3s cubic-bezier(0.16,1,0.3,1);
+    box-shadow: 0 10px 30px -8px rgba(201,169,97,0.5);
+    display: inline-flex; align-items: center; gap: 8px;
+    letter-spacing: 0.02em;
+  }
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 40px -8px rgba(201,169,97,0.7);
+  }
+  .btn-outline {
+    padding: 11px 22px; border-radius: 99px;
+    background: transparent; color: var(--gold-bright);
+    font-weight: 500; font-size: 12px;
+    border: 1px solid rgba(201,169,97,0.3); cursor: pointer; font-family: inherit;
+    transition: all 0.3s ease;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .btn-outline:hover {
+    border-color: var(--gold-bright);
+    background: rgba(201,169,97,0.05);
+  }
+  .btn-min {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 0; color: var(--gold-bright); font-size: 13px;
+    background: transparent; border: none; cursor: pointer;
+    transition: all 0.3s ease; font-family: inherit;
+  }
+  .btn-min:hover { color: var(--text); letter-spacing: 0.05em; }
+  .btn-wa {
+    padding: 10px 20px; border-radius: 99px;
+    background: transparent; color: #6EE7A0;
+    font-weight: 500; font-size: 12px;
+    border: 1px solid rgba(110,231,160,0.3); cursor: pointer; font-family: inherit;
+    transition: all 0.3s ease;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .btn-wa:hover {
+    border-color: #6EE7A0;
+    background: rgba(110,231,160,0.05);
+  }
+  .btn-danger {
+    padding: 10px 20px; border-radius: 99px;
+    background: transparent; color: var(--rose);
+    font-weight: 500; font-size: 12px;
+    border: 1px solid rgba(240,160,176,0.3); cursor: pointer; font-family: inherit;
+    transition: all 0.3s ease;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .btn-danger:hover {
+    border-color: var(--rose);
+    background: rgba(240,160,176,0.05);
+  }
+
+  /* ===== Document (PO formal) ===== */
+  .po-doc {
+    padding: 48px;
+    border-radius: 20px;
+    background: linear-gradient(180deg, rgba(201,169,97,0.03), transparent);
+    border: 1px solid var(--line-strong);
+    position: relative;
+  }
+  .po-doc::before {
+    content: ''; position: absolute; top: -1px; right: 20%; left: 20%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--gold-bright), transparent);
+  }
+  .po-doc-head {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    padding-bottom: 28px;
+    border-bottom: 1px solid var(--line-strong);
+    margin-bottom: 28px;
+  }
+  .po-logo {
+    display: flex; align-items: center; gap: 12px;
+  }
+  .po-logo-icon {
+    width: 40px; height: 40px; border-radius: 12px;
+    background: linear-gradient(135deg, rgba(201,169,97,0.15), rgba(201,169,97,0.03));
+    border: 1px solid rgba(201,169,97,0.25);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--gold-bright);
+  }
+  .po-doc-title {
+    text-align: left;
+  }
+  .po-doc-title h2 {
+    font-family: 'Inter';
+    font-size: 22px;
+    font-weight: 300;
+    letter-spacing: 0.05em;
+    color: var(--gold-bright);
+    margin-bottom: 4px;
+  }
+
+  /* Info grid in doc */
+  .po-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 32px;
+    margin-bottom: 36px;
+  }
+  @media (max-width: 700px) {
+    .po-info-grid { grid-template-columns: 1fr; gap: 20px; }
+    .po-doc { padding: 28px; }
+  }
+  .po-info-col p.k {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--text-mute);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+  .po-info-col p.v {
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--text);
+  }
+  .po-info-col p.v strong {
+    font-weight: 500;
+    color: var(--gold-bright);
+  }
+  .po-info-col p.v.mono {
+    font-family: 'Inter';
+  }
+
+  /* PO table */
+  .po-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 28px;
+  }
+  .po-table thead th {
+    text-align: right;
+    padding: 14px 12px;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-mute);
+    border-bottom: 1px solid var(--line-strong);
+  }
+  .po-table thead th.num { text-align: left; }
+  .po-table tbody td {
+    padding: 18px 12px;
+    font-size: 13px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+  .po-table tbody td.num {
+    text-align: left;
+    font-family: 'Inter';
+    font-weight: 300;
+    letter-spacing: 0.01em;
+  }
+  .po-table tbody td.item-name {
+    font-weight: 400;
+    color: var(--text);
+  }
+  .po-table tbody td.item-spec {
+    font-size: 11px;
+    color: var(--text-mute);
+    margin-top: 2px;
+  }
+
+  /* Totals */
+  .po-totals {
+    display: flex; justify-content: flex-start;
+    padding-top: 20px;
+  }
+  .po-totals-inner {
+    min-width: 300px;
+  }
+  .po-total-row {
+    display: flex; justify-content: space-between;
+    padding: 10px 0;
+    font-size: 13px;
+    border-bottom: 1px solid var(--line);
+  }
+  .po-total-row:last-child {
+    border-bottom: none;
+    padding-top: 16px;
+    font-size: 18px;
+    color: var(--gold-bright);
+    font-family: 'Inter';
+    font-weight: 300;
+    letter-spacing: -0.01em;
+  }
+  .po-total-row .k { color: var(--text-mute); font-size: 12px; }
+  .po-total-row:last-child .k { color: var(--text); font-size: 13px; font-family: 'IBM Plex Sans Arabic'; font-weight: 400; }
+
+  /* ===== Timeline ===== */
+  .timeline {
+    position: relative;
+    padding-right: 30px;
+  }
+  .tl-step {
+    position: relative;
+    padding-bottom: 28px;
+  }
+  .tl-step::before {
+    content: '';
+    position: absolute;
+    right: 6px; top: 18px; bottom: -10px;
+    width: 1px;
+    background: rgba(255,255,255,0.06);
+  }
+  .tl-step:last-child::before { display: none; }
+  .tl-step.done::before { background: rgba(110,231,160,0.25); }
+  .tl-dot {
+    position: absolute;
+    right: 0; top: 4px;
+    width: 13px; height: 13px;
+    border-radius: 50%;
+    background: var(--surface);
+    border: 1px solid rgba(255,255,255,0.15);
+    z-index: 2;
+    transition: all 0.4s ease;
+  }
+  .tl-step.done .tl-dot {
+    background: var(--emerald);
+    border-color: var(--emerald);
+    box-shadow: 0 0 10px var(--emerald);
+  }
+  .tl-step.current .tl-dot {
+    background: var(--gold);
+    border-color: var(--gold);
+    box-shadow: 0 0 12px var(--gold);
+    animation: pulseStep 1.8s infinite;
+  }
+  @keyframes pulseStep {
+    0%,100% { box-shadow: 0 0 12px var(--gold); }
+    50% { box-shadow: 0 0 20px rgba(201,169,97,0.6); }
+  }
+  .tl-content { padding-right: 30px; }
+  .tl-title {
+    font-size: 13px;
+    color: var(--text);
+    margin-bottom: 3px;
+    font-weight: 400;
+  }
+  .tl-step:not(.done):not(.current) .tl-title { color: var(--text-mute); }
+  .tl-meta { font-size: 11px; color: var(--text-mute); }
+  .tl-step.current .tl-meta { color: var(--gold); }
+
+  /* ===== Detail card ===== */
+  .detail-card {
+    padding: 24px;
+    border-radius: 18px;
+    background: linear-gradient(180deg, rgba(201,169,97,0.03), transparent);
+    border: 1px solid var(--line-strong);
+  }
+  .info-row {
+    display: grid;
+    grid-template-columns: 130px 1fr;
+    gap: 20px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 13px;
+    align-items: baseline;
+  }
+  .info-row:last-child { border-bottom: none; }
+  .info-row .k { color: var(--text-mute); font-size: 12px; }
+  .info-row .v { color: var(--text); }
+  .info-row .v.mono { font-family: 'Inter'; font-weight: 400; letter-spacing: 0.02em; }
+
+  /* ===== Two-column layout ===== */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 60px;
+  }
+  @media (max-width: 1000px) {
+    .two-col { grid-template-columns: 1fr; gap: 40px; }
+  }
+
+  /* ===== Animations ===== */
+  .fade-in { opacity: 0; animation: fadeIn 0.9s cubic-bezier(0.16,1,0.3,1) forwards; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  .f1 { animation-delay: 0.05s; } .f2 { animation-delay: 0.15s; } .f3 { animation-delay: 0.25s; }
+  .f4 { animation-delay: 0.35s; } .f5 { animation-delay: 0.45s; } .f6 { animation-delay: 0.55s; }
+
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* ===== Sidebar ===== */
+  .side {
+    position: fixed; top: 0; right: 0; bottom: 0; width: 60px;
+    z-index: 30; display: flex; flex-direction: column; align-items: center;
+    padding: 28px 0; gap: 4px; border-left: 1px solid var(--line);
+  }
+  .side-icon {
+    width: 40px; height: 40px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-mute); cursor: pointer; transition: all 0.3s ease;
+    position: relative;
+  }
+  .side-icon:hover { color: var(--text); }
+  .side-icon.active { color: var(--gold-bright); }
+  .side-icon.active::after {
+    content: ''; position: absolute; right: -10px;
+    width: 3px; height: 3px; border-radius: 50%; background: var(--gold);
+  }
+  .main { padding-right: 60px; position: relative; z-index: 10; }
+  @media (max-width: 900px) {
+    .side { width: 100%; height: 56px; top: auto; bottom: 0; right: 0; flex-direction: row; padding: 0 16px; justify-content: space-around; border-left: none; border-top: 1px solid var(--line); }
+    .main { padding-right: 0; padding-bottom: 72px; }
+    .po-row { grid-template-columns: 110px 1fr auto; gap: 14px; padding: 16px 4px; }
+    .po-row > *:nth-child(3),
+    .po-row > *:nth-child(4) { display: none; }
+    .po-doc-head { flex-direction: column; gap: 16px; }
+    .po-doc-title { text-align: right; }
+  }
+
+  /* ===== Toast ===== */
+  .toast-wrap { position: fixed; top: 24px; left: 50%; transform: translateX(-50%); z-index: 999; display: flex; flex-direction: column; gap: 10px; align-items: center; }
+  .toast-min {
+    padding: 12px 22px; border-radius: 99px;
+    background: rgba(14,16,24,0.95); backdrop-filter: blur(20px);
+    border: 1px solid rgba(201,169,97,0.2);
+    font-size: 13px; color: var(--text);
+    display: flex; align-items: center; gap: 12px;
+    animation: fadeIn 0.5s cubic-bezier(0.16,1,0.3,1);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    white-space: nowrap;
+  }
+
+  /* ===== Progress strip ===== */
+  .progress-strip {
+    display: flex; align-items: center;
+    gap: 0;
+    padding: 20px 0;
+    overflow-x: auto;
+  }
+  .ps-step {
+    flex: 1;
+    min-width: 100px;
+    display: flex; flex-direction: column;
+    align-items: center;
+    position: relative;
+    text-align: center;
+  }
+  .ps-step-circle {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 8px;
+    position: relative; z-index: 2;
+    transition: all 0.4s ease;
+  }
+  .ps-step.done .ps-step-circle {
+    background: rgba(110,231,160,0.1);
+    border-color: var(--emerald);
+    color: var(--emerald);
+  }
+  .ps-step.current .ps-step-circle {
+    background: rgba(201,169,97,0.1);
+    border-color: var(--gold);
+    color: var(--gold-bright);
+    box-shadow: 0 0 20px rgba(201,169,97,0.3);
+    animation: pulseStep 1.8s infinite;
+  }
+  .ps-step-label { font-size: 10px; color: var(--text-mute); letter-spacing: 0.05em; }
+  .ps-step.done .ps-step-label,
+  .ps-step.current .ps-step-label { color: var(--text-dim); }
+  .ps-connector {
+    position: absolute; top: 16px;
+    height: 1px; background: rgba(255,255,255,0.06);
+    z-index: 1;
+    left: 50%; right: -50%;
+  }
+  .ps-connector.done { background: rgba(110,231,160,0.3); }
+  .ps-step:last-child .ps-connector { display: none; }
+
+  @media (max-width: 700px) {
+    .ps-step { min-width: 70px; }
+    .ps-step-label { font-size: 9px; }
+  }
+
+  /* ===== Signature line ===== */
+  .signature-area {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    margin-top: 40px;
+    padding-top: 40px;
+    border-top: 1px solid var(--line);
+  }
+  .signature-box {
+    text-align: center;
+  }
+  .signature-line {
+    height: 60px;
+    border-bottom: 1px solid var(--line-strong);
+    margin-bottom: 12px;
+    position: relative;
+  }
+  .signature-line::after {
+    content: '';
+    position: absolute;
+    left: 50%; bottom: -3px;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--gold);
+    transform: translateX(-50%);
+  }
+  .signature-label { font-size: 11px; color: var(--text-mute); letter-spacing: 0.1em; }
+  .signature-name { font-size: 12px; color: var(--text-dim); margin-top: 4px; }
+
+  @media (max-width: 700px) {
+    .signature-area { grid-template-columns: 1fr; gap: 30px; }
+  }
+</style>
+</head>
+<body class="min-h-screen">
+
+<div class="aura"></div>
+<div class="toast-wrap" id="toastWrap"></div>
+
+<!-- ========== SIDEBAR ========== -->
+<aside class="side">
+  <div class="mb-6">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#E8CE8B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 3v18M5 8l7-5 7 5M5 8l-2 8h4zM19 8l2 8h-4z"/>
+    </svg>
+  </div>
+  <div class="side-icon" data-page="home" title="الرئيسية">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+  </div>
+  <div class="side-icon" data-page="pr" title="طلبات الشراء">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/></svg>
+  </div>
+  <div class="side-icon active" data-page="po" title="أوامر الشراء">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M9 12h6M9 16h4"/></svg>
+  </div>
+  <div class="side-icon" data-page="offers" title="العروض">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+  </div>
+  <div class="side-icon" data-page="compare" title="المقارنة">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="12" y1="3" x2="12" y2="21"/><polyline points="5 8 12 3 19 8"/><path d="M3 8l-1 6h8L9 8M21 8l1 6h-8l1-6"/></svg>
+  </div>
+  <div class="side-icon" data-page="suppliers" title="الموردون">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+  </div>
+  <div class="side-icon" data-page="reports" title="التقارير">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+  </div>
+  <div class="flex-1"></div>
+  <div class="side-icon" id="soundToggle" title="الصوت" style="color: var(--gold);">
+    <svg id="soundOn" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+    <svg id="soundOff" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="display:none;"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+  </div>
+</aside>
+
+<!-- ========== MAIN ========== -->
+<main class="main">
+  <div class="max-w-[1200px] mx-auto px-8 md:px-14 py-12 md:py-16">
+
+    <!-- ============ VIEW: LIST ============ -->
+    <div class="view active" id="viewList">
+
+      <header class="flex items-center justify-between mb-16 fade-in f1">
+        <div class="flex items-center gap-8">
+          <span class="label">MIZAN</span>
+          <div class="hairline-gold w-12 hidden md:block"></div>
+          <span class="eyebrow hidden md:block">أوامر الشراء</span>
+        </div>
+        <button class="btn-primary" onclick="openCreate()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          أمر شراء جديد
+        </button>
+      </header>
+
+      <section class="mb-20 fade-in f2">
+        <p class="label mb-6">إجمالي قيمة الأوامر النشطة</p>
+        <div class="flex items-baseline gap-6 flex-wrap">
+          <h1 class="hero-number">
+            <span class="unit">$</span><span id="activeValue">0</span><span class="unit" style="margin-right:0; margin-left:8px;">M</span>
+          </h1>
+          <div class="flex items-center gap-2 mb-4">
+            <span class="dot pulse-dot" style="background: var(--emerald); box-shadow: 0 0 8px var(--emerald);"></span>
+            <span style="color: var(--emerald); font-size: 13px;">92% تُسلَّم في الوقت</span>
+          </div>
+        </div>
+        <div class="hairline mt-10"></div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-8 mt-8 max-w-3xl">
+          <div>
+            <p class="label mb-2">مسودات</p>
+            <p style="font-size: 22px; font-family: 'Inter'; font-weight: 300;" data-count="2">0</p>
+          </div>
+          <div>
+            <p class="label mb-2">قيد التنفيذ</p>
+            <p style="font-size: 22px; font-family: 'Inter'; font-weight: 300; color: var(--amber);" data-count="14">0</p>
+          </div>
+          <div>
+            <p class="label mb-2">مستلمة هذا الشهر</p>
+            <p style="font-size: 22px; font-family: 'Inter'; font-weight: 300; color: var(--emerald);" data-count="22">0</p>
+          </div>
+          <div>
+            <p class="label mb-2">متوسط التنفيذ</p>
+            <p style="font-size: 22px; font-family: 'Inter'; font-weight: 300;">34 يوم</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="mb-8 fade-in f3">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <div class="filter-bar">
+            <button class="filter-chip active" data-filter="all">الكل <span class="count" id="countAll">0</span></button>
+            <button class="filter-chip" data-filter="draft">مسودة <span class="count" id="countDraft">0</span></button>
+            <button class="filter-chip" data-filter="sent">مرسل <span class="count" id="countSent">0</span></button>
+            <button class="filter-chip" data-filter="confirmed">مؤكد <span class="count" id="countConfirmed">0</span></button>
+            <button class="filter-chip" data-filter="progress">قيد التنفيذ <span class="count" id="countProgress">0</span></button>
+            <button class="filter-chip" data-filter="received">مستلم <span class="count" id="countReceived">0</span></button>
+            <button class="filter-chip" data-filter="closed">مغلق <span class="count" id="countClosed">0</span></button>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 10px; padding: 10px 18px; border-radius: 99px; background: rgba(255,255,255,0.02); border: 1px solid var(--line); max-width: 320px; flex: 1;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-mute)" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="searchInput" placeholder="ابحث برقم PO، المورد، العنوان..." style="flex: 1; background: transparent; border: none; outline: none; color: var(--text); font-size: 13px; font-family: inherit;">
+          </div>
+        </div>
+      </section>
+
+      <section class="fade-in f4">
+        <div id="poList"></div>
+      </section>
+
+      <footer class="mt-24 fade-in f5">
+        <div class="hairline mb-6"></div>
+        <div class="flex items-center justify-between flex-wrap gap-4">
+          <p class="label">MIZAN · PURCHASE ORDERS</p>
+          <p class="eyebrow" id="footerCount">— أمر</p>
+        </div>
+      </footer>
+
+    </div>
+
+    <!-- ============ VIEW: DETAIL ============ -->
+    <div class="view" id="viewDetail">
+
+      <header class="flex items-center justify-between mb-12 fade-in f1">
+        <div class="flex items-center gap-8">
+          <span class="back-link" onclick="backToList()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+            كل الأوامر
+          </span>
+          <div class="hairline-gold w-12 hidden md:block"></div>
+          <span class="eyebrow hidden md:block" id="detailId">PO-2025-0087</span>
+        </div>
+        <div class="flex items-center gap-3 flex-wrap">
+          <button class="btn-outline" onclick="printPO()">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            طباعة / PDF
+          </button>
+          <button class="btn-wa" onclick="sendWhatsApp()">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+            واتساب
+          </button>
+          <button class="btn-primary" onclick="sendPO()" id="sendBtn">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            <span id="sendBtnLabel">إرسال للمورد</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Progress Strip -->
+      <section class="mb-12 fade-in f2">
+        <p class="label mb-4">حالة الأمر</p>
+        <div class="progress-strip" id="progressStrip">
+          <!-- Populated by JS -->
+        </div>
+      </section>
+
+      <div class="two-col">
+
+        <div>
+          <!-- PO Document -->
+          <section class="mb-12 fade-in f3">
+            <div class="po-doc">
+
+              <div class="po-doc-head">
+                <div class="po-logo">
+                  <div class="po-logo-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M12 3v18M5 8l7-5 7 5M5 8l-2 8h4zM19 8l2 8h-4z"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <p style="font-size: 15px; font-weight: 500; color: var(--text); margin-bottom: 2px;">شركتك المساهمة</p>
+                    <p class="eyebrow" style="font-size: 11px;">الرياض · المملكة العربية السعودية</p>
+                  </div>
+                </div>
+                <div class="po-doc-title">
+                  <h2>PURCHASE ORDER</h2>
+                  <p class="eyebrow" style="font-size: 11px; letter-spacing: 0.15em;" id="docPoNumber">PO-2025-0087</p>
+                </div>
+              </div>
+
+              <div class="po-info-grid">
+                <div class="po-info-col">
+                  <p class="k">المورد</p>
+                  <p class="v"><strong id="docSupplier">STC Solutions</strong><br>
+                  الرياض · المملكة العربية السعودية<br>
+                  CR: 1010223344<br>
+                  VAT: 300122334400003</p>
+                </div>
+                <div class="po-info-col">
+                  <p class="k">التسليم إلى</p>
+                  <p class="v">إدارة المشتريات<br>
+                  مركز البيانات الرئيسي<br>
+                  الرياض · 12345<br>
+                  attn: قسم الاستلام</p>
+                </div>
+                <div class="po-info-col">
+                  <p class="k">تفاصيل الأمر</p>
+                  <p class="v mono">
+                    التاريخ: <span id="docDate">2025-10-08</span><br>
+                    المرجع: <span style="color: var(--gold-bright);">PR-2025-0142</span><br>
+                    شروط الدفع: 30 يوم<br>
+                    العملة: USD
+                  </p>
+                </div>
+              </div>
+
+              <!-- Items table -->
+              <table class="po-table">
+                <thead>
+                  <tr>
+                    <th style="width: 40px;">#</th>
+                    <th>الصنف</th>
+                    <th class="num" style="width: 70px;">الكمية</th>
+                    <th class="num" style="width: 100px;">السعر</th>
+                    <th class="num" style="width: 110px;">الإجمالي</th>
+                  </tr>
+                </thead>
+                <tbody id="docItems">
+                  <tr>
+                    <td class="num">01</td>
+                    <td>
+                      <div class="item-name">Switch Cisco Catalyst 9300 — 48 port</div>
+                      <div class="item-spec">Cisco · 5 سنوات ضمان · S/N محدد</div>
+                    </td>
+                    <td class="num">4</td>
+                    <td class="num">$8,400</td>
+                    <td class="num" style="color: var(--gold-bright);">$33,600</td>
+                  </tr>
+                  <tr>
+                    <td class="num">02</td>
+                    <td>
+                      <div class="item-name">Firewall Fortinet FortiGate 600F</div>
+                      <div class="item-spec">Fortinet · ترخيص 3 سنوات</div>
+                    </td>
+                    <td class="num">2</td>
+                    <td class="num">$18,500</td>
+                    <td class="num" style="color: var(--gold-bright);">$37,000</td>
+                  </tr>
+                  <tr>
+                    <td class="num">03</td>
+                    <td>
+                      <div class="item-name">UPS APC Smart-UPS 10KVA</div>
+                      <div class="item-spec">APC · مع بطاريات ممتدة</div>
+                    </td>
+                    <td class="num">3</td>
+                    <td class="num">$12,200</td>
+                    <td class="num" style="color: var(--gold-bright);">$36,600</td>
+                  </tr>
+                  <tr>
+                    <td class="num">04</td>
+                    <td>
+                      <div class="item-name">Rack 42U مع نظام تبريد</div>
+                      <div class="item-spec">Rittal · مع تبريد جانبي</div>
+                    </td>
+                    <td class="num">4</td>
+                    <td class="num">$9,800</td>
+                    <td class="num" style="color: var(--gold-bright);">$39,200</td>
+                  </tr>
+                  <tr style="opacity: 0.5;">
+                    <td class="num">…</td>
+                    <td>
+                      <div class="item-name">8 أصناف إضافية</div>
+                      <div class="item-spec">شبكات · كابلات · تراخيص</div>
+                    </td>
+                    <td class="num">—</td>
+                    <td class="num">—</td>
+                    <td class="num" style="color: var(--gold-bright);">$101,600</td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <!-- Totals -->
+              <div class="po-totals">
+                <div class="po-totals-inner">
+                  <div class="po-total-row">
+                    <span class="k">المجموع الفرعي</span>
+                    <span style="font-family: 'Inter';">$224,000</span>
+                  </div>
+                  <div class="po-total-row">
+                    <span class="k">ضريبة القيمة المضافة (15%)</span>
+                    <span style="font-family: 'Inter';">$33,600</span>
+                  </div>
+                  <div class="po-total-row">
+                    <span class="k">الشحن والتأمين</span>
+                    <span style="font-family: 'Inter';">$8,400</span>
+                  </div>
+                  <div class="po-total-row">
+                    <span class="k">الإجمالي النهائي</span>
+                    <span>$266,000</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Signature -->
+              <div class="signature-area">
+                <div class="signature-box">
+                  <div class="signature-line"></div>
+                  <p class="signature-label">مُعتمَد من</p>
+                  <p class="signature-name">Executive Procurement Officer</p>
+                </div>
+                <div class="signature-box">
+                  <div class="signature-line"></div>
+                  <p class="signature-label">تأكيد المورد</p>
+                  <p class="signature-name" id="signSupplierName">STC Solutions</p>
+                </div>
+              </div>
+
+            </div>
+          </section>
+
+          <!-- Terms -->
+          <section class="mb-12 fade-in f4">
+            <p class="label mb-4">الشروط والأحكام</p>
+            <div class="detail-card" style="line-height: 1.9; font-size: 13px; color: var(--text-dim);">
+              <p style="margin-bottom: 12px;">١. يُسلَّم هذا الأمر خلال 30 يوماً من تاريخ الاعتماد. أي تأخير يترتب عليه غرامة 0.5% لكل أسبوع.</p>
+              <p style="margin-bottom: 12px;">٢. الدفع خلال 30 يوماً من استلام الفاتورة المطابقة لسند الاستلام.</p>
+              <p style="margin-bottom: 12px;">٣. جميع الأسعار تشمل الشحن والتأمين والتغليف.</p>
+              <p>٤. يخضع هذا الأمر لأنظمة وقوانين المملكة العربية السعودية.</p>
+            </div>
+          </section>
+
+        </div>
+
+        <!-- Right sidebar -->
+        <aside>
+          <!-- Timeline -->
+          <section class="mb-10 fade-in f3">
+            <p class="label mb-5">سجل الأمر</p>
+            <div class="timeline" id="timeline">
+              <!-- Populated by JS -->
+            </div>
+          </section>
+
+          <!-- Actions -->
+          <section class="mb-10 fade-in f4">
+            <p class="label mb-4">إجراءات</p>
+            <div class="space-y-2">
+              <button class="btn-min" onclick="playTone(660,0.08); showToast('→ تتبع الشحنة', 'info')">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                تتبع الشحنة
+              </button>
+              <button class="btn-min" onclick="playTone(660,0.08); showToast('→ فتح سند الاستلام', 'info')">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+                إنشاء سند استلام
+              </button>
+              <button class="btn-min" onclick="playTone(660,0.08); showToast('→ رفع فاتورة المورد', 'info')">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                رفع فاتورة
+              </button>
+              <button class="btn-min" onclick="playTone(660,0.08); showToast('→ مراسلة المورد', 'info')">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                مراسلة المورد
+              </button>
+            </div>
+          </section>
+
+          <!-- Danger -->
+          <section class="fade-in f5">
+            <p class="label mb-4" style="color: var(--rose);">منطقة حساسة</p>
+            <div class="space-y-2">
+              <button class="btn-min" onclick="cancelPO()" style="color: var(--rose);">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                إلغاء الأمر
+              </button>
+            </div>
+          </section>
+        </aside>
+
+      </div>
+    </div>
+
+    <!-- ============ VIEW: CREATE ============ -->
+    <div class="view" id="viewCreate">
+
+      <header class="flex items-center justify-between mb-12 fade-in f1">
+        <div class="flex items-center gap-8">
+          <span class="back-link" onclick="backToList()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+            إلغاء
+          </span>
+          <div class="hairline-gold w-12 hidden md:block"></div>
+          <span class="eyebrow hidden md:block">أمر شراء جديد</span>
+        </div>
+        <div class="flex items-center gap-3">
+          <button class="btn-outline" onclick="saveDraft()">حفظ كمسودة</button>
+          <button class="btn-primary" onclick="createPO()">
+            إنشاء وإرسال
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <section class="mb-12 fade-in f2" style="max-width: 720px;">
+        <h1 class="display" style="font-size: clamp(32px, 5vw, 52px); margin-bottom: 12px;">
+          أمر شراء <span style="color: var(--gold-bright); font-weight: 300;">جديد</span>
+        </h1>
+        <p class="eyebrow" style="line-height: 1.9;">أنشئ أمر شراء من طلب معتمد أو من عرض مورد فائز.</p>
+      </section>
+
+      <!-- Quick import -->
+      <section class="mb-12 fade-in f3" style="max-width: 720px;">
+        <p class="label mb-4">استيراد سريع</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <button class="sample-import" onclick="importFromPR()" style="padding: 20px; border-radius: 16px; background: linear-gradient(145deg, rgba(201,169,97,0.04), rgba(201,169,97,0.01)); border: 1px solid rgba(201,169,97,0.15); cursor: pointer; text-align: right; font-family: inherit; color: var(--text); transition: all 0.3s ease;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="width: 40px; height: 40px; border-radius: 12px; background: rgba(201,169,97,0.1); border: 1px solid rgba(201,169,97,0.25); display: flex; align-items: center; justify-content: center; color: var(--gold-bright);">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              </div>
+              <div>
+                <p style="font-size: 14px; font-weight: 500; margin-bottom: 2px;">من طلب شراء معتمد</p>
+                <p class="eyebrow" style="font-size: 11px;">3 طلبات جاهزة</p>
+              </div>
+            </div>
+          </button>
+
+          <button class="sample-import" onclick="importFromOffer()" style="padding: 20px; border-radius: 16px; background: linear-gradient(145deg, rgba(157,196,232,0.04), rgba(157,196,232,0.01)); border: 1px solid rgba(157,196,232,0.15); cursor: pointer; text-align: right; font-family: inherit; color: var(--text); transition: all 0.3s ease;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="width: 40px; height: 40px; border-radius: 12px; background: rgba(157,196,232,0.1); border: 1px solid rgba(157,196,232,0.25); display: flex; align-items: center; justify-content: center; color: var(--ice);">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+              </div>
+              <div>
+                <p style="font-size: 14px; font-weight: 500; margin-bottom: 2px;">من عرض مورد فائز</p>
+                <p class="eyebrow" style="font-size: 11px;">عرض STC · $248K</p>
+              </div>
+            </div>
+          </button>
+        </div>
+      </section>
+
+      <section class="mb-12 fade-in f4" style="max-width: 720px;">
+        <p class="label mb-6">معلومات أساسية</p>
+
+        <div class="mb-6">
+          <label class="form-label" style="display: block; font-size: 11px; letter-spacing: 0.15em; color: var(--text-mute); text-transform: uppercase; margin-bottom: 8px; font-weight: 500;">المورد</label>
+          <select class="input-field" style="width: 100%; padding: 12px 16px; border-radius: 12px; background: rgba(255,255,255,0.02); border: 1px solid var(--line); color: var(--text); font-size: 13px; font-family: inherit; outline: none;">
+            <option>STC Solutions — CR: 1010223344</option>
+            <option>Huawei — CR: 1010556677</option>
+            <option>Mobily — CR: 1010998877</option>
+          </select>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+          <div>
+            <label class="form-label" style="display: block; font-size: 11px; letter-spacing: 0.15em; color: var(--text-mute); text-transform: uppercase; margin-bottom: 8px; font-weight: 500;">تاريخ التسليم</label>
+            <input type="date" class="input-field" style="width: 100%; padding: 12px 16px; border-radius: 12px; background: rgba(255,255,255,0.02); border: 1px solid var(--line); color: var(--text); font-size: 13px; font-family: inherit; outline: none;">
+          </div>
+          <div>
+            <label class="form-label" style="display: block; font-size: 11px; letter-spacing: 0.15em; color: var(--text-mute); text-transform: uppercase; margin-bottom: 8px; font-weight: 500;">شروط الدفع</label>
+            <select class="input-field" style="width: 100%; padding: 12px 16px; border-radius: 12px; background: rgba(255,255,255,0.02); border: 1px solid var(--line); color: var(--text); font-size: 13px; font-family: inherit; outline: none;">
+              <option>30 يوم</option>
+              <option>45 يوم</option>
+              <option>60 يوم</option>
+              <option>دفع فوري</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <section class="mb-12 fade-in f5" style="max-width: 720px;">
+        <p class="label mb-6">الأصناف والأسعار</p>
+        <div id="poItemsContainer">
+          <div class="detail-card mb-4">
+            <div style="display: grid; grid-template-columns: 1fr 100px 140px 1fr; gap: 12px; align-items: center;">
+              <input type="text" placeholder="اسم الصنف" style="padding: 10px 14px; border-radius: 10px; background: rgba(255,255,255,0.02); border: 1px solid var(--line); color: var(--text); font-size: 13px; font-family: inherit; outline: none;">
+              <input type="number" placeholder="الكمية" value="1" style="padding: 10px 14px; border-radius: 10px; background: rgba(255,255,255,0.02); border: 1px solid var(--line); color: var(--text); font-size: 13px; font-family: inherit; outline: none;">
+              <input type="number" placeholder="السعر" style="padding: 10px 14px; border-radius: 10px; background: rgba(255,255,255,0.02); border: 1px solid var(--line); color: var(--text); font-size: 13px; font-family: inherit; outline: none;">
+              <div style="text-align: left; font-family: 'Inter'; color: var(--text-mute); font-size: 13px;">—</div>
+            </div>
+          </div>
+        </div>
+        <button class="btn-min" onclick="addPOItem()" style="margin-top: 8px;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          إضافة صنف
+        </button>
+      </section>
+
+      <!-- Totals preview -->
+      <section class="mb-12 fade-in f6" style="max-width: 720px;">
+        <div class="detail-card">
+          <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--line); font-size: 13px;">
+            <span style="color: var(--text-mute);">المجموع الفرعي</span>
+            <span style="font-family: 'Inter';">$224,000</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--line); font-size: 13px;">
+            <span style="color: var(--text-mute);">ضريبة القيمة المضافة (15%)</span>
+            <span style="font-family: 'Inter';">$33,600</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; padding: 16px 0 0 0; font-size: 18px; color: var(--gold-bright); font-family: 'Inter'; font-weight: 300;">
+            <span style="font-family: 'IBM Plex Sans Arabic'; font-size: 13px; color: var(--text); font-weight: 400;">الإجمالي النهائي</span>
+            <span>$266,000</span>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+  </div>
+</main>
+
+<script>
+/* ============ AUDIO ============ */
+let soundOn = true, audioCtx;
+function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+function playTone(freq, dur, type='sine', vol=0.06) {
+  if (!soundOn) return;
+  initAudio();
+  const o = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  o.type = type; o.frequency.value = freq;
+  g.gain.setValueAtTime(0, audioCtx.currentTime);
+  g.gain.linearRampToValueAtTime(vol, audioCtx.currentTime + 0.01);
+  g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+  o.connect(g); g.connect(audioCtx.destination);
+  o.start(); o.stop(audioCtx.currentTime + dur);
+}
+
+document.getElementById('soundToggle').addEventListener('click', function() {
+  soundOn = !soundOn;
+  document.getElementById('soundOn').style.display = soundOn ? 'block' : 'none';
+  document.getElementById('soundOff').style.display = soundOn ? 'none' : 'block';
+  this.style.color = soundOn ? 'var(--gold)' : 'var(--text-mute)';
+  if (soundOn) playTone(880, 0.1);
+});
+
+/* ============ TOAST ============ */
+function showToast(text, type = 'info') {
+  const colors = { info: 'var(--ice)', success: 'var(--emerald)', warning: 'var(--gold)', danger: 'var(--rose)' };
+  const t = document.createElement('div');
+  t.className = 'toast-min';
+  t.innerHTML = `<span class="dot" style="background: ${colors[type]}; box-shadow: 0 0 8px ${colors[type]};"></span>${text}`;
+  document.getElementById('toastWrap').appendChild(t);
+  setTimeout(() => {
+    t.style.opacity = '0'; t.style.transform = 'translateY(-20px)';
+    t.style.transition = 'all 0.4s ease';
+    setTimeout(() => t.remove(), 400);
+  }, 4500);
+}
+
+/* ============ DATA ============ */
+const orders = [
+  {
+    id: 'PO-2025-0087',
+    title: 'توريد أجهزة شبكات — الدفعة الثالثة',
+    supplier: 'STC Solutions',
+    supInitials: 'STC',
+    supColor: 'gold',
+    amount: 266000,
+    status: 'progress',
+    stage: 3,
+    issuedDate: '2025-10-08',
+    deliveryDate: '2025-11-15',
+    refPR: 'PR-2025-0142',
+    items: 12
+  },
+  {
+    id: 'PO-2025-0086',
+    title: 'صيانة سنوية لنظام التكييف',
+    supplier: 'Aramco Services',
+    supInitials: 'AR',
+    supColor: 'emerald',
+    amount: 92000,
+    status: 'sent',
+    stage: 2,
+    issuedDate: '2025-10-07',
+    deliveryDate: '2025-10-30',
+    refPR: 'PR-2025-0141',
+    items: 3
+  },
+  {
+    id: 'PO-2025-0085',
+    title: 'تراخيص Adobe — 50 مستخدم',
+    supplier: 'Adobe Enterprise',
+    supInitials: 'AD',
+    supColor: 'rose',
+    amount: 27600,
+    status: 'received',
+    stage: 5,
+    issuedDate: '2025-10-05',
+    deliveryDate: '2025-10-10',
+    refPR: 'PR-2025-0140',
+    items: 1
+  },
+  {
+    id: 'PO-2025-0084',
+    title: 'أجهزة حاسوب محمولة للفريق الجديد',
+    supplier: 'Mobily',
+    supInitials: 'MB',
+    supColor: 'emerald',
+    amount: 48300,
+    status: 'confirmed',
+    stage: 3,
+    issuedDate: '2025-10-03',
+    deliveryDate: '2025-10-25',
+    refPR: 'PR-2025-0139',
+    items: 15
+  },
+  {
+    id: 'PO-2025-0083',
+    title: 'تراخيص ERP إضافية',
+    supplier: 'Oracle',
+    supInitials: 'OR',
+    supColor: 'gold',
+    amount: 179400,
+    status: 'progress',
+    stage: 4,
+    issuedDate: '2025-10-01',
+    deliveryDate: '2025-10-28',
+    refPR: 'PR-2025-0138',
+    items: 8
+  },
+  {
+    id: 'PO-2025-0082',
+    title: 'خدمات استشارية لأمن المعلومات',
+    supplier: 'TechSource Ltd',
+    supInitials: 'TS',
+    supColor: 'rose',
+    amount: 109250,
+    status: 'cancelled',
+    stage: 0,
+    issuedDate: '2025-09-28',
+    deliveryDate: '2025-10-20',
+    refPR: 'PR-2025-0136',
+    items: 1
+  },
+  {
+    id: 'PO-2025-0081',
+    title: 'توريد أجهزة شبكات — الدفعة الثانية',
+    supplier: 'Huawei',
+    supInitials: 'HW',
+    supColor: 'ice',
+    amount: 245000,
+    status: 'closed',
+    stage: 6,
+    issuedDate: '2025-09-15',
+    deliveryDate: '2025-10-01',
+    refPR: 'PR-2025-0128',
+    items: 18
+  },
+  {
+    id: 'PO-2025-0080',
+    title: 'معدات مختبرية جديدة',
+    supplier: 'Siemens',
+    supInitials: 'SM',
+    supColor: 'ice',
+    amount: 384000,
+    status: 'draft',
+    stage: 0,
+    issuedDate: '2025-10-08',
+    deliveryDate: '2025-12-01',
+    refPR: '—',
+    items: 24
+  }
+];
+
+const statusConfig = {
+  draft:     { label: 'مسودة',        cls: 'pill-draft',     color: 'var(--text-mute)' },
+  sent:      { label: 'مرسل',         cls: 'pill-sent',      color: 'var(--ice)' },
+  confirmed: { label: 'مؤكد',         cls: 'pill-confirmed', color: 'var(--violet)' },
+  progress:  { label: 'قيد التنفيذ',  cls: 'pill-progress',  color: 'var(--amber)' },
+  received:  { label: 'مستلم',        cls: 'pill-received',  color: 'var(--emerald)' },
+  closed:    { label: 'مغلق',         cls: 'pill-closed',    color: '#4A9A6E' },
+  cancelled: { label: 'ملغى',         cls: 'pill-cancelled', color: 'var(--rose)' }
+};
+
+const stages = [
+  { key: 'issued',     label: 'صادر',       icon: '<polyline points="20 6 9 17 4 12"/>' },
+  { key: 'sent',       label: 'مرسل',       icon: '<line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>' },
+  { key: 'confirmed',  label: 'مؤكد',       icon: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>' },
+  { key: 'transit',    label: 'قيد الشحن',  icon: '<rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>' },
+  { key: 'received',   label: 'مستلم',      icon: '<polyline points="20 6 9 17 4 12"/>' },
+  { key: 'invoiced',   label: 'مفوتر',      icon: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>' },
+  { key: 'closed',     label: 'مغلق',       icon: '<circle cx="12" cy="12" r="10"/><polyline points="16 12 12 16 8 12"/>' }
+];
+
+/* ============ FORMAT ============ */
+function formatMoney(n) {
+  if (n >= 1000000) return '$' + (n / 1000000).toFixed(2) + 'M';
+  if (n >= 1000) return '$' + (n / 1000).toFixed(0) + 'K';
+  return '$' + n;
+}
+
+const colorMap = {
+  gold:    { text: 'var(--gold-bright)', bg: 'rgba(201,169,97,0.1)',  border: 'rgba(201,169,97,0.25)' },
+  ice:     { text: 'var(--ice)',         bg: 'rgba(157,196,232,0.1)', border: 'rgba(157,196,232,0.25)' },
+  emerald: { text: 'var(--emerald)',     bg: 'rgba(110,231,160,0.1)', border: 'rgba(110,231,160,0.25)' },
+  rose:    { text: 'var(--rose)',        bg: 'rgba(240,160,176,0.1)', border: 'rgba(240,160,176,0.25)' }
+};
+
+/* ============ RENDER LIST ============ */
+let activeFilter = 'all';
+let searchTerm = '';
+
+function renderList() {
+  const list = document.getElementById('poList');
+  list.innerHTML = '';
+
+  let filtered = orders.filter(o => {
+    if (activeFilter !== 'all' && o.status !== activeFilter) return false;
+    if (searchTerm && !o.id.toLowerCase().includes(searchTerm.toLowerCase()) &&
+        !o.title.toLowerCase().includes(searchTerm.toLowerCase()) &&
+        !o.supplier.toLowerCase().includes(searchTerm.toLowerCase())) return false;
+    return true;
+  });
+
+  if (filtered.length === 0) {
+    list.innerHTML = `<div style="padding: 80px 20px; text-align: center;"><p class="eyebrow">لا توجد أوامر مطابقة</p></div>`;
+    document.getElementById('footerCount').textContent = '0 أمر';
+    return;
+  }
+
+  filtered.forEach((o, i) => {
+    const cfg = statusConfig[o.status];
+    const c = colorMap[o.supColor];
+    const row = document.createElement('div');
+    row.className = 'po-row';
+    row.style.animation = 'fadeIn 0.5s cubic-bezier(0.16,1,0.3,1) forwards';
+    row.style.animationDelay = (i * 0.04) + 's';
+    row.style.opacity = '0';
+
+    row.innerHTML = `
+      <div>
+        <p class="po-id">${o.id}</p>
+        <p class="po-meta" style="margin-top: 2px;">${o.items} صنف</p>
+      </div>
+      <div>
+        <p class="po-title">${o.title}</p>
+        <p class="po-meta">تاريخ الإصدار: ${o.issuedDate}</p>
+      </div>
+      <div class="po-supplier">
+        <div class="po-sup-avatar" style="background: ${c.bg}; color: ${c.text}; border-color: ${c.border};">${o.supInitials}</div>
+        <div>
+          <p style="font-size: 13px; color: var(--text); margin-bottom: 2px;">${o.supplier}</p>
+          <p class="po-meta">تسليم: ${o.deliveryDate}</p>
+        </div>
+      </div>
+      <div style="text-align: left;">
+        <p class="po-amount">${formatMoney(o.amount)}</p>
+      </div>
+      <div style="text-align: left;">
+        <span class="stat-pill ${cfg.cls}">
+          <span class="dot" style="background: ${cfg.color}; box-shadow: 0 0 6px ${cfg.color};"></span>
+          ${cfg.label}
+        </span>
+      </div>
+    `;
+    row.onclick = () => openDetail(o);
+    list.appendChild(row);
+  });
+
+  document.getElementById('footerCount').textContent = filtered.length + ' أمر';
+}
+
+/* ============ COUNTS ============ */
+function updateCounts() {
+  document.getElementById('countAll').textContent = orders.length;
+  document.getElementById('countDraft').textContent = orders.filter(o => o.status === 'draft').length;
+  document.getElementById('countSent').textContent = orders.filter(o => o.status === 'sent').length;
+  document.getElementById('countConfirmed').textContent = orders.filter(o => o.status === 'confirmed').length;
+  document.getElementById('countProgress').textContent = orders.filter(o => o.status === 'progress').length;
+  document.getElementById('countReceived').textContent = orders.filter(o => o.status === 'received').length;
+  document.getElementById('countClosed').textContent = orders.filter(o => o.status === 'closed').length;
+
+  const active = orders.filter(o => ['sent','confirmed','progress','received'].includes(o.status)).reduce((a, o) => a + o.amount, 0) / 1000000;
+  animateHero(active);
+}
+
+function animateHero(target) {
+  const el = document.getElementById('activeValue');
+  const dur = 1600;
+  const start = performance.now();
+  function step(now) {
+    const p = Math.min((now - start) / dur, 1);
+    const eased = 1 - Math.pow(1 - p, 4);
+    el.textContent = (target * eased).toFixed(2);
+    if (p < 1) requestAnimationFrame(step);
+    else el.textContent = target.toFixed(2);
+  }
+  requestAnimationFrame(step);
+}
+
+/* ============ FILTERS ============ */
+document.querySelectorAll('.filter-chip').forEach(chip => {
+  chip.addEventListener('click', function() {
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+    this.classList.add('active');
+    activeFilter = this.dataset.filter;
+    playTone(660, 0.06);
+    renderList();
+  });
+});
+
+document.getElementById('searchInput').addEventListener('input', e => {
+  searchTerm = e.target.value;
+  renderList();
+});
+
+/* ============ VIEWS ============ */
+function showView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view' + name.charAt(0).toUpperCase() + name.slice(1)).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* ============ DETAIL ============ */
+let currentPO = null;
+
+function openDetail(o) {
+  currentPO = o;
+  document.getElementById('detailId').textContent = o.id;
+  document.getElementById('docPoNumber').textContent = o.id;
+  document.getElementById('docSupplier').textContent = o.supplier;
+  document.getElementById('signSupplierName').textContent = o.supplier;
+
+  // Progress strip
+  const strip = document.getElementById('progressStrip');
+  strip.innerHTML = '';
+  stages.forEach((st, i) => {
+    const step = document.createElement('div');
+    let cls = 'ps-step';
+    if (i < o.stage) cls += ' done';
+    else if (i === o.stage && !['closed','cancelled','received'].includes(o.status)) cls += ' current';
+    else if (o.status === 'closed' || (o.status === 'received' && i <= 4)) cls += ' done';
+
+    let icon = '<circle cx="12" cy="12" r="3"/>';
+    if (cls.includes('done')) icon = '<polyline points="20 6 9 17 4 12"/>';
+
+    step.className = cls;
+    step.innerHTML = `
+      <div class="ps-step-circle">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${icon}</svg>
+      </div>
+      <span class="ps-step-label">${st.label}</span>
+      ${i < stages.length - 1 ? `<div class="ps-connector${i < o.stage ? ' done' : ''}"></div>` : ''}
+    `;
+    strip.appendChild(step);
+  });
+
+  // Send button state
+  const btn = document.getElementById('sendBtn');
+  const label = document.getElementById('sendBtnLabel');
+  if (o.status === 'draft') {
+    btn.style.display = 'inline-flex';
+    label.textContent = 'إرسال للمورد';
+  } else if (o.status === 'cancelled') {
+    btn.style.display = 'none';
+  } else {
+    btn.style.display = 'inline-flex';
+    label.textContent = 'إجراء';
+  }
+
+  // Timeline
+  const tl = document.getElementById('timeline');
+  tl.innerHTML = '';
+  const events = [
+    { title: 'تم إصدار الأمر',        meta: o.issuedDate,                 done: true },
+    { title: 'أُرسل للمورد',           meta: o.stage >= 1 ? o.issuedDate : '—', done: o.stage >= 1 },
+    { title: 'تأكيد المورد',           meta: o.stage >= 2 ? 'بعد 1 يوم' : '—', done: o.stage >= 2 },
+    { title: 'قيد التنفيذ / الشحن',    meta: o.stage >= 3 ? 'جارٍ' : '—', done: o.stage >= 3, current: o.stage === 3 && !['closed','received','cancelled'].includes(o.status) },
+    { title: 'استلام البضاعة',         meta: o.stage >= 4 ? '—' : '—', done: o.stage >= 4 },
+    { title: 'الفاتورة والدفع',        meta: o.stage >= 5 ? '—' : '—', done: o.stage >= 5 },
+    { title: 'إغلاق الأمر',            meta: o.stage >= 6 ? '—' : '—', done: o.stage >= 6 }
+  ];
+
+  events.forEach((ev, i) => {
+    const step = document.createElement('div');
+    let cls = 'tl-step';
+    if (ev.done) cls += ' done';
+    if (ev.current) cls += ' current';
+    step.className = cls;
+    step.innerHTML = `
+      <div class="tl-dot"></div>
+      <div class="tl-content">
+        <p class="tl-title">${ev.title}</p>
+        <p class="tl-meta">${ev.meta}</p>
+      </div>
+    `;
+    tl.appendChild(step);
+  });
+
+  showView('detail');
+  playTone(660, 0.08);
+}
+
+function backToList() {
+  showView('list');
+  playTone(500, 0.08);
+}
+
+function openCreate() {
+  showView('create');
+  playTone(660, 0.08);
+  setTimeout(() => playTone(880, 0.1), 80);
+}
+
+/* ============ ACTIONS ============ */
+function sendPO() {
+  if (!currentPO) return;
+  playTone(660, 0.1); setTimeout(() => playTone(880, 0.12), 100); setTimeout(() => playTone(1174, 0.2), 200);
+  showToast('📤 تم إرسال الأمر للمورد', 'success');
+  setTimeout(() => {
+    if (currentPO.status === 'draft') {
+      currentPO.status = 'sent';
+      currentPO.stage = 1;
+    } else if (currentPO.stage < 6) {
+      currentPO.stage += 1;
+      if (currentPO.stage >= 4) currentPO.status = 'received';
+      if (currentPO.stage >= 6) currentPO.status = 'closed';
+    }
+    openDetail(currentPO);
+    renderList();
+    updateCounts();
+  }, 1500);
+}
+
+function printPO() {
+  playTone(880, 0.1);
+  showToast('🖨️ جاهز للطباعة / PDF', 'info');
+}
+
+function sendWhatsApp() {
+  if (!currentPO) return;
+  const msg = `*MIZAN — أمر شراء*\n\n` +
+    `◆ الرقم: *${currentPO.id}*\n` +
+    `◆ المورد: ${currentPO.supplier}\n` +
+    `◆ الموضوع: ${currentPO.title}\n` +
+    `◆ القيمة: $${(currentPO.amount/1000).toFixed(0)}K\n` +
+    `◆ تاريخ التسليم: ${currentPO.deliveryDate}\n\n` +
+    `_صادر من MIZAN_`;
+  const url = 'https://wa.me/?text=' + encodeURIComponent(msg);
+  playTone(660, 0.1); setTimeout(() => playTone(880, 0.15), 100);
+  showToast('📤 جارٍ فتح واتساب...', 'success');
+  setTimeout(() => window.open(url, '_blank'), 400);
+}
+
+function cancelPO() {
+  playTone(330, 0.15, 'triangle', 0.08);
+  showToast('⚠️ إلغاء أمر الشراء — يُطلب التأكيد', 'danger');
+  if (currentPO) {
+    currentPO.status = 'cancelled';
+    currentPO.stage = 0;
+    setTimeout(() => { renderList(); updateCounts(); openDetail(currentPO); }, 800);
+  }
+}
+
+/* ============ CREATE ============ */
+function importFromPR() {
+  playTone(660, 0.1); setTimeout(() => playTone(880, 0.15), 100);
+  showToast('📥 تم استيراد PR-2025-0142', 'success');
+}
+
+function importFromOffer() {
+  playTone(660, 0.1); setTimeout(() => playTone(880, 0.15), 100);
+  showToast('📥 تم استيراد عرض STC Solutions', 'success');
+}
+
+function addPOItem() {
+  const c = document.getElementById('poItemsContainer');
+  const div = document.createElement('div');
+  div.className = 'detail-card mb-4';
+  div.style.animation = 'fadeIn 0.5s cubic-bezier(0.16,1,0.3,1)';
+  div.innerHTML = `
+    <div style="display: grid; grid-template-columns: 1fr 100px 140px 1fr; gap: 12px; align-items: center;">
+      <input type="text" placeholder="اسم الصنف" style="padding: 10px 14px; border-radius: 10px; background: rgba(255,255,255,0.02); border: 1px solid var(--line); color: var(--text); font-size: 13px; font-family: inherit; outline: none;">
+      <input type="number" placeholder="الكمية" value="1" style="padding: 10px 14px; border-radius: 10px; background: rgba(255,255,255,0.02); border: 1px solid var(--line); color: var(--text); font-size: 13px; font-family: inherit; outline: none;">
+      <input type="number" placeholder="السعر" style="padding: 10px 14px; border-radius: 10px; background: rgba(255,255,255,0.02); border: 1px solid var(--line); color: var(--text); font-size: 13px; font-family: inherit; outline: none;">
+      <div style="text-align: left; font-family: 'Inter'; color: var(--text-mute); font-size: 13px;">—</div>
+    </div>
+  `;
+  c.appendChild(div);
+  playTone(660, 0.08);
+}
+
+function saveDraft() {
+  playTone(660, 0.08);
+  showToast('📝 تم حفظ الأمر كمسودة', 'info');
+  setTimeout(() => backToList(), 1000);
+}
+
+function createPO() {
+  playTone(660, 0.1); setTimeout(() => playTone(880, 0.15), 100); setTimeout(() => playTone(1174, 0.2), 220);
+  showToast('✅ تم إنشاء أمر الشراء وإرساله', 'success');
+  setTimeout(() => {
+    const newPO = {
+      id: 'PO-2025-00' + (88 + Math.floor(Math.random() * 10)),
+      title: 'أمر شراء جديد',
+      supplier: 'STC Solutions',
+      supInitials: 'STC',
+      supColor: 'gold',
+      amount: 266000,
+      status: 'sent',
+      stage: 1,
+      issuedDate: '2025-10-09',
+      deliveryDate: '2025-11-15',
+      refPR: 'PR-2025-0142',
+      items: 12
+    };
+    orders.unshift(newPO);
+    backToList();
+    renderList();
+    updateCounts();
+  }, 1500);
+}
+
+/* ============ COUNTERS ============ */
+function animateCount(el) {
+  const target = parseInt(el.dataset.count);
+  const dur = 1400;
+  const start = performance.now();
+  function step(now) {
+    const p = Math.min((now - start) / dur, 1);
+    const eased = 1 - Math.pow(1 - p, 4);
+    el.textContent = Math.floor(target * eased).toLocaleString('en-US');
+    if (p < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+/* ============ NAV ============ */
+document.querySelectorAll('.side-icon[data-page]').forEach(n => {
+  n.addEventListener('click', function() {
+    document.querySelectorAll('.side-icon').forEach(x => x.classList.remove('active'));
+    this.classList.add('active');
+    playTone(660, 0.06);
+  });
+});
+
+/* ============ INIT ============ */
+window.addEventListener('load', () => {
+  document.body.addEventListener('click', () => initAudio(), { once: true });
+
+  setTimeout(() => playTone(523, 0.15, 'sine', 0.04), 400);
+  setTimeout(() => playTone(659, 0.15, 'sine', 0.04), 550);
+  setTimeout(() => playTone(784, 0.2, 'sine', 0.04), 700);
+
+  updateCounts();
+  document.querySelectorAll('[data-count]').forEach(animateCount);
+  renderList();
+});
+</script>
+</body>
+</html>

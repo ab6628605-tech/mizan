@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MIZAN · المقارنة الذكية</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@200;300;400;500;600&family=Inter:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #08090E;
+    --surface: #0E1018;
+    --line: rgba(255,255,255,0.05);
+    --line-strong: rgba(201,169,97,0.2);
+    --gold: #C9A961;
+    --gold-bright: #E8CE8B;
+    --copper: #B87333;
+    --ice: #9DC4E8;
+    --emerald: #6EE7A0;
+    --rose: #F0A0B0;
+    --text: #EDEDED;
+    --text-dim: #7A8090;
+    --text-mute: #4A5060;
+  }
+  * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+  html, body {
+    background: var(--bg); color: var(--text);
+    font-family: 'IBM Plex Sans Arabic', 'Inter', sans-serif;
+    overflow-x: hidden; font-weight: 300;
+  }
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-thumb { background: rgba(201,169,97,0.15); border-radius: 10px; }
+
+  .aura {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background:
+      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(201,169,97,0.08), transparent 60%),
+      radial-gradient(ellipse 60% 40% at 100% 100%, rgba(157,196,232,0.04), transparent 60%);
+  }
+
+  .display { font-family: 'Inter', sans-serif; font-weight: 200; letter-spacing: -0.04em; line-height: 0.95; }
+  .label { font-size: 11px; letter-spacing: 0.25em; color: var(--text-mute); text-transform: uppercase; font-weight: 500; }
+  .eyebrow { font-size: 12px; color: var(--text-dim); }
+  .hairline { height: 1px; background: var(--line); }
+  .hairline-gold { height: 1px; background: linear-gradient(90deg, transparent, var(--gold), transparent); opacity: 0.5; }
+
+  .link { color: var(--text-dim); font-size: 13px; cursor: pointer; transition: color 0.3s; }
+  .link:hover { color: var(--gold-bright); }
+  .back-link { color: var(--text-dim); font-size: 13px; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 6px; }
+  .back-link:hover { color: var(--gold-bright); gap: 10px; }
+
+  /* ===== Hero ===== */
+  .hero-win {
+    font-family: 'Inter', sans-serif;
+    font-weight: 200;
+    font-size: clamp(48px, 8vw, 108px);
+    letter-spacing: -0.05em;
+    line-height: 0.9;
+    background: linear-gradient(180deg, #FFFFFF 0%, #B8A76A 100%);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .hero-win .accent {
+    color: var(--gold-bright);
+    -webkit-text-fill-color: var(--gold-bright);
+    font-weight: 300;
+  }
+
+  /* ===== Supplier Columns ===== */
+  .sup-col {
+    padding: 28px 22px;
+    border-radius: 20px;
+    border: 1px solid var(--line);
+    transition: all 0.5s cubic-bezier(0.16,1,0.3,1);
+    cursor: pointer;
+    position: relative;
+    background: linear-gradient(180deg, rgba(255,255,255,0.01), transparent);
+  }
+  .sup-col:hover {
+    border-color: rgba(201,169,97,0.3);
+    background: linear-gradient(180deg, rgba(201,169,97,0.03), transparent);
+  }
+  .sup-col.winner {
+    border-color: rgba(201,169,97,0.4);
+    background: linear-gradient(180deg, rgba(201,169,97,0.06), transparent);
+    box-shadow: 0 20px 50px -20px rgba(201,169,97,0.2);
+  }
+  .sup-col.winner::before {
+    content: ''; position: absolute; top: -1px; left: 20%; right: 20%;
+    height: 2px; background: linear-gradient(90deg, transparent, var(--gold-bright), transparent);
+    border-radius: 2px;
+  }
+
+  .sup-name { font-size: 16px; font-weight: 500; margin-bottom: 4px; }
+  .sup-score {
+    font-family: 'Inter', sans-serif;
+    font-weight: 200;
+    font-size: 56px;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    margin: 12px 0 4px;
+    transition: all 0.5s ease;
+  }
+  .sup-score-label { font-size: 11px; color: var(--text-mute); letter-spacing: 0.2em; }
+  .sup-score-suffix { font-size: 0.4em; color: var(--text-mute); margin-right: 4px; }
+
+  .stat-line {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding: 8px 0; font-size: 12px;
+    border-bottom: 1px solid var(--line);
+  }
+  .stat-line:last-child { border-bottom: none; }
+  .stat-line .k { color: var(--text-mute); }
+  .stat-line .v { color: var(--text); font-family: 'Inter'; font-weight: 400; }
+
+  .winner-badge {
+    position: absolute; top: 14px; left: 14px;
+    font-size: 10px; padding: 3px 8px; border-radius: 99px;
+    background: rgba(201,169,97,0.12); color: var(--gold-bright);
+    letter-spacing: 0.1em;
+  }
+
+  /* ===== Dimension Bars ===== */
+  .dim-row {
+    display: grid;
+    grid-template-columns: 100px 1fr;
+    gap: 24px;
+    padding: 20px 0;
+    border-bottom: 1px solid var(--line);
+    align-items: center;
+  }
+  .dim-name { font-size: 13px; color: var(--text-dim); }
+
+  .bars { display: flex; flex-direction: column; gap: 8px; }
+  .bar-line {
+    display: grid;
+    grid-template-columns: 70px 1fr 60px;
+    gap: 14px;
+    align-items: center;
+    font-size: 12px;
+  }
+  .bar-label { color: var(--text-mute); font-size: 11px; }
+  .bar-track { height: 3px; background: rgba(255,255,255,0.04); border-radius: 99px; overflow: hidden; }
+  .bar-fill {
+    height: 100%; border-radius: 99px;
+    transition: width 0.6s cubic-bezier(0.16,1,0.3,1);
+  }
+  .bar-value { text-align: left; font-family: 'Inter'; color: var(--text-dim); }
+
+  /* ===== Weight Sliders ===== */
+  .slider-row {
+    display: grid; grid-template-columns: 100px 1fr 50px;
+    gap: 20px; align-items: center;
+    padding: 14px 0;
+  }
+  .slider-name { font-size: 13px; color: var(--text-dim); }
+  .slider-value {
+    text-align: left; font-family: 'Inter';
+    font-size: 14px; color: var(--gold-bright); font-weight: 400;
+  }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    width: 100%; height: 2px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 99px; outline: none;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px; height: 16px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--gold-bright), var(--copper));
+    cursor: pointer; box-shadow: 0 0 10px rgba(201,169,97,0.4);
+    transition: transform 0.2s ease;
+  }
+  input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+  input[type="range"]::-moz-range-thumb {
+    width: 16px; height: 16px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--gold-bright), var(--copper));
+    cursor: pointer; border: none; box-shadow: 0 0 10px rgba(201,169,97,0.4);
+  }
+
+  /* ===== Buttons ===== */
+  .btn-min {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 0; color: var(--gold-bright); font-size: 13px;
+    background: transparent; border: none; cursor: pointer;
+    transition: all 0.3s ease; font-family: inherit;
+  }
+  .btn-min:hover { color: var(--text); letter-spacing: 0.05em; }
+
+  .btn-primary {
+    padding: 14px 32px; border-radius: 99px;
+    background: linear-gradient(135deg, var(--gold-bright), var(--gold), var(--copper));
+    color: #08090E; font-weight: 600; font-size: 13px;
+    border: none; cursor: pointer; font-family: inherit;
+    transition: all 0.3s cubic-bezier(0.16,1,0.3,1);
+    box-shadow: 0 10px 30px -8px rgba(201,169,97,0.5);
+    display: inline-flex; align-items: center; gap: 8px;
+    letter-spacing: 0.02em;
+  }
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 40px -8px rgba(201,169,97,0.7);
+  }
+
+  .btn-outline {
+    padding: 13px 28px; border-radius: 99px;
+    background: transparent;
+    color: var(--gold-bright); font-weight: 500; font-size: 13px;
+    border: 1px solid rgba(201,169,97,0.3); cursor: pointer; font-family: inherit;
+    transition: all 0.3s ease;
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .btn-outline:hover {
+    border-color: var(--gold-bright);
+    background: rgba(201,169,97,0.05);
+  }
+
+  .btn-whatsapp {
+    padding: 13px 28px; border-radius: 99px;
+    background: transparent;
+    color: #6EE7A0; font-weight: 500; font-size: 13px;
+    border: 1px solid rgba(110,231,160,0.3); cursor: pointer; font-family: inherit;
+    transition: all 0.3s ease;
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .btn-whatsapp:hover {
+    border-color: #6EE7A0;
+    background: rgba(110,231,160,0.05);
+  }
+
+  /* Speaking animation */
+  .speaking .sound-wave span {
+    display: inline-block;
+    width: 3px;
+    background: var(--gold-bright);
+    border-radius: 99px;
+    animation: wave 1s ease-in-out infinite;
+  }
+  .speaking .sound-wave span:nth-child(1) { animation-delay: 0s; height: 8px; }
+  .speaking .sound-wave span:nth-child(2) { animation-delay: 0.1s; height: 14px; }
+  .speaking .sound-wave span:nth-child(3) { animation-delay: 0.2s; height: 10px; }
+  .speaking .sound-wave span:nth-child(4) { animation-delay: 0.3s; height: 16px; }
+  .speaking .sound-wave span:nth-child(5) { animation-delay: 0.4s; height: 8px; }
+  @keyframes wave {
+    0%, 100% { transform: scaleY(0.4); }
+    50% { transform: scaleY(1); }
+  }
+  .sound-wave { display: inline-flex; align-items: center; gap: 3px; height: 18px; }
+
+  /* ===== Animations ===== */
+  .fade-in { opacity: 0; animation: fadeIn 0.9s cubic-bezier(0.16,1,0.3,1) forwards; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  .f1 { animation-delay: 0.05s; } .f2 { animation-delay: 0.15s; } .f3 { animation-delay: 0.25s; }
+  .f4 { animation-delay: 0.35s; } .f5 { animation-delay: 0.45s; } .f6 { animation-delay: 0.55s; }
+
+  /* ===== Sidebar ===== */
+  .side {
+    position: fixed; top: 0; right: 0; bottom: 0; width: 60px;
+    z-index: 30; display: flex; flex-direction: column; align-items: center;
+    padding: 28px 0; gap: 4px; border-left: 1px solid var(--line);
+  }
+  .side-icon {
+    width: 40px; height: 40px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-mute); cursor: pointer; transition: all 0.3s ease;
+    position: relative;
+  }
+  .side-icon:hover { color: var(--text); }
+  .side-icon.active { color: var(--gold-bright); }
+  .side-icon.active::after {
+    content: ''; position: absolute; right: -10px;
+    width: 3px; height: 3px; border-radius: 50%; background: var(--gold);
+  }
+  .main { padding-right: 60px; position: relative; z-index: 10; }
+  @media (max-width: 800px) {
+    .side { width: 100%; height: 56px; top: auto; bottom: 0; right: 0; flex-direction: row; padding: 0 16px; justify-content: space-around; border-left: none; border-top: 1px solid var(--line); }
+    .main { padding-right: 0; padding-bottom: 72px; }
+    .dim-row { grid-template-columns: 80px 1fr; gap: 14px; }
+    .bar-line { grid-template-columns: 50px 1fr 45px; gap: 10px; }
+  }
+
+  /* ===== Toast ===== */
+  .toast-wrap { position: fixed; top: 24px; left: 50%; transform: translateX(-50%); z-index: 999; display: flex; flex-direction: column; gap: 10px; align-items: center; }
+  .toast-min {
+    padding: 12px 22px; border-radius: 99px;
+    background: rgba(14,16,24,0.95); backdrop-filter: blur(20px);
+    border: 1px solid rgba(201,169,97,0.2);
+    font-size: 13px; color: var(--text);
+    display: flex; align-items: center; gap: 12px;
+    animation: fadeIn 0.5s cubic-bezier(0.16,1,0.3,1);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    white-space: nowrap;
+  }
+  .dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+
+  /* ===== Recommendation block ===== */
+  .reco-block {
+    padding: 32px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, rgba(201,169,97,0.06), rgba(201,169,97,0.01));
+    border: 1px solid rgba(201,169,97,0.15);
+    position: relative; overflow: hidden;
+  }
+  .reco-block::before {
+    content: ''; position: absolute; top: -1px; right: 20%; left: 20%;
+    height: 2px; background: linear-gradient(90deg, transparent, var(--gold-bright), transparent);
+  }
+  .reco-text { font-size: 15px; line-height: 2; color: var(--text); }
+  .reco-text strong { color: var(--gold-bright); font-weight: 500; }
+</style>
+</head>
+<body class="min-h-screen">
+
+<div class="aura"></div>
+<div class="toast-wrap" id="toastWrap"></div>
+
+<!-- ========== SIDEBAR ========== -->
+<aside class="side">
+  <div class="mb-6">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#E8CE8B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 3v18M5 8l7-5 7 5M5 8l-2 8h4zM19 8l2 8h-4z"/>
+    </svg>
+  </div>
+  <div class="side-icon" data-page="home" title="الرئيسية">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+  </div>
+  <div class="side-icon" data-page="offers" title="العروض">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+  </div>
+  <div class="side-icon active" data-page="compare" title="المقارنة">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="12" y1="3" x2="12" y2="21"/><polyline points="5 8 12 3 19 8"/><path d="M3 8l-1 6h8L9 8M21 8l1 6h-8l1-6"/></svg>
+  </div>
+  <div class="side-icon" data-page="suppliers" title="الموردون">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+  </div>
+  <div class="flex-1"></div>
+  <div class="side-icon" id="soundToggle" title="الصوت" style="color: var(--gold);">
+    <svg id="soundOn" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+    <svg id="soundOff" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="display:none;"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+  </div>
+</aside>
+
+<!-- ========== MAIN ========== -->
+<main class="main">
+  <div class="max-w-[1200px] mx-auto px-8 md:px-14 py-12 md:py-16">
+
+    <!-- ===== TOP BAR ===== -->
+    <header class="flex items-center justify-between mb-16 fade-in f1">
+      <div class="flex items-center gap-8">
+        <span class="link back-link" onclick="goBack()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+          العودة للعروض
+        </span>
+        <div class="hairline-gold w-12 hidden md:block"></div>
+        <span class="eyebrow hidden md:block">المقارنة الذكية</span>
+      </div>
+      <div class="flex items-center gap-6">
+        <span class="eyebrow">3 موردين</span>
+        <span class="label">MIZAN</span>
+      </div>
+    </header>
+
+    <!-- ===== HERO ===== -->
+    <section class="mb-20 fade-in f2">
+      <p class="label mb-6">التوصية النهائية</p>
+      <h1 class="hero-win">
+        <span class="accent" id="winnerName">STC Solutions</span>
+      </h1>
+      <p class="eyebrow mt-6" style="max-width: 620px; line-height: 1.9; font-size: 14px;" id="winnerReason">
+        يوازن بين السعر التنافسي، التسليم السريع، وجودة تنفيذ عالية. الأفضل من حيث القيمة الإجمالية عند وزن معاييرك الحالية.
+      </p>
+    </section>
+
+    <!-- ===== SUPPLIER COLUMNS ===== -->
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-20 fade-in f3" id="suppliersGrid">
+      <!-- Populated by JS -->
+    </section>
+
+    <!-- ===== DIMENSION BREAKDOWN ===== -->
+    <section class="mb-20 fade-in f4">
+      <div class="flex items-baseline justify-between mb-6">
+        <h2 class="label">المقارنة التفصيلية</h2>
+        <span class="eyebrow">كل معيار على حدة</span>
+      </div>
+
+      <div id="dimensionsList">
+        <!-- Populated by JS -->
+      </div>
+    </section>
+
+    <!-- ===== WEIGHTS ===== -->
+    <section class="mb-20 fade-in f5">
+      <div class="flex items-baseline justify-between mb-6">
+        <h2 class="label">أوزان المعايير</h2>
+        <span class="eyebrow">عدّل الأهمية — يُعاد الحساب فوراً</span>
+      </div>
+
+      <div style="max-width: 720px;">
+        <div class="slider-row">
+          <span class="slider-name">السعر</span>
+          <input type="range" id="wPrice" min="0" max="100" value="35">
+          <span class="slider-value" id="wPriceVal">35%</span>
+        </div>
+        <div class="slider-row">
+          <span class="slider-name">التسليم</span>
+          <input type="range" id="wDelivery" min="0" max="100" value="25">
+          <span class="slider-value" id="wDeliveryVal">25%</span>
+        </div>
+        <div class="slider-row">
+          <span class="slider-name">الجودة</span>
+          <input type="range" id="wQuality" min="0" max="100" value="25">
+          <span class="slider-value" id="wQualityVal">25%</span>
+        </div>
+        <div class="slider-row">
+          <span class="slider-name">المخاطر</span>
+          <input type="range" id="wRisk" min="0" max="100" value="15">
+          <span class="slider-value" id="wRiskVal">15%</span>
+        </div>
+      </div>
+
+      <div class="mt-6 flex items-center gap-3">
+        <button class="btn-min" onclick="resetWeights()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+          إعادة التوزيع الافتراضي
+        </button>
+      </div>
+    </section>
+
+    <!-- ===== RECOMMENDATION ===== -->
+    <section class="mb-20 fade-in f6">
+      <p class="label mb-6">لماذا هذه التوصية؟</p>
+      <div class="reco-block">
+        <p class="reco-text" id="recoText">
+          <!-- Populated by JS -->
+        </p>
+      </div>
+    </section>
+
+    <!-- ===== ACTIONS ===== -->
+    <section class="mb-16 fade-in f6">
+      <div class="flex flex-wrap items-center gap-4">
+        <button class="btn-primary" onclick="approveDecision()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+          اعتماد القرار
+        </button>
+
+        <button class="btn-outline" id="voiceBtn" onclick="speakSummary()">
+          <span class="sound-wave" style="display:none;">
+            <span></span><span></span><span></span><span></span><span></span>
+          </span>
+          <svg id="voiceIcon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+          <span id="voiceLabel">ملخص صوتي</span>
+        </button>
+
+        <button class="btn-whatsapp" onclick="shareWhatsApp()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+          </svg>
+          إرسال على واتساب
+        </button>
+      </div>
+    </section>
+
+    <!-- ===== FOOTER ===== -->
+    <footer class="mt-24">
+      <div class="hairline mb-6"></div>
+      <div class="flex items-center justify-between flex-wrap gap-4">
+        <p class="label">MIZAN · SMART COMPARISON</p>
+        <p class="eyebrow">آخر تحليل: قبل لحظات</p>
+      </div>
+    </footer>
+
+  </div>
+</main>
+
+<script>
+/* ============ AUDIO ============ */
+let soundOn = true, audioCtx;
+function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+function playTone(freq, dur, type='sine', vol=0.06) {
+  if (!soundOn) return;
+  initAudio();
+  const o = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  o.type = type; o.frequency.value = freq;
+  g.gain.setValueAtTime(0, audioCtx.currentTime);
+  g.gain.linearRampToValueAtTime(vol, audioCtx.currentTime + 0.01);
+  g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+  o.connect(g); g.connect(audioCtx.destination);
+  o.start(); o.stop(audioCtx.currentTime + dur);
+}
+
+document.getElementById('soundToggle').addEventListener('click', function() {
+  soundOn = !soundOn;
+  document.getElementById('soundOn').style.display = soundOn ? 'block' : 'none';
+  document.getElementById('soundOff').style.display = soundOn ? 'none' : 'block';
+  this.style.color = soundOn ? 'var(--gold)' : 'var(--text-mute)';
+  if (soundOn) playTone(880, 0.1);
+});
+
+/* ============ TOAST ============ */
+function showToast(text, type = 'info') {
+  const colors = { info: 'var(--ice)', success: 'var(--emerald)', warning: 'var(--gold)', danger: 'var(--rose)' };
+  const t = document.createElement('div');
+  t.className = 'toast-min';
+  t.innerHTML = `<span class="dot" style="background: ${colors[type]}; box-shadow: 0 0 8px ${colors[type]};"></span>${text}`;
+  document.getElementById('toastWrap').appendChild(t);
+  setTimeout(() => {
+    t.style.opacity = '0'; t.style.transform = 'translateY(-20px)';
+    t.style.transition = 'all 0.4s ease';
+    setTimeout(() => t.remove(), 400);
+  }, 5000);
+}
+
+/* ============ DATA ============ */
+const suppliers = [
+  { id: 'stc',    name: 'STC Solutions', price: 248000, delivery: 30, quality: 8.5, risk: 7.0, payment: 30 },
+  { id: 'huawei', name: 'Huawei',        price: 232000, delivery: 45, quality: 9.2, risk: 6.0, payment: 45 },
+  { id: 'mobily', name: 'Mobily',        price: 256000, delivery: 20, quality: 8.0, risk: 8.5, payment: 60 }
+];
+
+const weights = { price: 35, delivery: 25, quality: 25, risk: 15 };
+
+/* ============ SCORING ============ */
+function calculateScores() {
+  const prices = suppliers.map(s => s.price);
+  const deliveries = suppliers.map(s => s.delivery);
+  const qualities = suppliers.map(s => s.quality);
+  const risks = suppliers.map(s => s.risk);
+
+  const minPrice = Math.min(...prices);
+  const maxPrice = Math.max(...prices);
+  const minDel = Math.min(...deliveries);
+  const maxDel = Math.max(...deliveries);
+  const maxQual = Math.max(...qualities);
+  const maxRisk = Math.max(...risks);
+
+  return suppliers.map(s => {
+    // Price: lower is better → invert normalized
+    const priceScore = maxPrice === minPrice ? 100 : 100 - ((s.price - minPrice) / (maxPrice - minPrice)) * 40;
+    // Delivery: faster is better
+    const delScore = maxDel === minDel ? 100 : 100 - ((s.delivery - minDel) / (maxDel - minDel)) * 40;
+    // Quality: higher is better
+    const qualScore = (s.quality / maxQual) * 100;
+    // Risk: lower risk value means lower risk → higher score
+    const riskScore = (s.risk / maxRisk) * 100;
+
+    const totalW = weights.price + weights.delivery + weights.quality + weights.risk || 1;
+    const total = (
+      priceScore * weights.price +
+      delScore * weights.delivery +
+      qualScore * weights.quality +
+      riskScore * weights.risk
+    ) / totalW;
+
+    return {
+      ...s,
+      priceScore, delScore, qualScore, riskScore,
+      total: Math.round(total * 10) / 10
+    };
+  });
+}
+
+/* ============ RENDER SUPPLIERS ============ */
+function renderSuppliers() {
+  const data = calculateScores();
+  const winner = data.reduce((a, b) => a.total > b.total ? a : b);
+  const grid = document.getElementById('suppliersGrid');
+  grid.innerHTML = '';
+
+  data.forEach((s, i) => {
+    const isWinner = s.id === winner.id;
+    const col = document.createElement('div');
+    col.className = 'sup-col' + (isWinner ? ' winner' : '');
+    col.style.animation = 'fadeIn 0.6s cubic-bezier(0.16,1,0.3,1) forwards';
+    col.style.animationDelay = (i * 0.1) + 's';
+    col.style.opacity = '0';
+
+    const scoreColor = isWinner ? 'var(--gold-bright)' : 'var(--text)';
+
+    col.innerHTML = `
+      ${isWinner ? '<span class="winner-badge">◆ الأفضل</span>' : ''}
+      <p class="label mb-4">المورد ${i + 1}</p>
+      <p class="sup-name">${s.name}</p>
+      <p class="sup-score" style="color: ${scoreColor};" data-score="${s.total}">
+        ${s.total}<span class="sup-score-suffix">/100</span>
+      </p>
+      <p class="sup-score-label mb-5">النتيجة الإجمالية</p>
+
+      <div class="hairline mb-4"></div>
+
+      <div class="stat-line">
+        <span class="k">السعر</span>
+        <span class="v">$${(s.price / 1000).toFixed(0)}K</span>
+      </div>
+      <div class="stat-line">
+        <span class="k">التسليم</span>
+        <span class="v">${s.delivery} يوم</span>
+      </div>
+      <div class="stat-line">
+        <span class="k">الجودة</span>
+        <span class="v">${s.quality} / 10</span>
+      </div>
+      <div class="stat-line">
+        <span class="k">الدفع</span>
+        <span class="v">${s.payment} يوم</span>
+      </div>
+    `;
+    col.onclick = () => { playTone(660, 0.08); };
+    grid.appendChild(col);
+  });
+
+  // Update hero
+  document.getElementById('winnerName').textContent = winner.name;
+  const reasons = {
+    stc: 'يوازن بين السعر التنافسي، التسليم السريع، وجودة تنفيذ عالية. الأفضل من حيث القيمة الإجمالية عند وزن معاييرك الحالية.',
+    huawei: 'الأفضل جودة والأقل سعراً. لكن مدة التسليم الأطول تخفض تقييمه الإجمالي. مناسب إذا كانت الجودة أولويتك المطلقة.',
+    mobily: 'الأسرع تسليماً والأقل مخاطر. لكن سعره الأعلى يجعله الخيار الأمثل فقط عند ضيق الوقت أو حساسية المشروع.'
+  };
+  document.getElementById('winnerReason').textContent = reasons[winner.id];
+
+  renderDimensions(data);
+  renderRecommendation(winner, data);
+  return winner;
+}
+
+/* ============ RENDER DIMENSIONS ============ */
+function renderDimensions(data) {
+  const list = document.getElementById('dimensionsList');
+  list.innerHTML = '';
+
+  const dims = [
+    { key: 'price',    label: 'السعر',    get: s => s.priceScore,    display: s => '$' + (s.price / 1000).toFixed(0) + 'K' },
+    { key: 'delivery', label: 'التسليم',  get: s => s.delScore,      display: s => s.delivery + ' يوم' },
+    { key: 'quality',  label: 'الجودة',   get: s => s.qualScore,     display: s => s.quality + '/10' },
+    { key: 'risk',     label: 'المخاطر',  get: s => s.riskScore,     display: s => s.risk + '/10' }
+  ];
+
+  const colors = { stc: 'var(--gold-bright)', huawei: 'var(--ice)', mobily: 'var(--emerald)' };
+
+  dims.forEach(d => {
+    const row = document.createElement('div');
+    row.className = 'dim-row';
+
+    const maxScore = Math.max(...data.map(d.get));
+    const barsHTML = data.map(s => {
+      const score = d.get(s);
+      const pct = (score / 100) * 100;
+      const isTop = score === maxScore;
+      return `
+        <div class="bar-line">
+          <span class="bar-label">${s.name.split(' ')[0]}</span>
+          <div class="bar-track">
+            <div class="bar-fill" style="width: ${pct}%; background: ${isTop ? colors[s.id] : 'rgba(255,255,255,0.15)'};"></div>
+          </div>
+          <span class="bar-value" style="color: ${isTop ? colors[s.id] : 'var(--text-mute)'};">${d.display(s)}</span>
+        </div>
+      `;
+    }).join('');
+
+    row.innerHTML = `
+      <span class="dim-name">${d.label}</span>
+      <div class="bars">${barsHTML}</div>
+    `;
+    list.appendChild(row);
+  });
+}
+
+/* ============ RECOMMENDATION TEXT ============ */
+function renderRecommendation(winner, data) {
+  const second = data.filter(s => s.id !== winner.id).sort((a, b) => b.total - a.total)[0];
+  const diff = (winner.total - second.total).toFixed(1);
+
+  const reasonings = {
+    stc: `<strong>${winner.name}</strong> يتقدم بفارق <strong>${diff} نقطة</strong> عن أقرب منافس. يجمع بين سعر تنافسي (${(winner.price/1000).toFixed(0)}K)، تسليم في ${winner.delivery} يوم، وجودة ${winner.quality}/10. الخيار الأكثر توازناً بين الكلفة والسرعة والموثوقية.`,
+    huawei: `<strong>${winner.name}</strong> يتقدم بفارق <strong>${diff} نقطة</strong>. يقدّم أفضل جودة (${winner.quality}/10) بأقل سعر (${(winner.price/1000).toFixed(0)}K). لكنه يتطلب ${winner.delivery} يوم للتسليم — اختره إذا كانت الجودة أولويتك القصوى.`,
+    mobily: `<strong>${winner.name}</strong> يتقدم بفارق <strong>${diff} نقطة</strong>. الأسرع تسليماً (${winner.delivery} يوم) والأقل مخاطر (${winner.risk}/10). سعره أعلى بـ ${(((winner.price - Math.min(...data.map(s=>s.price))) / Math.min(...data.map(s=>s.price)))*100).toFixed(0)}% — مناسب للمشاريع العاجلة.`
+  };
+
+  document.getElementById('recoText').innerHTML = reasonings[winner.id] + ' <br><br>يمكنك تعديل الأوزان في الأعلى لرؤية كيف يتغير القرار حسب أولوياتك.';
+}
+
+/* ============ WEIGHTS ============ */
+function bindSlider(id, valId, key) {
+  const el = document.getElementById(id);
+  const valEl = document.getElementById(valId);
+  el.addEventListener('input', () => {
+    weights[key] = parseInt(el.value);
+    valEl.textContent = el.value + '%';
+    renderSuppliers();
+    playTone(400 + parseInt(el.value) * 6, 0.03, 'sine', 0.02);
+  });
+}
+
+['wPrice:price', 'wDelivery:delivery', 'wQuality:quality', 'wRisk:risk'].forEach(pair => {
+  const [id, key] = pair.split(':');
+  bindSlider(id, id + 'Val', key);
+});
+
+function resetWeights() {
+  weights.price = 35; weights.delivery = 25; weights.quality = 25; weights.risk = 15;
+  document.getElementById('wPrice').value = 35;    document.getElementById('wPriceVal').textContent = '35%';
+  document.getElementById('wDelivery').value = 25; document.getElementById('wDeliveryVal').textContent = '25%';
+  document.getElementById('wQuality').value = 25;  document.getElementById('wQualityVal').textContent = '25%';
+  document.getElementById('wRisk').value = 15;     document.getElementById('wRiskVal').textContent = '15%';
+  renderSuppliers();
+  playTone(660, 0.1);
+  showToast('تم إعادة التوزيع الافتراضي', 'info');
+}
+
+/* ============ VOICE SUMMARY ============ */
+let speaking = false;
+let currentUtterance = null;
+
+function speakSummary() {
+  if (!('speechSynthesis' in window)) {
+    showToast('متصفحك لا يدعم النطق الصوتي', 'warning');
+    return;
+  }
+
+  const btn = document.getElementById('voiceBtn');
+  const wave = btn.querySelector('.sound-wave');
+  const icon = document.getElementById('voiceIcon');
+  const label = document.getElementById('voiceLabel');
+
+  // If speaking, stop
+  if (speaking) {
+    speechSynthesis.cancel();
+    setSpeakingState(false);
+    return;
+  }
+
+  const data = calculateScores();
+  const winner = data.reduce((a, b) => a + b.total, 0) && data.reduce((a, b) => a.total > b.total ? a : b);
+  const second = data.filter(s => s.id !== winner.id).sort((a, b) => b.total - a.total)[0];
+
+  const summary = `التوصية النهائية: ${winner.name}. النتيجة الإجمالية ${winner.total} من مئة، بفارق ${(winner.total - second.total).toFixed(1)} نقطة عن أقرب منافس. السعر ${(winner.price/1000).toFixed(0)} ألف دولار، مدة التسليم ${winner.delivery} يوماً، والجودة ${winner.quality} من عشرة. هذه التوصية مبنية على الأوزان الحالية: السعر ${weights.price} بالمئة، التسليم ${weights.delivery} بالمئة، الجودة ${weights.quality} بالمئة، والمخاطر ${weights.risk} بالمئة.`;
+
+  const utter = new SpeechSynthesisUtterance(summary);
+  utter.lang = 'ar-SA';
+  utter.rate = 0.95;
+  utter.pitch = 1.0;
+
+  // Try to find Arabic voice
+  const voices = speechSynthesis.getVoices();
+  const arVoice = voices.find(v => v.lang.startsWith('ar'));
+  if (arVoice) utter.voice = arVoice;
+
+  utter.onend = () => setSpeakingState(false);
+  utter.onerror = () => setSpeakingState(false);
+
+  currentUtterance = utter;
+  setSpeakingState(true);
+  speechSynthesis.speak(utter);
+  playTone(660, 0.1); setTimeout(() => playTone(880, 0.15), 100);
+}
+
+function setSpeakingState(on) {
+  speaking = on;
+  const btn = document.getElementById('voiceBtn');
+  const wave = btn.querySelector('.sound-wave');
+  const icon = document.getElementById('voiceIcon');
+  const label = document.getElementById('voiceLabel');
+  if (on) {
+    btn.classList.add('speaking');
+    wave.style.display = 'inline-flex';
+    icon.style.display = 'none';
+    label.textContent = 'إيقاف';
+  } else {
+    btn.classList.remove('speaking');
+    wave.style.display = 'none';
+    icon.style.display = 'block';
+    label.textContent = 'ملخص صوتي';
+  }
+}
+
+// Pre-load voices
+if ('speechSynthesis' in window) {
+  speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices();
+}
+
+/* ============ WHATSAPP SHARE ============ */
+function shareWhatsApp() {
+  const data = calculateScores();
+  const winner = data.reduce((a, b) => a.total > b.total ? a : b);
+
+  const msg = `*MIZAN — توصية المشتريات*\n\n` +
+    `◆ التوصية: *${winner.name}*\n` +
+    `◆ النتيجة: ${winner.total}/100\n` +
+    `◆ السعر: $${(winner.price/1000).toFixed(0)}K\n` +
+    `◆ التسليم: ${winner.delivery} يوم\n` +
+    `◆ الجودة: ${winner.quality}/10\n` +
+    `◆ الدفع: ${winner.payment} يوم\n\n` +
+    `_تحليل تلقائي بواسطة MIZAN_`;
+
+  const url = 'https://wa.me/?text=' + encodeURIComponent(msg);
+  playTone(660, 0.1); setTimeout(() => playTone(880, 0.15), 100);
+  showToast('📤 جارٍ فتح واتساب...', 'success');
+
+  setTimeout(() => window.open(url, '_blank'), 400);
+}
+
+/* ============ APPROVE ============ */
+function approveDecision() {
+  playTone(660, 0.1);
+  setTimeout(() => playTone(880, 0.12), 100);
+  setTimeout(() => playTone(1174, 0.2), 200);
+  showToast('✅ تم اعتماد القرار بنجاح', 'success');
+
+  // Simulate confetti
+  setTimeout(() => showToast('📧 أُرسل إشعار الاعتماد لفريق المشتريات', 'info'), 1000);
+}
+
+/* ============ NAV ============ */
+document.querySelectorAll('.side-icon[data-page]').forEach(n => {
+  n.addEventListener('click', function() {
+    document.querySelectorAll('.side-icon').forEach(x => x.classList.remove('active'));
+    this.classList.add('active');
+    playTone(660, 0.06);
+  });
+});
+
+function goBack() {
+  playTone(500, 0.1);
+  window.location.href = 'mizan-upload.html';
+}
+
+/* ============ INIT ============ */
+window.addEventListener('load', () => {
+  document.body.addEventListener('click', () => initAudio(), { once: true });
+
+  setTimeout(() => playTone(523, 0.15, 'sine', 0.04), 400);
+  setTimeout(() => playTone(659, 0.15, 'sine', 0.04), 550);
+  setTimeout(() => playTone(784, 0.2, 'sine', 0.04), 700);
+
+  renderSuppliers();
+
+  setTimeout(() => showToast('✨ حُللت 3 عروض — التوصية جاهزة', 'success'), 1200);
+});
+</script>
+</body>
+</html>

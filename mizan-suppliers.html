@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MIZAN · الموردون</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@200;300;400;500;600&family=Inter:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #08090E;
+    --surface: #0E1018;
+    --line: rgba(255,255,255,0.05);
+    --line-strong: rgba(201,169,97,0.2);
+    --gold: #C9A961;
+    --gold-bright: #E8CE8B;
+    --copper: #B87333;
+    --ice: #9DC4E8;
+    --emerald: #6EE7A0;
+    --rose: #F0A0B0;
+    --amber: #F0C474;
+    --text: #EDEDED;
+    --text-dim: #7A8090;
+    --text-mute: #4A5060;
+  }
+  * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+  html, body {
+    background: var(--bg); color: var(--text);
+    font-family: 'IBM Plex Sans Arabic', 'Inter', sans-serif;
+    overflow-x: hidden; font-weight: 300;
+  }
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-thumb { background: rgba(201,169,97,0.15); border-radius: 10px; }
+
+  .aura {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background:
+      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(201,169,97,0.08), transparent 60%),
+      radial-gradient(ellipse 60% 40% at 100% 100%, rgba(157,196,232,0.04), transparent 60%);
+  }
+
+  .display { font-family: 'Inter', sans-serif; font-weight: 200; letter-spacing: -0.04em; line-height: 0.95; }
+  .label { font-size: 11px; letter-spacing: 0.25em; color: var(--text-mute); text-transform: uppercase; font-weight: 500; }
+  .eyebrow { font-size: 12px; color: var(--text-dim); }
+  .hairline { height: 1px; background: var(--line); }
+  .hairline-gold { height: 1px; background: linear-gradient(90deg, transparent, var(--gold), transparent); opacity: 0.5; }
+
+  .link { color: var(--text-dim); font-size: 13px; cursor: pointer; transition: color 0.3s; }
+  .link:hover { color: var(--gold-bright); }
+
+  .hero-number {
+    font-family: 'Inter', sans-serif;
+    font-weight: 200;
+    font-size: clamp(64px, 10vw, 132px);
+    letter-spacing: -0.05em;
+    line-height: 0.85;
+    background: linear-gradient(180deg, #FFFFFF 0%, #6A7080 90%);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .hero-number .unit {
+    font-size: 0.32em; color: var(--gold); -webkit-text-fill-color: var(--gold);
+    margin-right: 14px; font-weight: 300; letter-spacing: 0;
+  }
+
+  /* ===== Supplier Row ===== */
+  .sup-row {
+    display: grid;
+    grid-template-columns: 48px 1fr 140px 120px 100px 40px;
+    gap: 20px;
+    align-items: center;
+    padding: 20px 12px;
+    border-bottom: 1px solid var(--line);
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.16,1,0.3,1);
+    position: relative;
+  }
+  .sup-row:hover {
+    background: linear-gradient(90deg, rgba(201,169,97,0.03), transparent);
+    padding-right: 20px;
+  }
+  .sup-row:hover .sup-row-name { color: var(--gold-bright); }
+  .sup-row:hover .sup-arrow { opacity: 1; transform: translateX(-4px); }
+
+  .sup-avatar {
+    width: 42px; height: 42px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Inter'; font-size: 12px; font-weight: 600;
+    letter-spacing: 0.02em;
+    border: 1px solid;
+  }
+
+  .sup-row-name {
+    font-size: 15px; font-weight: 400; color: var(--text);
+    transition: color 0.3s ease; margin-bottom: 3px;
+  }
+  .sup-row-cat { font-size: 12px; color: var(--text-mute); }
+
+  .sup-row-spend {
+    font-family: 'Inter'; font-size: 17px; font-weight: 300;
+    letter-spacing: -0.02em;
+  }
+  .sup-row-spend-label { font-size: 11px; color: var(--text-mute); }
+
+  /* Rating dots */
+  .rating { display: flex; align-items: center; gap: 4px; }
+  .rating .dot-s {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: rgba(255,255,255,0.1);
+  }
+  .rating .dot-s.filled { background: var(--gold); box-shadow: 0 0 4px var(--gold); }
+
+  /* Status pill */
+  .stat-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 11px; padding: 4px 10px; border-radius: 99px;
+    letter-spacing: 0.02em;
+  }
+  .stat-active { background: rgba(110,231,160,0.1); color: var(--emerald); }
+  .stat-watch { background: rgba(240,196,116,0.1); color: var(--amber); }
+  .stat-risk { background: rgba(240,160,176,0.1); color: var(--rose); }
+  .stat-idle { background: rgba(255,255,255,0.04); color: var(--text-mute); }
+
+  .sup-arrow {
+    color: var(--text-mute); opacity: 0;
+    transition: all 0.3s ease; font-size: 14px;
+  }
+
+  /* ===== Filter Bar ===== */
+  .filter-bar {
+    display: flex; align-items: center; gap: 4px;
+    padding: 4px;
+    border-radius: 99px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--line);
+    width: fit-content;
+  }
+  .filter-chip {
+    padding: 8px 16px; border-radius: 99px;
+    font-size: 12px; color: var(--text-dim);
+    cursor: pointer; transition: all 0.3s ease;
+    font-family: inherit; background: transparent; border: none;
+  }
+  .filter-chip:hover { color: var(--text); }
+  .filter-chip.active {
+    color: var(--gold-bright);
+    background: rgba(201,169,97,0.08);
+  }
+
+  /* ===== Alert Card ===== */
+  .alert-card {
+    padding: 22px;
+    border-radius: 18px;
+    background: linear-gradient(145deg, rgba(240,160,176,0.06), rgba(240,160,176,0.01));
+    border: 1px solid rgba(240,160,176,0.2);
+    transition: all 0.4s cubic-bezier(0.16,1,0.3,1);
+    cursor: pointer;
+  }
+  .alert-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(240,160,176,0.4);
+    box-shadow: 0 20px 40px -12px rgba(240,160,176,0.15);
+  }
+  .alert-card.gold-alert {
+    background: linear-gradient(145deg, rgba(201,169,97,0.06), rgba(201,169,97,0.01));
+    border-color: rgba(201,169,97,0.2);
+  }
+  .alert-card.gold-alert:hover {
+    border-color: rgba(201,169,97,0.4);
+    box-shadow: 0 20px 40px -12px rgba(201,169,97,0.2);
+  }
+
+  /* ===== Animations ===== */
+  .fade-in { opacity: 0; animation: fadeIn 0.9s cubic-bezier(0.16,1,0.3,1) forwards; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  .f1 { animation-delay: 0.05s; } .f2 { animation-delay: 0.15s; } .f3 { animation-delay: 0.25s; }
+  .f4 { animation-delay: 0.35s; } .f5 { animation-delay: 0.45s; } .f6 { animation-delay: 0.55s; }
+
+  /* ===== Sidebar ===== */
+  .side {
+    position: fixed; top: 0; right: 0; bottom: 0; width: 60px;
+    z-index: 30; display: flex; flex-direction: column; align-items: center;
+    padding: 28px 0; gap: 4px; border-left: 1px solid var(--line);
+  }
+  .side-icon {
+    width: 40px; height: 40px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-mute); cursor: pointer; transition: all 0.3s ease;
+    position: relative;
+  }
+  .side-icon:hover { color: var(--text); }
+  .side-icon.active { color: var(--gold-bright); }
+  .side-icon.active::after {
+    content: ''; position: absolute; right: -10px;
+    width: 3px; height: 3px; border-radius: 50%; background: var(--gold);
+  }
+  .main { padding-right: 60px; position: relative; z-index: 10; }
+  @media (max-width: 900px) {
+    .side { width: 100%; height: 56px; top: auto; bottom: 0; right: 0; flex-direction: row; padding: 0 16px; justify-content: space-around; border-left: none; border-top: 1px solid var(--line); }
+    .main { padding-right: 0; padding-bottom: 72px; }
+    .sup-row { grid-template-columns: 42px 1fr auto; gap: 14px; padding: 16px 8px; }
+    .sup-row > *:nth-child(3),
+    .sup-row > *:nth-child(4),
+    .sup-row > *:nth-child(5) { display: none; }
+  }
+
+  /* ===== Toast ===== */
+  .toast-wrap { position: fixed; top: 24px; left: 50%; transform: translateX(-50%); z-index: 999; display: flex; flex-direction: column; gap: 10px; align-items: center; }
+  .toast-min {
+    padding: 12px 22px; border-radius: 99px;
+    background: rgba(14,16,24,0.95); backdrop-filter: blur(20px);
+    border: 1px solid rgba(201,169,97,0.2);
+    font-size: 13px; color: var(--text);
+    display: flex; align-items: center; gap: 12px;
+    animation: fadeIn 0.5s cubic-bezier(0.16,1,0.3,1);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    white-space: nowrap;
+  }
+  .dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+
+  /* ===== Search ===== */
+  .search-box {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 18px; border-radius: 99px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--line);
+    transition: all 0.3s ease;
+    width: 100%; max-width: 320px;
+  }
+  .search-box:focus-within {
+    border-color: rgba(201,169,97,0.4);
+    background: rgba(201,169,97,0.02);
+  }
+  .search-box input {
+    flex: 1; background: transparent; border: none; outline: none;
+    color: var(--text); font-size: 13px; font-family: inherit;
+  }
+  .search-box input::placeholder { color: var(--text-mute); }
+
+  /* ===== Add button ===== */
+  .btn-add {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 20px; border-radius: 99px;
+    background: transparent;
+    color: var(--gold-bright); font-size: 13px;
+    border: 1px solid rgba(201,169,97,0.3); cursor: pointer;
+    font-family: inherit; transition: all 0.3s ease;
+  }
+  .btn-add:hover {
+    border-color: var(--gold-bright);
+    background: rgba(201,169,97,0.05);
+    letter-spacing: 0.02em;
+  }
+
+  /* ===== Stat strip ===== */
+  .stat-mini {
+    display: flex; flex-direction: column; gap: 4px;
+    padding: 0;
+  }
+  .stat-mini-value {
+    font-family: 'Inter'; font-weight: 300;
+    font-size: 22px; color: var(--text);
+    letter-spacing: -0.02em;
+  }
+</style>
+</head>
+<body class="min-h-screen">
+
+<div class="aura"></div>
+<div class="toast-wrap" id="toastWrap"></div>
+
+<!-- ========== SIDEBAR ========== -->
+<aside class="side">
+  <div class="mb-6">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#E8CE8B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 3v18M5 8l7-5 7 5M5 8l-2 8h4zM19 8l2 8h-4z"/>
+    </svg>
+  </div>
+  <div class="side-icon" data-page="home" title="الرئيسية">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+  </div>
+  <div class="side-icon" data-page="offers" title="العروض">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+  </div>
+  <div class="side-icon" data-page="compare" title="المقارنة">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="12" y1="3" x2="12" y2="21"/><polyline points="5 8 12 3 19 8"/><path d="M3 8l-1 6h8L9 8M21 8l1 6h-8l1-6"/></svg>
+  </div>
+  <div class="side-icon active" data-page="suppliers" title="الموردون">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+  </div>
+  <div class="side-icon" data-page="reports" title="التقارير">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+  </div>
+  <div class="flex-1"></div>
+  <div class="side-icon" id="soundToggle" title="الصوت" style="color: var(--gold);">
+    <svg id="soundOn" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+    <svg id="soundOff" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="display:none;"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+  </div>
+</aside>
+
+<!-- ========== MAIN ========== -->
+<main class="main">
+  <div class="max-w-[1200px] mx-auto px-8 md:px-14 py-12 md:py-16">
+
+    <!-- ===== TOP BAR ===== -->
+    <header class="flex items-center justify-between mb-16 fade-in f1">
+      <div class="flex items-center gap-8">
+        <span class="label">MIZAN</span>
+        <div class="hairline-gold w-12 hidden md:block"></div>
+        <span class="eyebrow hidden md:block">قاعدة الموردين</span>
+      </div>
+      <div class="flex items-center gap-6">
+        <button class="btn-add" onclick="addSupplier()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          إضافة مورد
+        </button>
+      </div>
+    </header>
+
+    <!-- ===== HERO ===== -->
+    <section class="mb-20 fade-in f2">
+      <p class="label mb-6">إجمالي الإنفاق السنوي</p>
+      <div class="flex items-baseline gap-6 flex-wrap">
+        <h1 class="hero-number">
+          <span class="unit">$</span><span id="totalSpend">0</span><span class="unit" style="margin-right:0; margin-left:8px;">M</span>
+        </h1>
+        <div class="flex items-center gap-2 mb-4">
+          <span class="dot" style="background: var(--emerald); box-shadow: 0 0 8px var(--emerald);"></span>
+          <span style="color: var(--emerald); font-size: 13px;">+14.2% نمو</span>
+        </div>
+      </div>
+      <div class="hairline mt-10"></div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-8 mt-8 max-w-3xl">
+        <div class="stat-mini">
+          <p class="label mb-2">موردون نشطون</p>
+          <p class="stat-mini-value" data-count="86">0</p>
+        </div>
+        <div class="stat-mini">
+          <p class="label mb-2">قيد المراقبة</p>
+          <p class="stat-mini-value" style="color: var(--amber);" data-count="9">0</p>
+        </div>
+        <div class="stat-mini">
+          <p class="label mb-2">ذوو مخاطر</p>
+          <p class="stat-mini-value" style="color: var(--rose);" data-count="3">0</p>
+        </div>
+        <div class="stat-mini">
+          <p class="label mb-2">التزام بالمواعيد</p>
+          <p class="stat-mini-value">94.2%</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== ALERTS ===== -->
+    <section class="mb-20 fade-in f3">
+      <div class="flex items-baseline justify-between mb-6">
+        <h2 class="label">يحتاج انتباهك</h2>
+        <span class="eyebrow">3 تنبيهات نشطة</span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+        <div class="alert-card" onclick="playTone(660,0.08)">
+          <div class="flex items-start justify-between mb-3">
+            <span class="dot" style="background: var(--rose); box-shadow: 0 0 8px var(--rose);"></span>
+            <span class="eyebrow" style="font-size: 11px; color: var(--rose);">مخاطر عالية</span>
+          </div>
+          <p style="font-size: 15px; font-weight: 500; margin-bottom: 6px;">TechSource Ltd</p>
+          <p class="eyebrow" style="line-height: 1.7; font-size: 12px;">تأخر 3 تسليمات متتالية. مؤشر أداء المورد انخفض 22%.</p>
+        </div>
+
+        <div class="alert-card gold-alert" onclick="playTone(660,0.08)">
+          <div class="flex items-start justify-between mb-3">
+            <span class="dot" style="background: var(--gold); box-shadow: 0 0 8px var(--gold);"></span>
+            <span class="eyebrow" style="font-size: 11px; color: var(--gold-bright);">عقد ينتهي</span>
+          </div>
+          <p style="font-size: 15px; font-weight: 500; margin-bottom: 6px;">Huawei</p>
+          <p class="eyebrow" style="line-height: 1.7; font-size: 12px;">العقد الرئيسي ينتهي بعد 30 يوماً. ابدأ التجديد الآن.</p>
+        </div>
+
+        <div class="alert-card gold-alert" onclick="playTone(660,0.08)">
+          <div class="flex items-start justify-between mb-3">
+            <span class="dot" style="background: var(--gold); box-shadow: 0 0 8px var(--gold);"></span>
+            <span class="eyebrow" style="font-size: 11px; color: var(--gold-bright);">فرصة توفير</span>
+          </div>
+          <p style="font-size: 15px; font-weight: 500; margin-bottom: 6px;">STC Solutions</p>
+          <p class="eyebrow" style="line-height: 1.7; font-size: 12px;">فرصة تفاوض محتملة 4-6% على العقد القادم.</p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ===== FILTERS + SEARCH ===== -->
+    <section class="mb-8 fade-in f4">
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        <div class="filter-bar">
+          <button class="filter-chip active" data-filter="all">الكل</button>
+          <button class="filter-chip" data-filter="active">نشط</button>
+          <button class="filter-chip" data-filter="watch">مراقبة</button>
+          <button class="filter-chip" data-filter="risk">مخاطر</button>
+          <button class="filter-chip" data-filter="idle">غير نشط</button>
+        </div>
+
+        <div class="search-box">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-mute)" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="searchInput" placeholder="ابحث عن مورد...">
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== SUPPLIERS LIST ===== -->
+    <section class="fade-in f5">
+      <div class="flex items-center justify-between mb-6">
+        <div class="sup-row" style="border: none; padding: 0 12px 12px 12px; cursor: default; grid-template-columns: 48px 1fr 140px 120px 100px 40px; gap: 20px;">
+          <span></span>
+          <span class="label">المورد</span>
+          <span class="label">الإنفاق YTD</span>
+          <span class="label">التقييم</span>
+          <span class="label">الحالة</span>
+          <span></span>
+        </div>
+      </div>
+
+      <div id="suppliersList">
+        <!-- Populated by JS -->
+      </div>
+    </section>
+
+    <!-- ===== FOOTER ===== -->
+    <footer class="mt-24 fade-in f6">
+      <div class="hairline mb-6"></div>
+      <div class="flex items-center justify-between flex-wrap gap-4">
+        <p class="label">MIZAN · SUPPLIER INTELLIGENCE</p>
+        <p class="eyebrow" id="countLabel">— موردون</p>
+      </div>
+    </footer>
+
+  </div>
+</main>
+
+<script>
+/* ============ AUDIO ============ */
+let soundOn = true, audioCtx;
+function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+function playTone(freq, dur, type='sine', vol=0.06) {
+  if (!soundOn) return;
+  initAudio();
+  const o = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  o.type = type; o.frequency.value = freq;
+  g.gain.setValueAtTime(0, audioCtx.currentTime);
+  g.gain.linearRampToValueAtTime(vol, audioCtx.currentTime + 0.01);
+  g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+  o.connect(g); g.connect(audioCtx.destination);
+  o.start(); o.stop(audioCtx.currentTime + dur);
+}
+
+document.getElementById('soundToggle').addEventListener('click', function() {
+  soundOn = !soundOn;
+  document.getElementById('soundOn').style.display = soundOn ? 'block' : 'none';
+  document.getElementById('soundOff').style.display = soundOn ? 'none' : 'block';
+  this.style.color = soundOn ? 'var(--gold)' : 'var(--text-mute)';
+  if (soundOn) playTone(880, 0.1);
+});
+
+/* ============ TOAST ============ */
+function showToast(text, type = 'info') {
+  const colors = { info: 'var(--ice)', success: 'var(--emerald)', warning: 'var(--gold)', danger: 'var(--rose)' };
+  const t = document.createElement('div');
+  t.className = 'toast-min';
+  t.innerHTML = `<span class="dot" style="background: ${colors[type]}; box-shadow: 0 0 8px ${colors[type]};"></span>${text}`;
+  document.getElementById('toastWrap').appendChild(t);
+  setTimeout(() => {
+    t.style.opacity = '0'; t.style.transform = 'translateY(-20px)';
+    t.style.transition = 'all 0.4s ease';
+    setTimeout(() => t.remove(), 400);
+  }, 4500);
+}
+
+/* ============ DATA ============ */
+const suppliers = [
+  { id: 1, name: 'STC Solutions',      category: 'اتصالات · شبكات',        spend: 4820000, rating: 5, status: 'active', initials: 'STC', color: 'gold' },
+  { id: 2, name: 'Huawei',             category: 'أجهزة · بنية تحتية',     spend: 3940000, rating: 5, status: 'watch',  initials: 'HW',  color: 'ice' },
+  { id: 3, name: 'Mobily',             category: 'اتصالات · خدمات',        spend: 2860000, rating: 4, status: 'active', initials: 'MB',  color: 'emerald' },
+  { id: 4, name: 'Aramco Services',    category: 'طاقة · صيانة',           spend: 2450000, rating: 5, status: 'active', initials: 'AR',  color: 'gold' },
+  { id: 5, name: 'TechSource Ltd',     category: 'برمجيات · استشارات',     spend: 1820000, rating: 2, status: 'risk',   initials: 'TS',  color: 'rose' },
+  { id: 6, name: 'Siemens',            category: 'صناعة · أتمتة',          spend: 1640000, rating: 4, status: 'active', initials: 'SM',  color: 'ice' },
+  { id: 7, name: 'Oracle',             category: 'برمجيات · قواعد بيانات', spend: 1420000, rating: 5, status: 'active', initials: 'OR',  color: 'gold' },
+  { id: 8, name: 'SAP',                category: 'برمجيات · ERP',          spend: 1180000, rating: 4, status: 'active', initials: 'SP',  color: 'emerald' },
+  { id: 9, name: 'Zain Business',      category: 'اتصالات · خدمات',        spend: 920000,  rating: 3, status: 'watch',  initials: 'ZB',  color: 'ice' },
+  { id: 10, name: 'Baker Hughes',      category: 'طاقة · معدات',           spend: 780000,  rating: 4, status: 'active', initials: 'BH',  color: 'gold' },
+  { id: 11, name: 'Adobe Enterprise',  category: 'برمجيات · تصميم',        spend: 540000,  rating: 5, status: 'active', initials: 'AD',  color: 'rose' },
+  { id: 12, name: 'Old Partner Co.',   category: 'خدمات عامة',             spend: 380000,  rating: 2, status: 'idle',   initials: 'OP',  color: 'ice' }
+];
+
+const statusLabels = {
+  active: 'نشط',
+  watch: 'مراقبة',
+  risk: 'مخاطر',
+  idle: 'غير نشط'
+};
+
+const colorMap = {
+  gold:    { text: 'var(--gold-bright)', bg: 'rgba(201,169,97,0.1)',  border: 'rgba(201,169,97,0.25)' },
+  ice:     { text: 'var(--ice)',         bg: 'rgba(157,196,232,0.1)', border: 'rgba(157,196,232,0.25)' },
+  emerald: { text: 'var(--emerald)',     bg: 'rgba(110,231,160,0.1)', border: 'rgba(110,231,160,0.25)' },
+  rose:    { text: 'var(--rose)',        bg: 'rgba(240,160,176,0.1)', border: 'rgba(240,160,176,0.25)' }
+};
+
+/* ============ RENDER ============ */
+let activeFilter = 'all';
+let searchTerm = '';
+
+function formatM(n) {
+  if (n >= 1000000) return '$' + (n / 1000000).toFixed(2) + 'M';
+  if (n >= 1000) return '$' + (n / 1000).toFixed(0) + 'K';
+  return '$' + n;
+}
+
+function renderSuppliers() {
+  const list = document.getElementById('suppliersList');
+  list.innerHTML = '';
+
+  let filtered = suppliers.filter(s => {
+    if (activeFilter !== 'all' && s.status !== activeFilter) return false;
+    if (searchTerm && !s.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
+        !s.category.toLowerCase().includes(searchTerm.toLowerCase())) return false;
+    return true;
+  });
+
+  if (filtered.length === 0) {
+    list.innerHTML = `<div style="padding: 60px 20px; text-align: center;">
+      <p class="eyebrow">لا يوجد موردون مطابقون</p>
+    </div>`;
+    document.getElementById('countLabel').textContent = '0 مورد';
+    return;
+  }
+
+  filtered.forEach((s, i) => {
+    const c = colorMap[s.color];
+    const row = document.createElement('div');
+    row.className = 'sup-row';
+    row.style.animation = 'fadeIn 0.5s cubic-bezier(0.16,1,0.3,1) forwards';
+    row.style.animationDelay = (i * 0.04) + 's';
+    row.style.opacity = '0';
+
+    // Rating dots
+    let dotsHTML = '<div class="rating">';
+    for (let d = 0; d < 5; d++) {
+      dotsHTML += `<span class="dot-s ${d < s.rating ? 'filled' : ''}"></span>`;
+    }
+    dotsHTML += '</div>';
+
+    // Status pill
+    const statusClass = {
+      active: 'stat-active', watch: 'stat-watch', risk: 'stat-risk', idle: 'stat-idle'
+    }[s.status];
+    const statusDotColor = {
+      active: 'var(--emerald)', watch: 'var(--amber)', risk: 'var(--rose)', idle: 'var(--text-mute)'
+    }[s.status];
+
+    row.innerHTML = `
+      <div class="sup-avatar" style="background: ${c.bg}; color: ${c.text}; border-color: ${c.border};">${s.initials}</div>
+      <div>
+        <p class="sup-row-name">${s.name}</p>
+        <p class="sup-row-cat">${s.category}</p>
+      </div>
+      <div>
+        <p class="sup-row-spend">${formatM(s.spend)}</p>
+        <p class="sup-row-spend-label">هذا العام</p>
+      </div>
+      <div>${dotsHTML}</div>
+      <div>
+        <span class="stat-pill ${statusClass}">
+          <span class="dot" style="background: ${statusDotColor}; box-shadow: 0 0 6px ${statusDotColor};"></span>
+          ${statusLabels[s.status]}
+        </span>
+      </div>
+      <div class="sup-arrow">←</div>
+    `;
+    row.onclick = () => openSupplier(s);
+    list.appendChild(row);
+  });
+
+  document.getElementById('countLabel').textContent = filtered.length + ' مورد' + (filtered.length > 1 ? 'ون' : '');
+}
+
+/* ============ FILTERS ============ */
+document.querySelectorAll('.filter-chip').forEach(chip => {
+  chip.addEventListener('click', function() {
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+    this.classList.add('active');
+    activeFilter = this.dataset.filter;
+    playTone(660, 0.06);
+    renderSuppliers();
+  });
+});
+
+document.getElementById('searchInput').addEventListener('input', e => {
+  searchTerm = e.target.value;
+  renderSuppliers();
+});
+
+/* ============ COUNTERS ============ */
+function animateCount(el) {
+  const target = parseInt(el.dataset.count);
+  const dur = 1600;
+  const start = performance.now();
+  function step(now) {
+    const p = Math.min((now - start) / dur, 1);
+    const eased = 1 - Math.pow(1 - p, 4);
+    el.textContent = Math.floor(target * eased).toLocaleString('en-US');
+    if (p < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+/* ============ TOTAL SPEND HERO ============ */
+function animateTotalSpend() {
+  const el = document.getElementById('totalSpend');
+  const total = suppliers.reduce((a, s) => a + s.spend, 0) / 1000000;
+  const dur = 1800;
+  const start = performance.now();
+  function step(now) {
+    const p = Math.min((now - start) / dur, 1);
+    const eased = 1 - Math.pow(1 - p, 4);
+    el.textContent = (total * eased).toFixed(2);
+    if (p < 1) requestAnimationFrame(step);
+    else el.textContent = total.toFixed(2);
+  }
+  requestAnimationFrame(step);
+}
+
+/* ============ ACTIONS ============ */
+function openSupplier(s) {
+  playTone(660, 0.08);
+  setTimeout(() => playTone(880, 0.1), 80);
+  showToast(`→ فتح ملف ${s.name}`, 'info');
+  setTimeout(() => {
+    showToast('(شاشة ملف المورد قادمة)', 'info');
+  }, 1200);
+}
+
+function addSupplier() {
+  playTone(880, 0.1); setTimeout(() => playTone(1174, 0.15), 100);
+  showToast('+ نموذج إضافة مورد جديد', 'success');
+}
+
+/* ============ NAV ============ */
+document.querySelectorAll('.side-icon[data-page]').forEach(n => {
+  n.addEventListener('click', function() {
+    document.querySelectorAll('.side-icon').forEach(x => x.classList.remove('active'));
+    this.classList.add('active');
+    playTone(660, 0.06);
+  });
+});
+
+/* ============ INIT ============ */
+window.addEventListener('load', () => {
+  document.body.addEventListener('click', () => initAudio(), { once: true });
+
+  setTimeout(() => playTone(523, 0.15, 'sine', 0.04), 400);
+  setTimeout(() => playTone(659, 0.15, 'sine', 0.04), 550);
+  setTimeout(() => playTone(784, 0.2, 'sine', 0.04), 700);
+
+  animateTotalSpend();
+  document.querySelectorAll('[data-count]').forEach(animateCount);
+  renderSuppliers();
+});
+</script>
+</body>
+</html>

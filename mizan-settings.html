@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MIZAN · الإعدادات</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@200;300;400;500;600&family=Inter:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #08090E;
+    --surface: #0E1018;
+    --line: rgba(255,255,255,0.05);
+    --line-strong: rgba(201,169,97,0.2);
+    --gold: #C9A961;
+    --gold-bright: #E8CE8B;
+    --copper: #B87333;
+    --ice: #9DC4E8;
+    --emerald: #6EE7A0;
+    --rose: #F0A0B0;
+    --amber: #F0C474;
+    --text: #EDEDED;
+    --text-dim: #7A8090;
+    --text-mute: #4A5060;
+  }
+  * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+  html, body {
+    background: var(--bg); color: var(--text);
+    font-family: 'IBM Plex Sans Arabic', 'Inter', sans-serif;
+    overflow-x: hidden; font-weight: 300;
+  }
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-thumb { background: rgba(201,169,97,0.15); border-radius: 10px; }
+
+  .aura {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background:
+      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(201,169,97,0.08), transparent 60%),
+      radial-gradient(ellipse 60% 40% at 100% 100%, rgba(157,196,232,0.04), transparent 60%);
+  }
+
+  .display { font-family: 'Inter', sans-serif; font-weight: 200; letter-spacing: -0.04em; line-height: 0.95; }
+  .label { font-size: 11px; letter-spacing: 0.25em; color: var(--text-mute); text-transform: uppercase; font-weight: 500; }
+  .eyebrow { font-size: 12px; color: var(--text-dim); }
+  .hairline { height: 1px; background: var(--line); }
+  .hairline-gold { height: 1px; background: linear-gradient(90deg, transparent, var(--gold), transparent); opacity: 0.5; }
+
+  .link { color: var(--text-dim); font-size: 13px; cursor: pointer; transition: color 0.3s; }
+  .link:hover { color: var(--gold-bright); }
+
+  /* ===== Section ===== */
+  .section-title {
+    font-size: 13px; font-weight: 500;
+    color: var(--gold-bright);
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+  }
+  .section-desc {
+    font-size: 12px; color: var(--text-mute);
+    margin-bottom: 20px; line-height: 1.7;
+  }
+
+  /* ===== Setting Row ===== */
+  .setting-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 20px 0;
+    border-bottom: 1px solid var(--line);
+    transition: all 0.4s ease;
+  }
+  .setting-row:last-child { border-bottom: none; }
+  .setting-info { flex: 1; }
+  .setting-name {
+    font-size: 14px; font-weight: 400;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .setting-hint {
+    font-size: 12px; color: var(--text-mute);
+    line-height: 1.7;
+  }
+
+  /* ===== Toggle Switch ===== */
+  .toggle {
+    width: 42px; height: 24px;
+    border-radius: 99px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.08);
+    cursor: pointer;
+    position: relative;
+    transition: all 0.3s cubic-bezier(0.16,1,0.3,1);
+    flex-shrink: 0;
+  }
+  .toggle::after {
+    content: '';
+    position: absolute;
+    top: 2px; right: 2px;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: #7A8090;
+    transition: all 0.3s cubic-bezier(0.16,1,0.3,1);
+  }
+  .toggle.on {
+    background: linear-gradient(135deg, var(--gold), var(--copper));
+    border-color: var(--gold-bright);
+  }
+  .toggle.on::after {
+    right: calc(100% - 20px);
+    background: #FFFFFF;
+    box-shadow: 0 0 12px rgba(255,255,255,0.5);
+  }
+
+  /* ===== Select ===== */
+  .select-wrap {
+    position: relative;
+    display: inline-block;
+    min-width: 160px;
+  }
+  .select-min {
+    width: 100%;
+    padding: 10px 16px;
+    padding-left: 32px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--line);
+    color: var(--text);
+    font-size: 13px;
+    font-family: inherit;
+    cursor: pointer;
+    outline: none;
+    transition: all 0.3s ease;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+  .select-min:hover, .select-min:focus {
+    border-color: rgba(201,169,97,0.4);
+    background: rgba(201,169,97,0.03);
+  }
+  .select-wrap::after {
+    content: '';
+    position: absolute;
+    left: 14px; top: 50%;
+    transform: translateY(-50%);
+    width: 0; height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 5px solid var(--text-mute);
+    pointer-events: none;
+  }
+
+  /* ===== Slider ===== */
+  .slider-wrap {
+    display: flex; align-items: center; gap: 14px;
+    min-width: 220px;
+  }
+  input[type="range"].range-min {
+    -webkit-appearance: none;
+    flex: 1;
+    height: 2px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 99px;
+    outline: none;
+  }
+  input[type="range"].range-min::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px; height: 14px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--gold-bright), var(--copper));
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(201,169,97,0.4);
+    transition: transform 0.2s ease;
+  }
+  input[type="range"].range-min::-webkit-slider-thumb:hover { transform: scale(1.2); }
+  input[type="range"].range-min::-moz-range-thumb {
+    width: 14px; height: 14px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--gold-bright), var(--copper));
+    cursor: pointer; border: none;
+  }
+  .slider-value {
+    font-family: 'Inter';
+    font-size: 13px;
+    color: var(--gold-bright);
+    min-width: 40px;
+    text-align: left;
+  }
+
+  /* ===== Text input ===== */
+  .input-min {
+    width: 100%;
+    max-width: 240px;
+    padding: 10px 16px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--line);
+    color: var(--text);
+    font-size: 13px;
+    font-family: inherit;
+    outline: none;
+    transition: all 0.3s ease;
+    text-align: left;
+  }
+  .input-min:focus {
+    border-color: rgba(201,169,97,0.4);
+    background: rgba(201,169,97,0.03);
+  }
+  .input-min::placeholder { color: var(--text-mute); }
+
+  /* ===== Choice pills ===== */
+  .choice-group {
+    display: inline-flex; gap: 4px;
+    padding: 4px;
+    border-radius: 99px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--line);
+  }
+  .choice {
+    padding: 7px 14px; border-radius: 99px;
+    font-size: 12px; color: var(--text-dim);
+    cursor: pointer; transition: all 0.3s ease;
+    font-family: inherit; background: transparent; border: none;
+  }
+  .choice:hover { color: var(--text); }
+  .choice.active {
+    color: var(--gold-bright);
+    background: rgba(201,169,97,0.1);
+  }
+
+  /* ===== Buttons ===== */
+  .btn-min {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 0; color: var(--gold-bright); font-size: 13px;
+    background: transparent; border: none; cursor: pointer;
+    transition: all 0.3s ease; font-family: inherit;
+  }
+  .btn-min:hover { color: var(--text); letter-spacing: 0.05em; }
+
+  .btn-outline {
+    padding: 10px 20px; border-radius: 99px;
+    background: transparent;
+    color: var(--gold-bright); font-weight: 500; font-size: 12px;
+    border: 1px solid rgba(201,169,97,0.3); cursor: pointer; font-family: inherit;
+    transition: all 0.3s ease;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .btn-outline:hover {
+    border-color: var(--gold-bright);
+    background: rgba(201,169,97,0.05);
+  }
+
+  .btn-danger {
+    padding: 10px 20px; border-radius: 99px;
+    background: transparent;
+    color: var(--rose); font-weight: 500; font-size: 12px;
+    border: 1px solid rgba(240,160,176,0.3); cursor: pointer; font-family: inherit;
+    transition: all 0.3s ease;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .btn-danger:hover {
+    border-color: var(--rose);
+    background: rgba(240,160,176,0.05);
+  }
+
+  .btn-wa {
+    padding: 10px 20px; border-radius: 99px;
+    background: transparent;
+    color: #6EE7A0; font-weight: 500; font-size: 12px;
+    border: 1px solid rgba(110,231,160,0.3); cursor: pointer; font-family: inherit;
+    transition: all 0.3s ease;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .btn-wa:hover {
+    border-color: #6EE7A0;
+    background: rgba(110,231,160,0.05);
+  }
+
+  /* ===== Profile Header ===== */
+  .profile-head {
+    display: flex; align-items: center; gap: 24px;
+    padding: 28px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .avatar-lg {
+    width: 72px; height: 72px;
+    border-radius: 20px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Inter';
+    font-size: 22px; font-weight: 400;
+    letter-spacing: 0.02em;
+    background: linear-gradient(135deg, rgba(201,169,97,0.15), rgba(201,169,97,0.04));
+    border: 1px solid rgba(201,169,97,0.25);
+    color: var(--gold-bright);
+    flex-shrink: 0;
+    position: relative;
+  }
+  .avatar-lg::after {
+    content: '';
+    position: absolute;
+    bottom: -2px; left: -2px;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--emerald);
+    border: 3px solid var(--bg);
+    box-shadow: 0 0 10px var(--emerald);
+  }
+
+  /* ===== Status indicator ===== */
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 99px;
+    background: rgba(110,231,160,0.1);
+    color: var(--emerald);
+    letter-spacing: 0.05em;
+  }
+
+  /* ===== Animations ===== */
+  .fade-in { opacity: 0; animation: fadeIn 0.9s cubic-bezier(0.16,1,0.3,1) forwards; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  .f1 { animation-delay: 0.05s; } .f2 { animation-delay: 0.15s; } .f3 { animation-delay: 0.25s; }
+  .f4 { animation-delay: 0.35s; } .f5 { animation-delay: 0.45s; } .f6 { animation-delay: 0.55s; }
+  .f7 { animation-delay: 0.65s; } .f8 { animation-delay: 0.75s; }
+
+  /* ===== Sidebar ===== */
+  .side {
+    position: fixed; top: 0; right: 0; bottom: 0; width: 60px;
+    z-index: 30; display: flex; flex-direction: column; align-items: center;
+    padding: 28px 0; gap: 4px; border-left: 1px solid var(--line);
+  }
+  .side-icon {
+    width: 40px; height: 40px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-mute); cursor: pointer; transition: all 0.3s ease;
+    position: relative;
+  }
+  .side-icon:hover { color: var(--text); }
+  .side-icon.active { color: var(--gold-bright); }
+  .side-icon.active::after {
+    content: ''; position: absolute; right: -10px;
+    width: 3px; height: 3px; border-radius: 50%; background: var(--gold);
+  }
+  .main { padding-right: 60px; position: relative; z-index: 10; }
+  @media (max-width: 800px) {
+    .side { width: 100%; height: 56px; top: auto; bottom: 0; right: 0; flex-direction: row; padding: 0 16px; justify-content: space-around; border-left: none; border-top: 1px solid var(--line); }
+    .main { padding-right: 0; padding-bottom: 72px; }
+    .setting-row { flex-direction: column; align-items: stretch; gap: 12px; }
+    .select-wrap, .input-min { max-width: 100%; }
+  }
+
+  /* ===== Toast ===== */
+  .toast-wrap { position: fixed; top: 24px; left: 50%; transform: translateX(-50%); z-index: 999; display: flex; flex-direction: column; gap: 10px; align-items: center; }
+  .toast-min {
+    padding: 12px 22px; border-radius: 99px;
+    background: rgba(14,16,24,0.95); backdrop-filter: blur(20px);
+    border: 1px solid rgba(201,169,97,0.2);
+    font-size: 13px; color: var(--text);
+    display: flex; align-items: center; gap: 12px;
+    animation: fadeIn 0.5s cubic-bezier(0.16,1,0.3,1);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    white-space: nowrap;
+  }
+  .dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+</style>
+</head>
+<body class="min-h-screen">
+
+<div class="aura"></div>
+<div class="toast-wrap" id="toastWrap"></div>
+
+<!-- ========== SIDEBAR ========== -->
+<aside class="side">
+  <div class="mb-6">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#E8CE8B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 3v18M5 8l7-5 7 5M5 8l-2 8h4zM19 8l2 8h-4z"/>
+    </svg>
+  </div>
+  <div class="side-icon" data-page="home" title="الرئيسية">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+  </div>
+  <div class="side-icon" data-page="offers" title="العروض">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+  </div>
+  <div class="side-icon" data-page="compare" title="المقارنة">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="12" y1="3" x2="12" y2="21"/><polyline points="5 8 12 3 19 8"/><path d="M3 8l-1 6h8L9 8M21 8l1 6h-8l1-6"/></svg>
+  </div>
+  <div class="side-icon" data-page="suppliers" title="الموردون">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+  </div>
+  <div class="side-icon" data-page="reports" title="التقارير">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+  </div>
+  <div class="flex-1"></div>
+  <div class="side-icon active" data-page="settings" title="الإعدادات">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+  </div>
+  <div class="side-icon" id="soundToggle" title="الصوت" style="color: var(--gold);">
+    <svg id="soundOn" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+    <svg id="soundOff" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="display:none;"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+  </div>
+</aside>
+
+<!-- ========== MAIN ========== -->
+<main class="main">
+  <div class="max-w-[900px] mx-auto px-8 md:px-14 py-12 md:py-16">
+
+    <!-- ===== TOP BAR ===== -->
+    <header class="flex items-center justify-between mb-16 fade-in f1">
+      <div class="flex items-center gap-8">
+        <span class="label">MIZAN</span>
+        <div class="hairline-gold w-12 hidden md:block"></div>
+        <span class="eyebrow hidden md:block">الإعدادات</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="status-badge">
+          <span class="dot" style="background: var(--emerald); box-shadow: 0 0 6px var(--emerald);"></span>
+          محفوظة تلقائياً
+        </span>
+      </div>
+    </header>
+
+    <!-- ===== HERO ===== -->
+    <section class="mb-16 fade-in f2">
+      <h1 class="display" style="font-size: clamp(40px, 6vw, 64px); margin-bottom: 16px;">
+        اجعل MIZAN <span style="color: var(--gold-bright); font-weight: 300;">يشبهك.</span>
+      </h1>
+      <p class="eyebrow" style="max-width: 520px; line-height: 1.9; font-size: 14px;">
+        اضبط الأصوات، الإشعارات، الواتساب، والصلاحيات — ليعمل المساعد كما تريد بالضبط.
+      </p>
+    </section>
+
+    <!-- ===== PROFILE ===== -->
+    <section class="mb-16 fade-in f3">
+      <div class="profile-head">
+        <div class="avatar-lg">EX</div>
+        <div class="flex-1">
+          <p style="font-size: 20px; font-weight: 400; margin-bottom: 4px;">المسؤول التنفيذي للمشتريات</p>
+          <p class="eyebrow">procurement@company.com</p>
+        </div>
+        <button class="btn-outline" onclick="editProfile()">
+          تعديل الملف
+        </button>
+      </div>
+    </section>
+
+    <!-- ===== SOUND ===== -->
+    <section class="mb-16 fade-in f4">
+      <p class="section-title">الأصوات</p>
+      <p class="section-desc">نغمات مخصصة لكل حدث في النظام.</p>
+
+      <div class="setting-row">
+        <div class="setting-info">
+          <p class="setting-name">الصوت العام</p>
+          <p class="setting-hint">تفعيل جميع النغمات والإشعارات الصوتية</p>
+        </div>
+        <div class="toggle on" data-toggle="master-sound"></div>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-info">
+          <p class="setting-name">نغمة وصول عرض جديد</p>
+          <p class="setting-hint">تُشغَّل عندما يصل عرض من مورد</p>
+        </div>
+        <div class="select-wrap">
+          <select class="select-min">
+            <option>جرس بعيد (افتراضي)</option>
+            <option>نغمة ناعمة</option>
+            <option>نبضة مزدوجة</option>
+            <option>بدون صوت</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-info">
+          <p class="setting-name">نغمة اكتمال التحليل</p>
+          <p class="setting-hint">ثلاثية صاعدة أنيقة</p>
+        </div>
+        <div class="select-wrap">
+          <select class="select-min">
+            <option>ثلاثية ذهبية (افتراضي)</option>
+            <option>نغمة نجاح قوية</option>
+            <option>همسة خفيفة</option>
+            <option>بدون صوت</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-info">
+          <p class="setting-name">تنبيه عاجل</p>
+          <p class="setting-hint">عند عرض شاذ أو موعد حرج</p>
+        </div>
+        <div class="select-wrap">
+          <select class="select-min">
+            <option>تنبيه متكرر (افتراضي)</option>
+            <option>تنبيه واحد قوي</option>
+            <option>اهتزاز فقط</option>
+            <option>بدون</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-info">
+          <p class="setting-name">مستوى الصوت</p>
+          <p class="setting-hint">ارتفاع نغمات النظام</p>
+        </div>
+        <div class="slider-wrap">
+          <input type="range" class="range-min" min="0" max="100" value="60" id="volumeSlider">
+          <span class="slider-value" id="volumeValue">60%</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== WHATSAPP ===== -->
+    <section class="mb-16 fade-in f5">
+      <p class="section-title">واتساب</p>
+      <p class="section-desc">استقبل التنبيهات والملخصات على واتساب مباشرة.</p>
+
+      <div class="setting-row">
+        <div class="setting-info">
+          <p class="setting-name">ربط واتساب</p>
+          <p class="setting-hint" id="waStatus">غير مرتبط — اربط رقمك للاستقبال</p>
+        </div>
+        <button class="btn-wa" id="waBtn" onclick="connectWhatsApp()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+          </svg>
+          <span id="waBtnLabel">ربط الآن</span>
+        </button>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-info">
+          <p class="setting-name">رقم الواتساب</p>
+          <p class="setting-hint">سيُرسل إليه كل التنبيهات</p>
+        </div>
+        <input type="tel" class="input-min" placeholder="+962 7X XXX XXXX" id="waNumber">
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-info">
+          <p class="setting-name">إشعار وصول عرض جديد</p>
+          <p class="setting-hint">رسالة فورية عند وصول عرض</p>
+        </div>
+        <div class="toggle on" data-toggle="wa-offer"></div>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-info">
+          <p class="setting-name">إشعار اكتمال التحليل</p>
+          <p class="setting-hint">ملخص مع التوصية النهائية</p>
+        </div>
+        <div class="toggle on" data-toggle="wa-analysis"></div>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-info">
+          <p class="setting-name">تنبيه العروض الشاذة</p>
+          <p class="setting-hint">عندما يتجاوز عرض المتوسط بـ 20%+</p>
+        </div>
+        <div class="toggle on" data-toggle="wa-anomaly"></div>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-info">
+          <p class="setting-name">الملخص الصوتي على واتساب</p>
+          <p class="setting-hint">رسالة صوتية بالعربية عند الطلب</p>
+        </div>
+        <div class="toggle" data-toggle="wa-voice"></div>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-info">
+          <p class="setting-name">وضع عدم الإزعاج</p>
+          <p class="setting-hint">إيقاف الإشعارات في ساعات محددة</p>
+        </div>
+        <div class="choice-group" data-choice="dnd">
+          <button class="choice active">مساءً</button>
+          <button class="choice">الليل</button>
+          <button class="choice">مخصص</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== ASSISTANT ===== -->
+    <section class="mb-16 fade-in f6">
+      <p class="section-title">المساعد الذكي</p>
+      <p class="section-desc">خصّص طريقة تفكير MIZAN وأسلوب ردوده.</p>
+
+      <div class="setting-row">
+        <div class="setting-info">
+          <p class="setting-name">لغة المساعد</p>
+          <p class="setting-hint">اللغة المستخدمة في الردود والتقارير</p>
+        </div>
+        <div class="choice-group" data-choice="lang">
+          <button class="choice active">العربية</button>
+          <button class="choice">English</button>
+          <button class="choice">كلتاهما</button>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-info">
+          <p class="setting-name">أسلوب الردود</p>
+          <p class="setting-hint">مستوى التفصيل في التحليل</p>
+        </div>
+        <div class="choice-group" data-choice="style">
+          <button class="choice">موجز</button>
+          <button class="choice active">متوازن</button>
+          <button class="choice">مفصّل</button>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-info">
+          <p class="setting-name">حساسية التوصيات</p>
+          <p class="setting-hint">كلما زادت، كان أكثر حرصاً في التنبيهات</p>
+        </div>
+        <div class="slider-wrap">
+          <input type="range" class="range-min" min="0" max="100" value="65" id="sensitivitySlider">
+          <span class="slider-value" id="sensitivityValue">65%</span>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-info">
+          <p class="setting-name">الاقتراح التلقائي</p>
+          <p class="setting-hint">يقترح مسودات ردود وإجراءات دون طلب</p>
+        </div>
+        <div class="toggle on" data-toggle="auto-suggest"></div>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-info">
+          <p class="setting-name">تنبيهات التفاوض</p>
+          <p class="setting-hint">اكتشاف فرص التفاوض تلقائياً</p>
+        </div>
+        <div class="toggle on" data-toggle="negotiation"></div>
+      </div>
+    </section>
+
+    <!-- ===== THRESHOLDS ===== -->
+    <section class="mb-16 fade-in f7">
+      <p class="section-title">حدود الصلاحيات</p>
+      <p class="section-desc">متى يحتاج الوكيل موافقتك قبل التنفيذ.</p>
+
+      <div class="setting-row">
+        <div class="setting-info">
+          <p class="setting-name">حد الموافقة على العرض</p>
+          <p class="setting-hint">إذا تجاوز العرض هذا المبلغ، يوقف وينتظرك</p>
+        </div>
+        <div class="slider-wrap">
+          <input type="range" class="range-min" min="10" max="500" value="100" step="10" id="approvalSlider">
+          <span class="slider-value" id="approvalValue">$100K</span>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-info">
+          <p class="setting-name">حد إرسال RFQ تلقائياً</p>
+          <p class="setting-hint">يُرسل طلب عروض للموردين تلقائياً دون موافقتك</p>
+        </div>
+        <div class="toggle" data-toggle="auto-rfq"></div>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-info">
+          <p class="setting-name">حد مراسلة الموردين</p>
+          <p class="setting-hint">يمكن للمساعد مراسلة الموردين بالتفاوض</p>
+        </div>
+        <div class="toggle on" data-toggle="supplier-msg"></div>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-info">
+          <p class="setting-name">تسجيل كامل للنشاط</p>
+          <p class="setting-hint">كل إجراء يتخذه المساعد يُسجَّل للمراجعة</p>
+        </div>
+        <div class="toggle on" data-toggle="audit-log"></div>
+      </div>
+    </section>
+
+    <!-- ===== APPEARANCE ===== -->
+    <section class="mb-16 fade-in f8">
+      <p class="section-title">المظهر</p>
+      <p class="section-desc">تخصيص واجهة النظام.</p>
+
+      <div class="setting-row">
+        <div class="setting-info">
+          <p class="setting-name">الوضع</p>
+          <p class="setting-hint">المظهر الداكن، الفاتح، أو تلقائي</p>
+        </div>
+        <div class="choice-group" data-choice="theme">
+          <button class="choice active">داكن</button>
+          <button class="choice">فاتح</button>
+          <button class="choice">تلقائي</button>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-info">
+          <p class="setting-name">حجم الخط</p>
+          <p class="setting-hint">حجم النص الأساسي في النظام</p>
+        </div>
+        <div class="choice-group" data-choice="font">
+          <button class="choice">صغير</button>
+          <button class="choice active">افتراضي</button>
+          <button class="choice">كبير</button>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-info">
+          <p class="setting-name">الحركات والانتقالات</p>
+          <p class="setting-hint">تفعيل الحركات السلسة عند التنقل</p>
+        </div>
+        <div class="toggle on" data-toggle="animations"></div>
+      </div>
+    </section>
+
+    <!-- ===== DANGER ZONE ===== -->
+    <section class="mb-16 fade-in f8">
+      <p class="section-title" style="color: var(--rose);">منطقة حساسة</p>
+      <p class="section-desc">إجراءات لا يمكن التراجع عنها بسهولة.</p>
+
+      <div class="setting-row">
+        <div class="setting-info">
+          <p class="setting-name">تصدير كل البيانات</p>
+          <p class="setting-hint">حفظ نسخة كاملة من الموردين والعروض والعقود</p>
+        </div>
+        <button class="btn-outline" onclick="exportData()">
+          تصدير
+        </button>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-info">
+          <p class="setting-name">إعادة التعيين</p>
+          <p class="setting-hint">حذف كل البيانات والإعدادات والعودة للحالة الأولى</p>
+        </div>
+        <button class="btn-danger" onclick="resetAll()">
+          إعادة تعيين
+        </button>
+      </div>
+    </section>
+
+    <!-- ===== FOOTER ===== -->
+    <footer class="mt-24 fade-in f8">
+      <div class="hairline mb-6"></div>
+      <div class="flex items-center justify-between flex-wrap gap-4">
+        <p class="label">MIZAN · v1.0.0 · BUILD 20251008</p>
+        <p class="eyebrow">© 2025 · جميع الحقوق محفوظة</p>
+      </div>
+    </footer>
+
+  </div>
+</main>
+
+<script>
+/* ============ AUDIO ============ */
+let soundOn = true, audioCtx;
+function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+function playTone(freq, dur, type='sine', vol=0.06) {
+  if (!soundOn) return;
+  initAudio();
+  const o = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  o.type = type; o.frequency.value = freq;
+  g.gain.setValueAtTime(0, audioCtx.currentTime);
+  g.gain.linearRampToValueAtTime(vol, audioCtx.currentTime + 0.01);
+  g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+  o.connect(g); g.connect(audioCtx.destination);
+  o.start(); o.stop(audioCtx.currentTime + dur);
+}
+
+document.getElementById('soundToggle').addEventListener('click', function() {
+  soundOn = !soundOn;
+  document.getElementById('soundOn').style.display = soundOn ? 'block' : 'none';
+  document.getElementById('soundOff').style.display = soundOn ? 'none' : 'block';
+  this.style.color = soundOn ? 'var(--gold)' : 'var(--text-mute)';
+  if (soundOn) playTone(880, 0.1);
+});
+
+/* ============ TOAST ============ */
+function showToast(text, type = 'info') {
+  const colors = { info: 'var(--ice)', success: 'var(--emerald)', warning: 'var(--gold)', danger: 'var(--rose)' };
+  const t = document.createElement('div');
+  t.className = 'toast-min';
+  t.innerHTML = `<span class="dot" style="background: ${colors[type]}; box-shadow: 0 0 8px ${colors[type]};"></span>${text}`;
+  document.getElementById('toastWrap').appendChild(t);
+  setTimeout(() => {
+    t.style.opacity = '0'; t.style.transform = 'translateY(-20px)';
+    t.style.transition = 'all 0.4s ease';
+    setTimeout(() => t.remove(), 400);
+  }, 4500);
+}
+
+/* ============ TOGGLES ============ */
+document.querySelectorAll('.toggle').forEach(t => {
+  t.addEventListener('click', function() {
+    this.classList.toggle('on');
+    const on = this.classList.contains('on');
+    playTone(on ? 880 : 440, 0.08);
+    showToast(on ? 'تم التفعيل' : 'تم الإيقاف', on ? 'success' : 'info');
+  });
+});
+
+/* ============ CHOICE GROUPS ============ */
+document.querySelectorAll('.choice-group').forEach(g => {
+  g.querySelectorAll('.choice').forEach(c => {
+    c.addEventListener('click', function() {
+      g.querySelectorAll('.choice').forEach(x => x.classList.remove('active'));
+      this.classList.add('active');
+      playTone(660, 0.06);
+      showToast('تم التحديث', 'info');
+    });
+  });
+});
+
+/* ============ SLIDERS ============ */
+function bindSlider(id, valId, formatFn) {
+  const el = document.getElementById(id);
+  const val = document.getElementById(valId);
+  el.addEventListener('input', () => {
+    val.textContent = formatFn(el.value);
+    playTone(400 + parseInt(el.value) * 4, 0.03, 'sine', 0.02);
+  });
+}
+
+bindSlider('volumeSlider', 'volumeValue', v => v + '%');
+bindSlider('sensitivitySlider', 'sensitivityValue', v => v + '%');
+bindSlider('approvalSlider', 'approvalValue', v => '$' + v + 'K');
+
+/* ============ WHATSAPP ============ */
+let waConnected = false;
+
+function connectWhatsApp() {
+  if (!waConnected) {
+    const num = document.getElementById('waNumber').value;
+    if (!num.trim()) {
+      playTone(330, 0.2, 'triangle', 0.08);
+      showToast('أدخل رقم الواتساب أولاً', 'warning');
+      document.getElementById('waNumber').focus();
+      return;
+    }
+    playTone(660, 0.1); setTimeout(() => playTone(880, 0.15), 100);
+    showToast('⏳ جارٍ الربط...', 'info');
+    setTimeout(() => {
+      waConnected = true;
+      const btn = document.getElementById('waBtn');
+      const label = document.getElementById('waBtnLabel');
+      const status = document.getElementById('waStatus');
+      btn.classList.remove('btn-wa');
+      btn.style.color = 'var(--rose)';
+      btn.style.borderColor = 'rgba(240,160,176,0.3)';
+      label.textContent = 'قطع الاتصال';
+      status.textContent = '✅ مرتبط بـ ' + num;
+      status.style.color = 'var(--emerald)';
+      showToast('✅ تم الربط بنجاح', 'success');
+      playTone(659, 0.15); setTimeout(() => playTone(880, 0.15), 100); setTimeout(() => playTone(1174, 0.25), 220);
+    }, 1500);
+  } else {
+    waConnected = false;
+    const btn = document.getElementById('waBtn');
+    const label = document.getElementById('waBtnLabel');
+    const status = document.getElementById('waStatus');
+    btn.className = 'btn-wa';
+    btn.style.color = '';
+    btn.style.borderColor = '';
+    label.textContent = 'ربط الآن';
+    status.textContent = 'غير مرتبط — اربط رقمك للاستقبال';
+    status.style.color = '';
+    playTone(440, 0.15);
+    showToast('تم قطع الاتصال', 'info');
+  }
+}
+
+/* ============ ACTIONS ============ */
+function editProfile() {
+  playTone(660, 0.08);
+  showToast('→ فتح ملف المستخدم', 'info');
+}
+
+function exportData() {
+  playTone(880, 0.1); setTimeout(() => playTone(1174, 0.15), 100);
+  showToast('📦 جارٍ تجهيز الحزمة الكاملة...', 'success');
+  setTimeout(() => showToast('(تجريبي — التصدير الفعلي قادم)', 'info'), 1400);
+}
+
+function resetAll() {
+  playTone(330, 0.2, 'triangle', 0.08);
+  setTimeout(() => playTone(220, 0.3, 'triangle', 0.08), 150);
+  showToast('⚠️ إجراء خطير — يُطلب التأكيد', 'danger');
+}
+
+/* ============ NAV ============ */
+document.querySelectorAll('.side-icon[data-page]').forEach(n => {
+  n.addEventListener('click', function() {
+    document.querySelectorAll('.side-icon').forEach(x => x.classList.remove('active'));
+    this.classList.add('active');
+    playTone(660, 0.06);
+  });
+});
+
+/* ============ INIT ============ */
+window.addEventListener('load', () => {
+  document.body.addEventListener('click', () => initAudio(), { once: true });
+
+  setTimeout(() => playTone(523, 0.15, 'sine', 0.04), 400);
+  setTimeout(() => playTone(659, 0.15, 'sine', 0.04), 550);
+  setTimeout(() => playTone(784, 0.2, 'sine', 0.04), 700);
+});
+</script>
+</body>
+</html>
