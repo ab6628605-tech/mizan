@@ -24,16 +24,30 @@ var items=[
 {href:'mizan-reports.html',icon:'chart',label:'التقارير'},
 {href:'mizan-settings.html',icon:'settings',label:'الإعدادات'}
 ];
-var existingSide=document.querySelector('.side');
-if(existingSide){existingSide.style.display='none';document.querySelectorAll('.main').forEach(function(m){m.style.paddingRight='0';m.style.paddingBottom='80px';});}
+
+var style=document.createElement('style');
+style.textContent='html,body{padding-bottom:96px!important}.side,.sidebar{display:none!important}.main{padding-right:0!important;padding-bottom:96px!important;margin-right:0!important}nav:not(.mzn-nav){display:none!important}.mzn-nav{position:fixed!important;bottom:0!important;left:0!important;right:0!important;height:76px!important;background:rgba(8,9,14,0.97)!important;backdrop-filter:blur(24px)!important;-webkit-backdrop-filter:blur(24px)!important;border-top:1px solid rgba(201,169,97,0.18)!important;display:flex!important;align-items:center!important;justify-content:flex-start!important;padding:0 10px!important;z-index:2147483647!important;box-shadow:0 -12px 48px rgba(0,0,0,0.7)!important;overflow-x:auto!important;overflow-y:hidden!important;scrollbar-width:none!important;-ms-overflow-style:none!important}.mzn-nav::-webkit-scrollbar{display:none!important}.mzn-item{display:flex!important;align-items:center!important;justify-content:center!important;min-width:48px!important;height:48px!important;border-radius:14px!important;color:#5A6180!important;text-decoration:none!important;transition:all .25s ease!important;flex-shrink:0!important;position:relative!important;margin:0 1px!important;-webkit-tap-highlight-color:transparent!important}.mzn-item svg{width:22px!important;height:22px!important;pointer-events:none!important}.mzn-item:hover,.mzn-item:active{color:#E8CE8B!important;background:rgba(201,169,97,0.08)!important}.mzn-item.active{color:#E8CE8B!important;background:rgba(201,169,97,0.12)!important}.mzn-item.active::after{content:""!important;position:absolute!important;bottom:4px!important;left:50%!important;transform:translateX(-50%)!important;width:5px!important;height:5px!important;border-radius:50%!important;background:#E8CE8B!important;box-shadow:0 0 10px #E8CE8B!important}';
+document.head.appendChild(style);
+
+document.querySelectorAll('.side,.sidebar,.nav,.navigation').forEach(function(el){
+if(el.tagName!=='NAV'||!el.classList.contains('mzn-nav')){el.style.display='none';}
+});
+document.querySelectorAll('nav').forEach(function(n){
+if(!n.classList.contains('mzn-nav'))n.style.display='none';
+});
+
 var nav=document.createElement('nav');
 nav.className='mzn-nav';
 nav.innerHTML=items.map(function(item){
 var active=path===item.href?' active':'';
-return '<a href="'+item.href+'" class="mzn-item'+active+'" title="'+item.label+'"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">'+ICONS[item.icon]+'</svg></a>';
+return '<a href="'+item.href+'" class="mzn-item'+active+'" aria-label="'+item.label+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">'+ICONS[item.icon]+'</svg></a>';
 }).join('');
-var style=document.createElement('style');
-style.textContent='body{padding-bottom:80px!important}.mzn-nav{position:fixed;bottom:0;left:0;right:0;height:68px;background:rgba(8,9,14,0.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid rgba(201,169,97,0.15);display:flex;align-items:center;justify-content:space-around;padding:0 6px;z-index:9999;font-family:sans-serif;box-shadow:0 -10px 40px rgba(0,0,0,0.5);gap:2px;overflow-x:auto}.mzn-nav::-webkit-scrollbar{display:none}.mzn-item{display:flex;align-items:center;justify-content:center;min-width:42px;height:44px;border-radius:12px;color:#4A5060;text-decoration:none;transition:all .3s ease;flex-shrink:0;position:relative}.mzn-item:hover{color:#E8CE8B;background:rgba(201,169,97,0.05)}.mzn-item.active{color:#E8CE8B;background:rgba(201,169,97,0.1)}.mzn-item.active::after{content:"";position:absolute;top:5px;width:4px;height:4px;border-radius:50%;background:#E8CE8B;box-shadow:0 0 8px #E8CE8B}';
-document.head.appendChild(style);
 document.body.appendChild(nav);
+
+document.querySelectorAll('.mzn-item').forEach(function(a){
+a.addEventListener('click',function(e){
+e.stopPropagation();
+window.location.href=this.getAttribute('href');
+});
+});
 })();
