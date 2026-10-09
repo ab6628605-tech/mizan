@@ -70,10 +70,20 @@ nav.appendChild(a);
 document.body.appendChild(nav);
 
 if(!window.MZN_APP_LOADED){
+if(!window.MZN_APP_LOADED){
 window.MZN_APP_LOADED=true;
 var appScript=document.createElement('script');
 appScript.src='app.js';
 appScript.async=true;
 document.head.appendChild(appScript);
+}
+if(!window.MZN_ACTIONS_LOADED){
+window.MZN_ACTIONS_LOADED=true;
+var actScript=document.createElement('script');
+actScript.src='actions.js';
+actScript.async=true;
+document.head.appendChild(actScript);
+}
+})();
 }
 })();
