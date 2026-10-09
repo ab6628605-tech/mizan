@@ -447,6 +447,46 @@ function init(){
   setTimeout(injectFilterBar, 1500);
   setTimeout(function(){ tagLocalRows(); updateCounts(); }, 2500);
 }
+  /* ============ OPEN CLOUD ROWS IN DETAIL VIEW ============ */
+document.addEventListener('click', function(e){
+  var row=e.target.closest && e.target.closest(ROWSEL);
+  if(!row) return;
+  if(e.target.closest('.mzn-amenu') || e.target.closest('.mzn-fchip') || e.target.closest('.mzn-conf')) return;
+  if(e.target.closest('button') || e.target.closest('a')) return;
+  if(!row.dataset.mznId) return;
+  
+  var idEl=row.querySelector(IDSEL);
+  var titleEl=row.querySelector(TITLESEL);
+  var amtEl=row.querySelector(AMTSEL);
+  var id=idEl?idEl.textContent.trim():row.dataset.mznId;
+  var title=titleEl?titleEl.textContent.trim():'';
+  var amtTxt=amtEl?amtEl.textContent.trim():'0';
+  var amount=parseFloat(amtTxt.replace(/[^0-9.]/g,''))||0;
+  if(amtTxt.indexOf('M')!==-1) amount*=1000000;
+  else if(amtTxt.indexOf('K')!==-1) amount*=1000;
+  var status=row.dataset.mznStatus||'pending';
+  
+  if(typeof window.openDetail==='function'){
+    e.preventDefault();e.stopPropagation();
+    var obj={
+      id:id, code:id, title:title, amount:amount, status:status, stage:1, items:1,
+      supplier:'STC Solutions', supInitials:'STC', supColor:'gold',
+      issuedDate:new Date().toISOString().slice(0,10),
+      deliveryDate:'2025-11-15', refPR:'—', refPO:'PO-2025-0087', refINV:'—',
+      date:new Date().toISOString().slice(0,10),
+      warehouse:'WH-01 · الرياض', match:'matched', type:type==='grns'?'grn':undefined,
+      requester:'أنت', department:'تقنية المعلومات', step:1, daysOpen:0
+    };
+    try{ window.openDetail(obj); tone(660,.08); }
+    catch(err){ console.error('[MIZAN]', err); toast('→ '+title,'info'); }
+    return;
+  }
+  e.preventDefault();e.stopPropagation();
+  tone(660,.08);
+  toast('→ '+title,'info');
+}, true);
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init);
+else init();
+})();
 else init();
 })();
