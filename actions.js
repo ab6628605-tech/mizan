@@ -100,8 +100,11 @@ function applyFilter(k){
   for(var i=0;i<rows.length;i++){
     var st=rows[i].dataset.mznStatus||detectStatus(rows[i]);
     rows[i].dataset.mznStatus=st;
-    if(k==='all') rows[i].style.display='';
-    else rows[i].style.display = (st===k)?'':'none';
+    if(k==='all' || st===k){
+      rows[i].classList.remove('mzn-hidden');
+    } else {
+      rows[i].classList.add('mzn-hidden');
+    }
   }
 }
 
