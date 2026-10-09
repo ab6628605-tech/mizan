@@ -25,13 +25,22 @@ var items=[
 {href:'mizan-settings.html',icon:'settings',label:'إعدادات'}
 ];
 
-/* ===== Inject CSS aggressively ===== */
+/* ===== Inject CSS ===== */
 var style=document.createElement('style');
 style.id='mznNavStyle';
 style.textContent=
-'@media(max-width:900px){html,body{padding-bottom:82px!important}.side,.sidebar,.nav,.navigation,.bottom-nav,.top-nav,.app-nav{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important;width:0!important;height:0!important;overflow:hidden!important;position:absolute!important;left:-99999px!important;top:-99999px!important}.main{padding-right:0!important;padding-bottom:82px!important;margin-right:0!important}}'+
+'@media(max-width:900px){'+
+'html,body{padding-bottom:130px!important;min-height:100vh!important}'+
+'.main{padding-right:0!important;padding-bottom:130px!important;margin-right:0!important}'+
+'.side,.sidebar{display:none!important;visibility:hidden!important;pointer-events:none!important;width:0!important;height:0!important;overflow:hidden!important;position:absolute!important;left:-99999px!important}'+
+'}'+
+'/* Hide floating filter bars from original design (they overlap the new nav) */'+
+'#filterBarGrn,#filterBar,.filter-bar,'+
+'nav:not(.mzn-nav),aside.side,aside.sidebar,.side,.sidebar'+
+'{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important;width:0!important;height:0!important;overflow:hidden!important;position:absolute!important;left:-99999px!important;top:-99999px!important}'+
 '.back,.back-link,.back-btn,.back-arrow{display:none!important}'+
-'.mzn-nav{position:fixed!important;bottom:0!important;left:0!important;right:0!important;height:66px!important;background:rgba(8,9,14,0.98)!important;backdrop-filter:blur(24px)!important;-webkit-backdrop-filter:blur(24px)!important;border-top:1px solid rgba(201,169,97,0.2)!important;display:flex!important;align-items:center!important;justify-content:space-between!important;padding:0 4px!important;z-index:2147483647!important;box-shadow:0 -12px 48px rgba(0,0,0,0.8)!important;box-sizing:border-box!important;width:100%!important}'+
+/* ===== New nav ===== */
+'.mzn-nav{position:fixed!important;bottom:0!important;left:0!important;right:0!important;height:66px!important;background:rgba(8,9,14,0.99)!important;backdrop-filter:blur(24px)!important;-webkit-backdrop-filter:blur(24px)!important;border-top:1px solid rgba(201,169,97,0.2)!important;display:flex!important;align-items:center!important;justify-content:space-between!important;padding:0 4px!important;z-index:2147483647!important;box-shadow:0 -12px 48px rgba(0,0,0,0.8)!important;box-sizing:border-box!important;width:100%!important}'+
 '.mzn-item{display:flex!important;align-items:center!important;justify-content:center!important;flex:1 1 0!important;max-width:44px!important;height:44px!important;border-radius:12px!important;color:#5A6180!important;text-decoration:none!important;transition:all .2s ease!important;position:relative!important;margin:0!important;padding:0!important;-webkit-tap-highlight-color:rgba(201,169,97,0.2)!important;cursor:pointer!important;pointer-events:auto!important;touch-action:manipulation!important;user-select:none!important;-webkit-user-select:none!important;box-sizing:border-box!important}'+
 '.mzn-item svg{width:21px!important;height:21px!important;pointer-events:none!important;display:block!important}'+
 '.mzn-item:active{color:#E8CE8B!important;background:rgba(201,169,97,0.15)!important;transform:scale(0.92)!important}'+
@@ -39,39 +48,29 @@ style.textContent=
 '.mzn-item.active::after{content:""!important;position:absolute!important;bottom:3px!important;left:50%!important;transform:translateX(-50%)!important;width:4px!important;height:4px!important;border-radius:50%!important;background:#E8CE8B!important;box-shadow:0 0 8px #E8CE8B!important}';
 document.head.appendChild(style);
 
-/* ===== Function to hide old navs ===== */
+/* ===== Aggressive old nav cleanup ===== */
 function hideOldNavs(){
-  // Hide sidebars
-  document.querySelectorAll('aside.side, aside.sidebar, .side, .sidebar').forEach(function(el){
+  var sel='aside.side,aside.sidebar,.side,.sidebar,.filter-bar,#filterBarGrn,#filterBar';
+  document.querySelectorAll(sel).forEach(function(el){
     if(el.classList.contains('mzn-nav')) return;
     el.style.setProperty('display','none','important');
     el.style.setProperty('visibility','hidden','important');
     el.setAttribute('aria-hidden','true');
   });
-  // Hide old nav elements (not ours)
   document.querySelectorAll('nav').forEach(function(n){
     if(n.classList.contains('mzn-nav')) return;
     n.style.setProperty('display','none','important');
     n.style.setProperty('visibility','hidden','important');
   });
-  // Hide back buttons
-  document.querySelectorAll('.back, .back-link, .back-btn, .back-arrow').forEach(function(el){
+  document.querySelectorAll('.back,.back-link,.back-btn,.back-arrow').forEach(function(el){
     el.style.setProperty('display','none','important');
   });
 }
 
-/* Run immediately */
 hideOldNavs();
-
-/* Keep running forever - catches any element that loads later */
-setInterval(hideOldNavs, 300);
-
-/* Also use MutationObserver for instant hiding */
+setInterval(hideOldNavs, 250);
 if(window.MutationObserver){
-  var observer = new MutationObserver(function(mutations){
-    hideOldNavs();
-  });
-  observer.observe(document.documentElement, {childList:true, subtree:true, attributes:true, attributeFilter:['class','style']});
+  new MutationObserver(hideOldNavs).observe(document.documentElement, {childList:true, subtree:true, attributes:true, attributeFilter:['class','style']});
 }
 
 /* ===== Build new nav ===== */
@@ -80,42 +79,36 @@ nav.className='mzn-nav';
 nav.setAttribute('id','mznMainNav');
 
 items.forEach(function(item){
-var a=document.createElement('a');
-a.className='mzn-item'+(path===item.href?' active':'');
-a.setAttribute('href',item.href);
-a.setAttribute('data-href',item.href);
-a.setAttribute('aria-label',item.label);
-a.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+ICONS[item.icon]+'</svg>';
-
-function go(e){
-if(e){e.preventDefault();e.stopPropagation();}
-var href=a.getAttribute('data-href');
-if(href){window.location.assign(href);}
-}
-a.addEventListener('click',go,true);
-a.addEventListener('touchend',go,{passive:false});
-a.addEventListener('touchstart',function(e){e.stopPropagation();},{passive:true});
-
-nav.appendChild(a);
+  var a=document.createElement('a');
+  a.className='mzn-item'+(path===item.href?' active':'');
+  a.setAttribute('href',item.href);
+  a.setAttribute('data-href',item.href);
+  a.setAttribute('aria-label',item.label);
+  a.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+ICONS[item.icon]+'</svg>';
+  function go(e){
+    if(e){e.preventDefault();e.stopPropagation();}
+    var href=a.getAttribute('data-href');
+    if(href){window.location.assign(href);}
+  }
+  a.addEventListener('click',go,true);
+  a.addEventListener('touchend',go,{passive:false});
+  a.addEventListener('touchstart',function(e){e.stopPropagation();},{passive:true});
+  nav.appendChild(a);
 });
 document.body.appendChild(nav);
-
-/* Immediately hide old navs again after adding ours */
 hideOldNavs();
 
-/* ===== Load app.js and actions.js ===== */
+/* ===== Load app.js & actions.js ===== */
 if(!window.MZN_APP_LOADED){
-window.MZN_APP_LOADED=true;
-var appScript=document.createElement('script');
-appScript.src='app.js';
-appScript.async=true;
-document.head.appendChild(appScript);
+  window.MZN_APP_LOADED=true;
+  var s1=document.createElement('script');
+  s1.src='app.js';s1.async=true;
+  document.head.appendChild(s1);
 }
 if(!window.MZN_ACTIONS_LOADED){
-window.MZN_ACTIONS_LOADED=true;
-var actScript=document.createElement('script');
-actScript.src='actions.js';
-actScript.async=true;
-document.head.appendChild(actScript);
+  window.MZN_ACTIONS_LOADED=true;
+  var s2=document.createElement('script');
+  s2.src='actions.js';s2.async=true;
+  document.head.appendChild(s2);
 }
 })();
