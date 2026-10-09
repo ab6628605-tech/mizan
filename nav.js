@@ -36,7 +36,7 @@ style.textContent=
 '}'+
 
 /* ==== Hide old navs & filters ==== */
-'#filterBarGrn,#filterBar,.filter-bar,'+
+'#filterBarGrn,#filterBar,.filter-bar,.tabs,.tab,'+
 'nav:not(.mzn-nav),aside.side,aside.sidebar,.side,.sidebar'+
 '{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important;width:0!important;height:0!important;overflow:hidden!important;position:absolute!important;left:-99999px!important;top:-99999px!important}'+
 '.back,.back-link,.back-btn,.back-arrow{display:none!important}'+
