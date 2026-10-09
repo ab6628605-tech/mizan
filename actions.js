@@ -113,6 +113,7 @@ var css=document.createElement('style');
 css.textContent=
 '.mzn-filters{display:flex;gap:6px;overflow-x:auto;padding:0 0 16px 0;margin-bottom:8px;scrollbar-width:none;-webkit-overflow-scrolling:touch;position:relative;z-index:5}'+
 '.mzn-filters::-webkit-scrollbar{display:none}'+
+'.mzn-hidden{display:none!important}'+
 '.mzn-fchip{display:inline-flex;align-items:center;gap:6px;padding:9px 15px;border-radius:99px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);color:#7A8090;font-family:inherit;font-size:12px;cursor:pointer;transition:all .25s ease;white-space:nowrap;flex-shrink:0;position:relative;z-index:6;pointer-events:auto!important;-webkit-tap-highlight-color:rgba(201,169,97,.2)}'+
 '.mzn-fchip:active{transform:scale(.96)}'+
 '.mzn-fchip.active{background:rgba(201,169,97,.15);border-color:rgba(201,169,97,.4);color:#E8CE8B}'+
