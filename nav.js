@@ -69,4 +69,14 @@ a.addEventListener('touchstart',function(e){e.stopPropagation();},{passive:true}
 nav.appendChild(a);
 });
 document.body.appendChild(nav);
+
+/* Load app.js for interactivity */
+if(!window.MZN_APP_LOADED){
+window.MZN_APP_LOADED = true;
+var appScript = document.createElement('script');
+appScript.src = 'app.js';
+appScript.async = true;
+document.head.appendChild(appScript);
+}
+})();
 })();
