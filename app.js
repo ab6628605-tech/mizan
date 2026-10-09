@@ -42,7 +42,7 @@ function showToast(msg, type){
   if(!c){
     c = document.createElement('div');
     c.id = 'mznToastWrap';
-    c.style.cssText = 'position:fixed;top:24px;left:50%;transform:translateX(-50%);z-index:2147483646;display:flex;flex-direction:column;gap:10px;align-items:center;pointer-events:none;max-width:90vw';
+    c.style.cssText = 'position:fixed;top:70px;left:50%;transform:translateX(-50%);z-index:2147483646;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none;max-width:88vw';
     document.body.appendChild(c);
   }
   var colors = {info:'#9DC4E8', success:'#6EE7A0', warning:'#F0C474', danger:'#F0A0B0'};
