@@ -143,19 +143,29 @@ document.body.appendChild(nav);
 hideOldNavs();
 
 /* ===== Load app.js & actions.js ===== */
-var V='v10';
-if(!window.MZN_APP_LOADED){
-window.MZN_APP_LOADED=true;
-var appScript=document.createElement('script');
-appScript.src='app.js?'+V;
-appScript.async=true;
-document.head.appendChild(appScript);
-}
-if(!window.MZN_ACTIONS_LOADED){
-window.MZN_ACTIONS_LOADED=true;
-var actScript=document.createElement('script');
-actScript.src='actions.js?'+V;
-actScript.async=true;
-document.head.appendChild(actScript);
+var V='v14';
+/* Load supabase.js FIRST, then app.js and actions.js */
+if(!window.MZN_SUPABASE_LOADED){
+window.MZN_SUPABASE_LOADED=true;
+var supScript=document.createElement('script');
+supScript.src='supabase.js?'+V;
+supScript.async=true;
+document.head.appendChild(supScript);
+setTimeout(function(){
+  if(!window.MZN_APP_LOADED){
+    window.MZN_APP_LOADED=true;
+    var appScript=document.createElement('script');
+    appScript.src='app.js?'+V;
+    appScript.async=true;
+    document.head.appendChild(appScript);
+  }
+  if(!window.MZN_ACTIONS_LOADED){
+    window.MZN_ACTIONS_LOADED=true;
+    var actScript=document.createElement('script');
+    actScript.src='actions.js?'+V;
+    actScript.async=true;
+    document.head.appendChild(actScript);
+  }
+}, 100);
 }
 })();
