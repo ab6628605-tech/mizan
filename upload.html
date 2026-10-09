@@ -78,4 +78,22 @@ footer{margin-top:48px;padding-top:20px;border-top:1px solid var(--ln);display:f
 </footer>
 </div>
 </body>
+<script>
+document.querySelector('.btn').addEventListener('click',function(){
+  this.textContent='✨ جارٍ التحليل...';
+  this.style.opacity='.7';
+  setTimeout(()=>{
+    this.textContent='✅ تم استلام الملف (تجريبي)';
+    setTimeout(()=>{
+      this.textContent='اختر ملفات';
+      this.style.opacity='1';
+    },2000);
+  },1500);
+});
+document.querySelectorAll('.sample').forEach(s=>{
+  s.addEventListener('click',function(){
+    alert('📄 سيتم تحليل نموذج '+this.querySelector('.sample-title').textContent+' في المرحلة النهائية');
+  });
+});
+  </script>
 </html>
