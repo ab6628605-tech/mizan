@@ -1,10 +1,10 @@
 (function(){
 'use strict';
 var path=(window.location.pathname.split('/').pop()||'').split('?')[0];
-var type=null;
-if(path.indexOf('mizan-pr')===0) type='prs';
-else if(path.indexOf('mizan-po')===0) type='pos';
-else if(path.indexOf('mizan-grn')===0) type='grns';
+var type=null, TABLE=null, PFX=null, CLS=null;
+if(path.indexOf('mizan-pr')===0){type='prs';TABLE='prs';PFX='PR';CLS='pr';}
+else if(path.indexOf('mizan-po')===0){type='pos';TABLE='pos';PFX='PO';CLS='po';}
+else if(path.indexOf('mizan-grn')===0){type='grns';TABLE='grns';PFX='GRN';CLS='doc';}
 if(!type) return;
 
 function fmt(n){n=parseFloat(n)||0;if(n>=1e6)return'$'+(n/1e6).toFixed(2)+'M';if(n>=1e3)return'$'+(n/1e3).toFixed(0)+'K';return'$'+Math.round(n)}
@@ -13,12 +13,12 @@ function tone(f,d,v){if(window.MZN&&MZN.tone)MZN.tone(f,d,'sine',v||0.05)}
 function toast(m,t){if(window.MZN&&MZN.toast)MZN.toast(m,t||'info')}
 function uid(p){var y=new Date().getFullYear();var n=String(Math.floor(Math.random()*9999)+1).padStart(4,'0');return p+'-'+y+'-'+n}
 
-var ROWSEL=type==='prs'?'.pr-row':type==='pos'?'.po-row':'.doc-row';
-var IDSEL=type==='prs'?'.pr-id':type==='pos'?'.po-id':'.doc-id';
-var TITLESEL=type==='prs'?'.pr-title':type==='pos'?'.po-title':'.doc-title';
-var AMTSEL=type==='prs'?'.pr-amount':type==='pos'?'.po-amount':'.doc-amount';
+var ROWSEL='.'+CLS+'-row';
+var IDSEL='.'+CLS+'-id';
+var TITLESEL='.'+CLS+'-title';
+var AMTSEL='.'+CLS+'-amount';
 
-/* ============ DETECT STATUS FROM TEXT ============ */
+/* ============ STATUS DETECT ============ */
 function detectStatus(row){
   var pill=row.querySelector('.stat-pill');
   if(!pill) return 'pending';
@@ -33,49 +33,98 @@ function detectStatus(row){
   if(txt.indexOf('قيد التنفيذ')!==-1) return 'progress';
   if(txt.indexOf('مستلم')!==-1) return 'received';
   if(txt.indexOf('مغلق')!==-1) return 'closed';
-  if(txt.indexOf('مدفوعة')!==-1) return 'paid';
   if(txt.indexOf('جزئي')!==-1) return 'partial';
   if(txt.indexOf('فحص')!==-1) return 'inspect';
   if(txt.indexOf('فرق')!==-1) return 'variance';
   if(txt.indexOf('مقبول')!==-1) return 'accepted';
+  if(txt.indexOf('مدفوعة')!==-1) return 'paid';
   return 'pending';
 }
 
-/* ============ INJECT FILTER BAR (with fallback) ============ */
-function injectFilterBar(){
-  if(document.querySelector('.mzn-filters')) return true;
-  var list=document.getElementById(type==='prs'?'prList':type==='pos'?'poList':'docList');
-  if(!list){ list=document.querySelector('.wrap > div:last-of-type'); }
-  if(!list) return false;
+var STATUS_LABEL = {
+  draft:['مسودة','#4A5060','rgba(255,255,255,.04)'],
+  pending:['قيد الموافقة','#F0C474','rgba(240,196,116,.1)'],
+  approved:['معتمدة','#6EE7A0','rgba(110,231,160,.1)'],
+  rejected:['مرفوضة','#F0A0B0','rgba(240,160,176,.1)'],
+  converted:['تحولت إلى PO','#9DC4E8','rgba(157,196,232,.1)'],
+  sent:['مرسل','#9DC4E8','rgba(157,196,232,.1)'],
+  confirmed:['مؤكد','#B8A5E8','rgba(184,165,232,.1)'],
+  progress:['قيد التنفيذ','#F0C474','rgba(240,196,116,.1)'],
+  received:['مستلم','#6EE7A0','rgba(110,231,160,.1)'],
+  closed:['مغلق','#4A9A6E','rgba(110,231,160,.06)'],
+  inspect:['قيد الفحص','#B8A5E8','rgba(184,165,232,.1)'],
+  accepted:['مقبول','#6EE7A0','rgba(110,231,160,.1)'],
+  partial:['استلام جزئي','#9DC4E8','rgba(157,196,232,.1)'],
+  paid:['مدفوعة','#4A9A6E','rgba(110,231,160,.06)'],
+  variance:['فرق','#F0A0B0','rgba(240,160,176,.1)']
+};
+function pillHTML(st){
+  var m=STATUS_LABEL[st]||STATUS_LABEL.pending;
+  return '<span class="stat-pill" style="background:'+m[2]+';color:'+m[1]+';display:inline-flex;align-items:center;gap:6px;font-size:11px;padding:5px 10px;border-radius:99px;white-space:nowrap"><span class="dot" style="width:6px;height:6px;border-radius:50%;background:'+m[1]+';box-shadow:0 0 6px '+m[1]+'"></span>'+m[0]+'</span>';
+}
 
-  var filters = type==='prs'?[
+/* ============ BUILD ROW HTML ============ */
+function buildRow(item){
+  var row=document.createElement('div');
+  row.className=ROWSEL.substring(1);
+  row.dataset.mznStatus=item.status||'pending';
+  row.dataset.mznId=item.id||'';
+  if(type==='prs'){
+    row.innerHTML=
+      '<div><p class="'+CLS+'-id">'+esc(item.code||item.id)+'</p><p class="'+CLS+'-meta" style="margin-top:2px">'+(item.items||1)+' صنف</p></div>'+
+      '<div><p class="'+CLS+'-title">'+esc(item.title)+'</p><p class="'+CLS+'-meta">'+esc(item.dept||'—')+' · '+esc(item.priority||'عادية')+'</p></div>'+
+      '<div><div class="appr-chain"><span class="appr-dot done"></span><span class="appr-line done"></span><span class="appr-dot current"></span><span class="appr-line"></span><span class="appr-dot"></span><span class="appr-line"></span><span class="appr-dot"></span></div><p class="'+CLS+'-meta" style="margin-top:6px">'+(item.status==='pending'?'بانتظار المشتريات':(STATUS_LABEL[item.status]||[''])[0])+'</p></div>'+
+      '<div style="text-align:left"><p class="'+CLS+'-amount">'+fmt(item.amount)+'</p></div>'+
+      '<div style="text-align:left">'+pillHTML(item.status)+'</div>';
+  } else if(type==='pos'){
+    var init=(item.supplier||'—').substring(0,3).toUpperCase();
+    row.innerHTML=
+      '<div><p class="'+CLS+'-id">'+esc(item.code||item.id)+'</p><p class="'+CLS+'-meta" style="margin-top:2px">'+(item.items||1)+' صنف</p></div>'+
+      '<div><p class="'+CLS+'-title">'+esc(item.title)+'</p><p class="'+CLS+'-meta">'+(item.created_at?new Date(item.created_at).toISOString().slice(0,10):'—')+'</p></div>'+
+      '<div class="po-supplier"><div class="po-sup-avatar" style="background:rgba(201,169,97,.1);color:var(--gb);border-color:rgba(201,169,97,.25)">'+init+'</div><div><p style="font-size:13px;color:var(--text);margin-bottom:2px">'+esc(item.supplier||'—')+'</p><p class="'+CLS+'-meta">تسليم: '+esc(item.delivery||'—')+'</p></div></div>'+
+      '<div style="text-align:left"><p class="'+CLS+'-amount">'+fmt(item.amount)+'</p></div>'+
+      '<div style="text-align:left">'+pillHTML(item.status)+'</div>';
+  } else {
+    row.innerHTML=
+      '<div><p class="'+CLS+'-id">'+esc(item.code||item.id)+'</p><p class="'+CLS+'-meta" style="margin-top:2px">'+(item.items||1)+' صنف</p></div>'+
+      '<div><p class="'+CLS+'-title">'+esc(item.title)+'</p><p class="'+CLS+'-meta">'+esc(item.supplier||'—')+' · '+esc(item.ref_po||'—')+'</p></div>'+
+      '<div><p class="'+CLS+'-meta" style="font-size:11px;letter-spacing:.1em;text-transform:uppercase">مرجع</p><p style="font-family:Inter;font-size:12px;color:var(--em);margin-top:2px">—</p></div>'+
+      '<div style="text-align:left"><p class="'+CLS+'-amount">'+fmt(item.amount)+'</p></div>'+
+      '<div style="text-align:left">'+pillHTML(item.status)+'</div>';
+  }
+  return row;
+}
+
+/* ============ FILTERS ============ */
+function getFilters(){
+  if(type==='prs') return [
     {k:'all',l:'الكل'},{k:'draft',l:'مسودة'},{k:'pending',l:'قيد الموافقة'},
     {k:'approved',l:'معتمدة'},{k:'rejected',l:'مرفوضة'},{k:'converted',l:'إلى PO'}
-  ]:type==='pos'?[
+  ];
+  if(type==='pos') return [
     {k:'all',l:'الكل'},{k:'draft',l:'مسودة'},{k:'sent',l:'مرسل'},
     {k:'confirmed',l:'مؤكد'},{k:'progress',l:'تنفيذ'},{k:'received',l:'مستلم'},{k:'closed',l:'مغلق'}
-  ]:[
+  ];
+  return [
     {k:'all',l:'الكل'},{k:'pending',l:'بانتظار'},{k:'inspect',l:'فحص'},
     {k:'accepted',l:'مقبول'},{k:'partial',l:'جزئي'},{k:'rejected',l:'مرفوض'}
   ];
+}
 
+function injectFilterBar(){
+  if(document.querySelector('.mzn-filters')) return;
+  var list=document.getElementById(type==='prs'?'prList':type==='pos'?'poList':'docList');
+  if(!list) return;
   var bar=document.createElement('div');
   bar.className='mzn-filters';
+  var fs=getFilters();
   var html='';
-  for(var i=0;i<filters.length;i++){
-    var f=filters[i];
-    html+='<button type="button" class="mzn-fchip'+(i===0?' active':'')+'" data-mzn-k="'+f.k+'">'+f.l+' <span class="mzn-fcount">0</span></button>';
+  for(var i=0;i<fs.length;i++){
+    html+='<button type="button" class="mzn-fchip'+(i===0?' active':'')+'" data-mzn-k="'+fs[i].k+'">'+fs[i].l+' <span class="mzn-fcount">0</span></button>';
   }
   bar.innerHTML=html;
-
-  if(list.parentElement){
-    list.parentElement.insertBefore(bar, list);
-  } else {
-    return false;
-  }
-
+  list.parentElement.insertBefore(bar, list);
   updateCounts();
-  return true;
 }
 
 function updateCounts(){
@@ -94,28 +143,49 @@ function updateCounts(){
   }
 }
 
-/* ============ FILTER (event delegation safe) ============ */
 function applyFilter(k){
   var rows=document.querySelectorAll(ROWSEL);
   for(var i=0;i<rows.length;i++){
     var st=rows[i].dataset.mznStatus||detectStatus(rows[i]);
-    rows[i].dataset.mznStatus=st;
-    if(k==='all' || st===k){
-      rows[i].classList.remove('mzn-hidden');
-    } else {
-      rows[i].classList.add('mzn-hidden');
+    if(k==='all'||st===k) rows[i].classList.remove('mzn-hidden');
+    else rows[i].classList.add('mzn-hidden');
+  }
+}
+
+/* ============ RENDER FROM CLOUD ============ */
+function renderCloud(items){
+  var list=document.getElementById(type==='prs'?'prList':type==='pos'?'poList':'docList');
+  if(!list) return;
+  list.innerHTML='';
+  if(!items||!items.length){
+    list.innerHTML='<div style="padding:60px 20px;text-align:center;color:#4A5060;font-size:13px">لا توجد عناصر</div>';
+    updateCounts();
+    return;
+  }
+  for(var i=0;i<items.length;i++){
+    list.appendChild(buildRow(items[i]));
+  }
+  updateCounts();
+  toast('☁️ تم التحميل من السحابة','success');
+}
+
+/* ============ LOCAL RENDER (fallback) ============ */
+function tagLocalRows(){
+  var rows=document.querySelectorAll(ROWSEL);
+  for(var i=0;i<rows.length;i++){
+    if(!rows[i].dataset.mznStatus){
+      rows[i].dataset.mznStatus=detectStatus(rows[i]);
     }
   }
 }
 
-/* ============ STYLES ============ */
+/* ============ CSS ============ */
 var css=document.createElement('style');
 css.textContent=
+'.mzn-hidden{display:none!important}'+
 '.mzn-filters{display:flex;gap:6px;overflow-x:auto;padding:0 0 16px 0;margin-bottom:8px;scrollbar-width:none;-webkit-overflow-scrolling:touch;position:relative;z-index:5}'+
 '.mzn-filters::-webkit-scrollbar{display:none}'+
-'.mzn-hidden{display:none!important}'+
-'.mzn-fchip{display:inline-flex;align-items:center;gap:6px;padding:9px 15px;border-radius:99px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);color:#7A8090;font-family:inherit;font-size:12px;cursor:pointer;transition:all .25s ease;white-space:nowrap;flex-shrink:0;position:relative;z-index:6;pointer-events:auto!important;-webkit-tap-highlight-color:rgba(201,169,97,.2)}'+
-'.mzn-fchip:active{transform:scale(.96)}'+
+'.mzn-fchip{display:inline-flex;align-items:center;gap:6px;padding:9px 15px;border-radius:99px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);color:#7A8090;font-family:inherit;font-size:12px;cursor:pointer;transition:all .25s ease;white-space:nowrap;flex-shrink:0;position:relative;z-index:6;pointer-events:auto!important}'+
 '.mzn-fchip.active{background:rgba(201,169,97,.15);border-color:rgba(201,169,97,.4);color:#E8CE8B}'+
 '.mzn-fcount{font-family:Inter;font-size:10px;padding:1px 6px;border-radius:99px;background:rgba(255,255,255,.05);color:#4A5060;pointer-events:none}'+
 '.mzn-fchip.active .mzn-fcount{background:rgba(201,169,97,.25);color:#E8CE8B}'+
@@ -139,16 +209,14 @@ css.textContent=
 '.mzn-save,.mzn-del{flex:1;padding:13px 20px;border-radius:99px;background:linear-gradient(135deg,#E8CE8B,#C9A961);color:#08090E;font-weight:600;font-size:13px;border:none;cursor:pointer;font-family:inherit}'+
 '.mzn-del{background:linear-gradient(135deg,#F0A0B0,#D06A80)}'+
 '.mzn-cncl{padding:13px 22px;border-radius:99px;background:transparent;color:#7A8090;font-size:13px;border:1px solid rgba(255,255,255,.08);cursor:pointer;font-family:inherit}'+
-'.mzn-debug{position:fixed;top:100px;right:10px;z-index:2147483647;padding:6px 10px;border-radius:8px;background:rgba(0,0,0,.9);color:#6EE7A0;font-family:Inter;font-size:10px;pointer-events:none}';
+'.mzn-loading{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(14,16,24,.95);border:1px solid rgba(201,169,97,.3);border-radius:14px;padding:16px 24px;color:#E8CE8B;font-family:Inter,sans-serif;font-size:12px;z-index:2147483647}';
 document.head.appendChild(css);
 
-/* ============ EVENT DELEGATION (always works) ============ */
+/* ============ FILTER CLICKS ============ */
 document.addEventListener('click', function(e){
-  /* Filter chips */
   var chip=e.target.closest && e.target.closest('.mzn-fchip');
   if(chip){
-    e.preventDefault();
-    e.stopPropagation();
+    e.preventDefault();e.stopPropagation();
     var k=chip.dataset.mznK;
     var bar=chip.parentElement;
     if(bar){
@@ -158,14 +226,11 @@ document.addEventListener('click', function(e){
     chip.classList.add('active');
     applyFilter(k);
     tone(660,.06);
-    return;
   }
 }, true);
 
-/* ============ LONG PRESS FOR EDIT/DELETE ============ */
-var pressTimer=null;
-var pressMoved=false;
-
+/* ============ LONG PRESS ============ */
+var pressTimer=null, pressMoved=false;
 document.addEventListener('touchstart', function(e){
   var row=e.target.closest && e.target.closest(ROWSEL);
   if(!row) return;
@@ -178,10 +243,8 @@ document.addEventListener('touchstart', function(e){
     showMenu(row);
   }, 550);
 }, {passive:true});
-
 document.addEventListener('touchmove', function(){ pressMoved=true; clearTimeout(pressTimer); }, {passive:true});
 document.addEventListener('touchend', function(){ clearTimeout(pressTimer); }, {passive:true});
-
 document.addEventListener('contextmenu', function(e){
   var row=e.target.closest && e.target.closest(ROWSEL);
   if(row){ e.preventDefault(); showMenu(row); }
@@ -199,15 +262,13 @@ function showMenu(row){
   var r=row.getBoundingClientRect();
   var left=Math.max(10, Math.min(window.innerWidth-190, r.left+r.width/2-90));
   var top=Math.max(10, r.top-100);
-  m.style.left=left+'px';
-  m.style.top=top+'px';
+  m.style.left=left+'px';m.style.top=top+'px';
   requestAnimationFrame(function(){ m.classList.add('show'); });
-
   m.querySelector('[data-act="edit"]').addEventListener('click', function(ev){
     ev.stopPropagation(); hideMenu();
     var t=row.querySelector(TITLESEL)?row.querySelector(TITLESEL).textContent.trim():'';
     var a=row.querySelector(AMTSEL)?row.querySelector(AMTSEL).textContent.trim():'';
-    openEdit(t, a, row);
+    openEdit(t,a,row);
   });
   m.querySelector('[data-act="delete"]').addEventListener('click', function(ev){
     ev.stopPropagation(); hideMenu();
@@ -217,9 +278,10 @@ function showMenu(row){
 }
 function hideMenu(){ if(activeMenu){ activeMenu.classList.remove('show'); var m=activeMenu; activeMenu=null; setTimeout(function(){m.remove()},250);} }
 
-/* ============ CONFIRM DELETE ============ */
+/* ============ DELETE ============ */
 function confirmDelete(row){
   var title=row.querySelector(TITLESEL)?row.querySelector(TITLESEL).textContent.trim():'';
+  var rowId=row.dataset.mznId||'';
   var w=document.createElement('div');
   w.className='mzn-conf show';
   w.innerHTML='<div class="mzn-cbd"></div><div class="mzn-cbox"><h3>تأكيد الحذف</h3><p>هل تريد حذف "<b style="color:#E8CE8B">'+esc(title)+'</b>"؟<br>لا يمكن التراجع.</p><div class="mzn-cact"><button type="button" class="mzn-del">حذف</button><button type="button" class="mzn-cncl">إلغاء</button></div></div>';
@@ -228,12 +290,20 @@ function confirmDelete(row){
   w.querySelector('.mzn-cncl').addEventListener('click', function(){tone(500,.1); w.remove()});
   w.querySelector('.mzn-del').addEventListener('click', function(){
     tone(330,.2);
+    /* Optimistic UI: hide immediately */
     row.style.transition='all .3s ease';
     row.style.opacity='0';
     row.style.transform='translateX(-40px)';
     setTimeout(function(){ row.remove(); updateCounts(); }, 300);
     w.remove();
-    toast('🗑 حُذف العنصر','info');
+    /* Delete from Supabase if has id */
+    if(rowId && window.MZN_DB){
+      window.MZN_DB.remove(TABLE, rowId)
+        .then(function(){ toast('☁️ حُذف من السحابة','success'); })
+        .catch(function(){ toast('⚠️ تم الحذف محلياً فقط','warning'); });
+    } else {
+      toast('🗑 حُذف العنصر','info');
+    }
   });
 }
 
@@ -258,30 +328,30 @@ function openEdit(title, amount, row){
   w.querySelector('.mzn-save').addEventListener('click', function(){
     var nt=document.getElementById('mzn_et').value.trim()||title;
     var na=parseFloat(document.getElementById('mzn_ea').value)||0;
+    var ns=document.getElementById('mzn_es').value;
     var t=row.querySelector(TITLESEL);
     var a=row.querySelector(AMTSEL);
+    var pill=row.querySelector('.stat-pill');
     if(t) t.textContent=nt;
     if(a) a.textContent=fmt(na);
+    row.dataset.mznStatus=ns;
+    if(pill) pill.outerHTML=pillHTML(ns);
     w.remove();
     tone(880,.12); setTimeout(function(){tone(1174,.15)},90);
-    toast('✏️ حُدّث العنصر','success');
+    /* Update in Supabase */
+    var rowId=row.dataset.mznId||'';
+    if(rowId && window.MZN_DB){
+      window.MZN_DB.update(TABLE, rowId, {title:nt, amount:na, status:ns})
+        .then(function(){ toast('☁️ حُدّث في السحابة','success'); })
+        .catch(function(){ toast('✏️ حُدّث محلياً','info'); });
+    } else {
+      toast('✏️ حُدّث العنصر','success');
+    }
   });
 }
 
-/* ============ HOOK ADD BUTTON ============ */
-document.addEventListener('click', function(e){
-  var b=e.target.closest && e.target.closest('button, a');
-  if(!b) return;
-  var txt=(b.textContent||'').trim();
-  if(txt.indexOf('طلب شراء جديد')!==-1 || txt.indexOf('أمر شراء جديد')!==-1 || txt.indexOf('سند استلام جديد')!==-1){
-    e.preventDefault();
-    e.stopPropagation();
-    openAddDialog();
-    return false;
-  }
-}, true);
-
-function openAddDialog(){
+/* ============ ADD ============ */
+function openAdd(){
   var w=document.createElement('div');
   w.className='mzn-conf show';
   var stOpts = type==='prs'?'<option value="pending">قيد الموافقة</option><option value="draft">مسودة</option><option value="approved">معتمدة</option>':
@@ -298,52 +368,85 @@ function openAddDialog(){
   w.querySelector('.mzn-save').addEventListener('click', function(){
     var nt=(document.getElementById('mzn_nt').value||'').trim();
     var na=parseFloat(document.getElementById('mzn_na').value)||0;
+    var ns=document.getElementById('mzn_ns').value;
     if(!nt){toast('أدخل عنواناً','warning');tone(330,.15);return}
     if(na<=0){toast('أدخل مبلغاً','warning');tone(330,.15);return}
-    var list=document.getElementById(type==='prs'?'prList':type==='pos'?'poList':'docList');
-    if(!list){ toast('لا يمكن الإضافة الآن','warning'); w.remove(); return; }
-    var pfx=type==='prs'?'PR':type==='pos'?'PO':'GRN';
-    var cls=type==='prs'?'pr':type==='pos'?'po':'doc';
-    var row=document.createElement('div');
-    row.className=ROWSEL.substring(1);
-    row.dataset.mznStatus='pending';
-    row.innerHTML=
-      '<div><p class="'+cls+'-id">'+uid(pfx)+'</p><p class="'+cls+'-meta" style="margin-top:2px">1 صنف</p></div>'+
-      '<div><p class="'+cls+'-title">'+esc(nt)+'</p><p class="'+cls+'-meta">جديد · الآن</p></div>'+
-      '<div style="text-align:left"><p class="'+cls+'-amount">'+fmt(na)+'</p></div>'+
-      '<div style="text-align:left"><span class="stat-pill" style="background:rgba(240,196,116,.1);color:#F0C474;display:inline-flex;align-items:center;gap:6px;font-size:11px;padding:5px 10px;border-radius:99px"><span style="width:6px;height:6px;border-radius:50%;background:#F0C474;box-shadow:0 0 6px #F0C474"></span>قيد الموافقة</span></div>';
-    if(list.firstChild) list.insertBefore(row, list.firstChild);
-    else list.appendChild(row);
+    var code=uid(PFX);
+    var item={code:code,title:nt,amount:na,status:ns};
+    if(type==='prs'){ item.dept='تقنية المعلومات'; item.priority='عادية'; item.items=1; }
+    else if(type==='pos'){ item.supplier='STC Solutions'; item.delivery=''; item.payment='30 يوم'; item.items=1; }
+    else { item.ref_po='PO-2025-0087'; item.supplier='STC Solutions'; item.warehouse='WH-01 · الرياض'; item.items=1; }
+    /* Save to Supabase */
+    if(window.MZN_DB){
+      window.MZN_DB.create(TABLE, item)
+        .then(function(res){
+          var created=Array.isArray(res)?res[0]:res;
+          /* Add row with real id */
+          var list=document.getElementById(type==='prs'?'prList':type==='pos'?'poList':'docList');
+          if(list){
+            var row=buildRow(created);
+            if(list.firstChild) list.insertBefore(row, list.firstChild);
+            else list.appendChild(row);
+          }
+          updateCounts();
+          toast('☁️ حُفظ في السحابة','success');
+        })
+        .catch(function(e){
+          console.error(e);
+          /* Fallback: local render */
+          var list=document.getElementById(type==='prs'?'prList':type==='pos'?'poList':'docList');
+          if(list){
+            var row=buildRow(item);
+            row.dataset.mznStatus=ns;
+            if(list.firstChild) list.insertBefore(row, list.firstChild);
+            else list.appendChild(row);
+          }
+          updateCounts();
+          toast('⚠️ حُفظ محلياً (تحقق من الإنترنت)','warning');
+        });
+    }
     w.remove();
     tone(880,.12); setTimeout(function(){tone(1174,.15)},90);
-    toast('✅ أُضيف العنصر','success');
-    updateCounts();
   });
 }
 
+/* ============ HOOK ADD BUTTON ============ */
+document.addEventListener('click', function(e){
+  var b=e.target.closest && e.target.closest('button, a');
+  if(!b) return;
+  var txt=(b.textContent||'').trim();
+  if(txt.indexOf('طلب شراء جديد')!==-1 || txt.indexOf('أمر شراء جديد')!==-1 || txt.indexOf('سند استلام جديد')!==-1){
+    e.preventDefault();e.stopPropagation();
+    openAdd();
+  }
+}, true);
+
 /* ============ INIT ============ */
 function init(){
-  /* Tag status on all rows */
-  var rows=document.querySelectorAll(ROWSEL);
-  for(var i=0;i<rows.length;i++){
-    rows[i].dataset.mznStatus=detectStatus(rows[i]);
-  }
-  /* Inject filter bar */
+  tagLocalRows();
   injectFilterBar();
-  /* Update counts */
   updateCounts();
-  /* Retry once after 1s in case rows render late */
-  setTimeout(function(){
-    var rows=document.querySelectorAll(ROWSEL);
-    for(var i=0;i<rows.length;i++){
-      if(!rows[i].dataset.mznStatus) rows[i].dataset.mznStatus=detectStatus(rows[i]);
-    }
-    injectFilterBar();
-    updateCounts();
-  }, 1000);
-  setTimeout(updateCounts, 2500);
-}
 
+  /* Try loading from Supabase */
+  if(window.MZN_DB){
+    window.MZN_DB.list(TABLE)
+      .then(function(items){
+        if(items && items.length){
+          renderCloud(items);
+        } else {
+          toast('📭 لا توجد بيانات سحابية بعد','info');
+        }
+      })
+      .catch(function(e){
+        console.error('[MIZAN]',e);
+        toast('⚠️ تعذّر الاتصال بالسحابة','warning');
+      });
+  }
+
+  /* Retry filter injection */
+  setTimeout(injectFilterBar, 1500);
+  setTimeout(function(){ tagLocalRows(); updateCounts(); }, 2500);
+}
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init);
 else init();
 })();
