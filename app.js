@@ -56,7 +56,7 @@ function showToast(msg, type){
     t.style.opacity = '0';
     t.style.transform = 'translateY(-20px)';
     setTimeout(function(){t.remove();}, 400);
-  }, 3500);
+  }, 2200);
 }
 
 var animStyle = document.createElement('style');
