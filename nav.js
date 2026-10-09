@@ -25,9 +25,11 @@ var items=[
 {href:'mizan-settings.html',icon:'settings',label:'إعدادات'}
 ];
 
+/* ===== Inject CSS aggressively ===== */
 var style=document.createElement('style');
+style.id='mznNavStyle';
 style.textContent=
-'@media(max-width:900px){html,body{padding-bottom:82px!important}.side,.sidebar{display:none!important}.main{padding-right:0!important;padding-bottom:82px!important;margin-right:0!important}}'+
+'@media(max-width:900px){html,body{padding-bottom:82px!important}.side,.sidebar,.nav,.navigation,.bottom-nav,.top-nav,.app-nav{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important;width:0!important;height:0!important;overflow:hidden!important;position:absolute!important;left:-99999px!important;top:-99999px!important}.main{padding-right:0!important;padding-bottom:82px!important;margin-right:0!important}}'+
 '.back,.back-link,.back-btn,.back-arrow{display:none!important}'+
 '.mzn-nav{position:fixed!important;bottom:0!important;left:0!important;right:0!important;height:66px!important;background:rgba(8,9,14,0.98)!important;backdrop-filter:blur(24px)!important;-webkit-backdrop-filter:blur(24px)!important;border-top:1px solid rgba(201,169,97,0.2)!important;display:flex!important;align-items:center!important;justify-content:space-between!important;padding:0 4px!important;z-index:2147483647!important;box-shadow:0 -12px 48px rgba(0,0,0,0.8)!important;box-sizing:border-box!important;width:100%!important}'+
 '.mzn-item{display:flex!important;align-items:center!important;justify-content:center!important;flex:1 1 0!important;max-width:44px!important;height:44px!important;border-radius:12px!important;color:#5A6180!important;text-decoration:none!important;transition:all .2s ease!important;position:relative!important;margin:0!important;padding:0!important;-webkit-tap-highlight-color:rgba(201,169,97,0.2)!important;cursor:pointer!important;pointer-events:auto!important;touch-action:manipulation!important;user-select:none!important;-webkit-user-select:none!important;box-sizing:border-box!important}'+
@@ -37,13 +39,42 @@ style.textContent=
 '.mzn-item.active::after{content:""!important;position:absolute!important;bottom:3px!important;left:50%!important;transform:translateX(-50%)!important;width:4px!important;height:4px!important;border-radius:50%!important;background:#E8CE8B!important;box-shadow:0 0 8px #E8CE8B!important}';
 document.head.appendChild(style);
 
-var oldNavs=document.querySelectorAll('nav:not(.mzn-nav), aside.side, aside.sidebar, .side, .sidebar');
-oldNavs.forEach(function(el){el.style.setProperty('display','none','important');});
+/* ===== Function to hide old navs ===== */
+function hideOldNavs(){
+  // Hide sidebars
+  document.querySelectorAll('aside.side, aside.sidebar, .side, .sidebar').forEach(function(el){
+    if(el.classList.contains('mzn-nav')) return;
+    el.style.setProperty('display','none','important');
+    el.style.setProperty('visibility','hidden','important');
+    el.setAttribute('aria-hidden','true');
+  });
+  // Hide old nav elements (not ours)
+  document.querySelectorAll('nav').forEach(function(n){
+    if(n.classList.contains('mzn-nav')) return;
+    n.style.setProperty('display','none','important');
+    n.style.setProperty('visibility','hidden','important');
+  });
+  // Hide back buttons
+  document.querySelectorAll('.back, .back-link, .back-btn, .back-arrow').forEach(function(el){
+    el.style.setProperty('display','none','important');
+  });
+}
 
-document.querySelectorAll('.back, .back-link, .back-btn, .back-arrow').forEach(function(el){
-el.style.setProperty('display','none','important');
-});
+/* Run immediately */
+hideOldNavs();
 
+/* Keep running forever - catches any element that loads later */
+setInterval(hideOldNavs, 300);
+
+/* Also use MutationObserver for instant hiding */
+if(window.MutationObserver){
+  var observer = new MutationObserver(function(mutations){
+    hideOldNavs();
+  });
+  observer.observe(document.documentElement, {childList:true, subtree:true, attributes:true, attributeFilter:['class','style']});
+}
+
+/* ===== Build new nav ===== */
 var nav=document.createElement('nav');
 nav.className='mzn-nav';
 nav.setAttribute('id','mznMainNav');
@@ -69,7 +100,10 @@ nav.appendChild(a);
 });
 document.body.appendChild(nav);
 
-if(!window.MZN_APP_LOADED){
+/* Immediately hide old navs again after adding ours */
+hideOldNavs();
+
+/* ===== Load app.js and actions.js ===== */
 if(!window.MZN_APP_LOADED){
 window.MZN_APP_LOADED=true;
 var appScript=document.createElement('script');
@@ -83,7 +117,5 @@ var actScript=document.createElement('script');
 actScript.src='actions.js';
 actScript.async=true;
 document.head.appendChild(actScript);
-}
-})();
 }
 })();
