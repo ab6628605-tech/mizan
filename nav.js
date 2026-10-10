@@ -1,5 +1,15 @@
 (function(){
-var path=(window.location.pathname.split('/').pop()||'index.html');
+var path=(window.location.pathname.split('/').pop()||'index.html').split('?')[0];
+
+/* ============ AUTH CHECK ============ */
+if(path!=='mizan-login.html'){
+  var authed=false;
+  try{ authed=!!localStorage.getItem('mzn_auth'); }catch(e){}
+  if(!authed){
+    window.location.replace('mizan-login.html');
+    return;
+  }
+}
 var ICONS={
 home:'<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
 grid:'<rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/>',
