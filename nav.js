@@ -71,33 +71,26 @@ style.textContent=
 'border-bottom:1px solid rgba(255,255,255,0.05)!important;'+
 'text-align:right!important;'+
 '}'+
-/* hide id (child 1) */
 '.doc-row>*:nth-child(1),.pr-row>*:nth-child(1),.po-row>*:nth-child(1){display:none!important}'+
-/* title (child 2) - spans full top row */
 '.doc-row>*:nth-child(2),.pr-row>*:nth-child(2),.po-row>*:nth-child(2){'+
 'grid-column:1/-1!important;'+
 'grid-row:1!important;'+
 'text-align:right!important;'+
 'min-width:0!important;'+
 '}'+
-/* hide reference (child 3) */
 '.doc-row>*:nth-child(3),.pr-row>*:nth-child(3),.po-row>*:nth-child(3){display:none!important}'+
-/* amount (child 4) - bottom right */
 '.doc-row>*:nth-child(4),.pr-row>*:nth-child(4),.po-row>*:nth-child(4){'+
 'grid-column:1!important;'+
 'grid-row:2!important;'+
 'text-align:right!important;'+
 '}'+
-/* status (child 5) - bottom left */
 '.doc-row>*:nth-child(5),.pr-row>*:nth-child(5),.po-row>*:nth-child(5){'+
 'grid-column:2!important;'+
 'grid-row:2!important;'+
 'text-align:left!important;'+
 '}'+
-/* Force titles to be horizontal */
 '.doc-title,.pr-title,.po-title{white-space:normal!important;word-break:keep-all!important;overflow-wrap:break-word!important;line-height:1.5!important}'+
 '.doc-meta,.pr-meta,.po-meta{white-space:normal!important;line-height:1.5!important}'+
-/* Amounts and pill alignment */
 '.doc-amount,.pr-amount,.po-amount{font-size:16px!important}'+
 '.stat-pill{display:inline-flex!important;white-space:nowrap!important}'+
 '}';
@@ -152,15 +145,19 @@ items.forEach(function(item){
 document.body.appendChild(nav);
 hideOldNavs();
 
-/* ===== Load app.js & actions.js ===== */
-var V='v20';
-/* Load supabase.js FIRST, then app.js and actions.js */
+/* ===== Load all scripts ===== */
+var V='v21';
+
+/* 1. Supabase (must be first) */
 if(!window.MZN_SUPABASE_LOADED){
-window.MZN_SUPABASE_LOADED=true;
-var supScript=document.createElement('script');
-supScript.src='supabase.js?'+V;
-supScript.async=true;
-document.head.appendChild(supScript);
+  window.MZN_SUPABASE_LOADED=true;
+  var supScript=document.createElement('script');
+  supScript.src='supabase.js?'+V;
+  supScript.async=true;
+  document.head.appendChild(supScript);
+}
+
+/* 2. App, Actions, Stats, AI (staggered to avoid conflicts) */
 setTimeout(function(){
   if(!window.MZN_APP_LOADED){
     window.MZN_APP_LOADED=true;
@@ -170,21 +167,26 @@ setTimeout(function(){
     document.head.appendChild(appScript);
   }
   if(!window.MZN_ACTIONS_LOADED){
-window.MZN_ACTIONS_LOADED=true;
-var actScript=document.createElement('script');
-actScript.src='actions.js?'+V;
-actScript.async=true;
-document.head.appendChild(actScript);
-}
-if(!window.MZN_STATS_LOADED){
-window.MZN_STATS_LOADED=true;
-setTimeout(function(){
-  var sScript=document.createElement('script');
-  sScript.src='stats.js?'+V;
-  sScript.async=true;
-  document.head.appendChild(sScript);
-}, 2500);
-}
-}, 100);
-}
+    window.MZN_ACTIONS_LOADED=true;
+    var actScript=document.createElement('script');
+    actScript.src='actions.js?'+V;
+    actScript.async=true;
+    document.head.appendChild(actScript);
+  }
+  if(!window.MZN_STATS_LOADED){
+    window.MZN_STATS_LOADED=true;
+    var sScript=document.createElement('script');
+    sScript.src='stats.js?'+V;
+    sScript.async=true;
+    document.head.appendChild(sScript);
+  }
+  if(!window.MZN_AI_LOADED){
+    window.MZN_AI_LOADED=true;
+    var aScript=document.createElement('script');
+    aScript.src='ai.js?'+V;
+    aScript.async=true;
+    document.head.appendChild(aScript);
+  }
+}, 200);
+
 })();
