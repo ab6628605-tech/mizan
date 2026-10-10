@@ -205,6 +205,31 @@ items.forEach(function(item){
 });
 document.body.appendChild(nav);
 hideOldNavs();
+  /* ============ UNIVERSAL BACK BUTTON ============ */
+setTimeout(function(){
+  if(document.getElementById('mznBackBtn')) return;
+  if(path==='index.html' || path==='' || path==='mizan-login.html') return;
+
+  var backBtn=document.createElement('button');
+  backBtn.id='mznBackBtn';
+  backBtn.setAttribute('aria-label','العودة للرئيسية');
+  backBtn.style.cssText='position:fixed;top:18px;left:18px;z-index:2147483645;width:38px;height:38px;border-radius:50%;background:rgba(8,9,14,.88);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(201,169,97,.3);color:#E8CE8B;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .25s ease;-webkit-tap-highlight-color:rgba(201,169,97,.2);padding:0;box-shadow:0 8px 24px rgba(0,0,0,.5)';
+  backBtn.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none;transform:scaleX(-1)"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>';
+
+  function goHome(e){
+    if(e){ e.preventDefault(); e.stopPropagation(); }
+    if(navigator.vibrate) navigator.vibrate(15);
+    if(window.MZN && MZN.tone) MZN.tone(500,.08);
+    setTimeout(function(){
+      window.location.href='index.html';
+    }, 100);
+  }
+  backBtn.addEventListener('click', goHome, true);
+  backBtn.addEventListener('touchend', goHome, {passive:false});
+  backBtn.addEventListener('touchstart', function(e){ e.stopPropagation(); }, {passive:true});
+
+  document.body.appendChild(backBtn);
+}, 1200);
 
 /* ===== Load all scripts ===== */
 var V='v33';
