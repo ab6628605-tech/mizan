@@ -58,7 +58,7 @@ function exportCSV(){
   if(!data || !data.rows.length){ toast('⚠️ لا توجد بيانات','warning'); return; }
 
   var headers=['الرقم','الموضوع','المرجع','المبلغ','الحالة'];
-  var csv='\uFEFF'; /* BOM for Arabic Excel */
+  var csv='\uFEFF';
   csv+=headers.join(',')+'\n';
   data.rows.forEach(function(r){
     var row=[
@@ -82,7 +82,7 @@ function exportCSV(){
   a.click();
   setTimeout(function(){ a.remove(); URL.revokeObjectURL(url); }, 100);
   tone(880,.12); setTimeout(function(){tone(1174,.15)},90);
-  toast('📊 حُفظ ملف CSV — افتحه في Excel/Sheets','success');
+  toast('📊 حُفظ ملف CSV','success');
 }
 
 /* ============ ADD CSV BUTTON ============ */
@@ -98,7 +98,8 @@ function addCSVButton(){
 
   var b=document.createElement('button');
   b.id='mznCSV';
-  b.style.cssText='position:fixed;bottom:150px;left:120px;z-index:2147483644;display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:99px;background:rgba(8,9,14,.9);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid rgba(110,231,160,.3);color:#6EE7A0;font-family:Inter,"IBM Plex Sans Arabic",sans-serif;font-size:11.5px;font-weight:500;letter-spacing:.05em;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.5);transition:all .25s ease;-webkit-tap-highlight-color:rgba(110,231,160,.25)';
+  /* Placed at left: 18px, bottom: 150px (above PDF button) */
+  b.style.cssText='position:fixed;bottom:150px;left:18px;z-index:2147483644;display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:99px;background:rgba(8,9,14,.9);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid rgba(110,231,160,.3);color:#6EE7A0;font-family:Inter,"IBM Plex Sans Arabic",sans-serif;font-size:11.5px;font-weight:500;letter-spacing:.05em;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.5);transition:all .25s ease;-webkit-tap-highlight-color:rgba(110,231,160,.25)';
   b.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg><span style="pointer-events:none">CSV</span>';
   b.addEventListener('click', function(e){
     e.preventDefault();
@@ -109,42 +110,41 @@ function addCSVButton(){
   document.body.appendChild(b);
 }
 
-/* ============ DETAILED PO REPORT ============ */
+/* ============ DETAILED PDF REPORT ============ */
 function exportPODetail(){
-  /* Get current PO number from page */
   var poId='';
-  var idEl=document.querySelector('.po-id,.pr-id,.doc-id,.eyebrow,.display,h1');
-  if(idEl){
-    var txt=idEl.textContent||'';
+  var el=document.querySelector('.po-id,.pr-id,.doc-id');
+  if(el){
+    var txt=el.textContent||'';
     var m=txt.match(/(PO|PR|GRN)-\d{4}-\d+/);
     if(m) poId=m[0];
   }
   if(!poId){
-    var h=document.querySelector('h1,h2');
+    var h=document.querySelector('h1,h2,.display');
     if(h){
       var m2=(h.textContent||'').match(/(PO|PR|GRN)-\d{4}-\d+/);
       if(m2) poId=m2[0];
     }
   }
+  /* fallback: get from URL or generic */
+  if(!poId) poId='تقرير تفاصيل';
 
-  /* Collect items from page */
   var items=[];
   document.querySelectorAll('.item-line,.receive-line').forEach(function(line){
-    var t=line.querySelector('.item-name,p');
-    var q=line.querySelector('.col-right');
     var cells=line.querySelectorAll('.col-right');
     if(!cells.length) return;
-    var name=t?t.textContent.trim():'';
+    var nameEl=line.querySelector('.item-name, p');
+    var name=nameEl?nameEl.textContent.trim():'';
     if(!name) return;
     items.push({
       name:name,
       qty:cells[0]?cells[0].textContent.trim():'—',
       price:cells[1]?cells[1].textContent.trim():'—',
-      total:cells[2]?cells[2].textContent.trim():cells[1]?cells[1].textContent.trim():'—'
+      total:cells[2]?cells[2].textContent.trim():(cells[1]?cells[1].textContent.trim():'—')
     });
   });
 
-  if(!poId && !items.length){
+  if(!items.length){
     toast('⚠️ لا يمكن إنشاء تقرير تفاصيل','warning');
     return;
   }
@@ -168,7 +168,7 @@ function exportPODetail(){
     '</tr>';
   });
 
-  var html='<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><title>'+esc(poId||'تقرير')+' · '+esc(b.company)+'</title>'+
+  var html='<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><title>'+esc(poId)+' · '+esc(b.company)+'</title>'+
   '<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">'+
   '<style>'+
   '*{margin:0;padding:0;box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}'+
@@ -187,10 +187,6 @@ function exportPODetail(){
   'tbody td{padding:12px 10px;font-size:12px;border-bottom:1px solid #eee;vertical-align:top}'+
   'tbody td.num{text-align:left;font-family:"Inter";font-weight:400}'+
   'tbody tr:nth-child(even){background:#fafafa}'+
-  '.info-box{display:flex;gap:16px;margin-bottom:24px;flex-wrap:wrap}'+
-  '.info-item{flex:1;min-width:180px;padding:14px;background:#fafafa;border-radius:10px;border:1px solid #eee}'+
-  '.info-label{font-size:10px;letter-spacing:.15em;color:#999;text-transform:uppercase;margin-bottom:4px}'+
-  '.info-value{font-size:13px;color:#111;font-weight:500}'+
   '.signature{margin-top:40px;padding-top:30px;border-top:1px dashed #ccc;display:flex;justify-content:space-between;gap:40px}'+
   '.sig-box{flex:1;text-align:center}'+
   '.sig-line{height:50px;border-bottom:1px solid #999;margin-bottom:8px;position:relative}'+
@@ -206,13 +202,11 @@ function exportPODetail(){
       '<div class="logo-icon">⚖</div>'+
       '<div class="logo-text"><h1>'+esc(b.company)+'</h1><p>'+esc(b.tagline)+'</p></div>'+
     '</div>'+
-    '<div class="meta">'+
-      '<div>'+dateStr+'</div>'+
-    '</div>'+
+    '<div class="meta"><div>'+dateStr+'</div></div>'+
   '</div>'+
   '<div class="doc-title">'+
-    '<h2>'+esc(poId||'تقرير تفاصيل')+'</h2>'+
-    '<div class="num">تقرير تفاصيل الأصناف والكميات</div>'+
+    '<h2>'+esc(poId)+'</h2>'+
+    '<div class="num">تقرير تفاصيل الأصناف</div>'+
   '</div>'+
   '<table>'+
   '<thead><tr><th style="width:40px">#</th><th>الصنف</th><th class="num" style="width:80px">الكمية</th><th class="num" style="width:100px">السعر</th><th class="num" style="width:110px">الإجمالي</th></tr></thead>'+
@@ -234,17 +228,17 @@ function exportPODetail(){
   toast('📄 فتح تقرير التفاصيل','success');
 }
 
-/* ============ ADD DETAIL BUTTON ON DETAIL PAGES ============ */
+/* ============ ADD DETAIL BUTTON ============ */
 function addDetailButton(){
-  /* Only on detail views */
   var isDetail=false;
-  if(document.querySelector('.po-doc,.detail-card,.match-zone,.approval-flow')) isDetail=true;
+  if(document.querySelector('.po-doc,.match-zone,.approval-flow')) isDetail=true;
   if(!isDetail) return;
   if(document.getElementById('mznDetailPDF')) return;
 
   var b=document.createElement('button');
   b.id='mznDetailPDF';
-  b.style.cssText='position:fixed;bottom:86px;left:18px;z-index:2147483644;display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:99px;background:rgba(8,9,14,.9);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid rgba(201,169,97,.3);color:#E8CE8B;font-family:Inter,"IBM Plex Sans Arabic",sans-serif;font-size:11.5px;font-weight:500;letter-spacing:.05em;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.5)';
+  /* Placed at left: 18px, bottom: 214px (above CSV button) */
+  b.style.cssText='position:fixed;bottom:214px;left:18px;z-index:2147483644;display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:99px;background:rgba(8,9,14,.9);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid rgba(201,169,97,.3);color:#E8CE8B;font-family:Inter,"IBM Plex Sans Arabic",sans-serif;font-size:11.5px;font-weight:500;letter-spacing:.05em;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.5);transition:all .25s ease;-webkit-tap-highlight-color:rgba(201,169,97,.25)';
   b.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span style="pointer-events:none">تفاصيل PDF</span>';
   b.addEventListener('click', function(e){
     e.preventDefault();
@@ -267,5 +261,5 @@ function init(){
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init);
 else init();
 
-console.log('[MIZAN] Extra exports ready — CSV + Detail PDF');
+console.log('[MIZAN] Extra exports ready — CSV + Detail PDF (v2 layout)');
 })();
