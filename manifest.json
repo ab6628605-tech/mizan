@@ -1,0 +1,28 @@
+{
+  "name": "MIZAN — مساعد المشتريات",
+  "short_name": "MIZAN",
+  "description": "مساعد تنفيذي ذكي لعمليات المشتريات",
+  "start_url": "/index.html",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#08090E",
+  "background_color": "#08090E",
+  "lang": "ar",
+  "dir": "rtl",
+  "categories": ["business", "productivity"],
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}
