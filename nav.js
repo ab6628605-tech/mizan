@@ -207,9 +207,16 @@ document.body.appendChild(nav);
 hideOldNavs();
 
 /* ===== Load all scripts ===== */
-var V='v29';
+var V='v30';
 
 /* 1. Supabase (must be first) */
+  if(!window.MZN_BRANDING_LOADED){
+  window.MZN_BRANDING_LOADED=true;
+  var bScript=document.createElement('script');
+  bScript.src='branding.js?'+V;
+  bScript.async=true;
+  document.head.appendChild(bScript);
+}
 if(!window.MZN_SUPABASE_LOADED){
   window.MZN_SUPABASE_LOADED=true;
   var supScript=document.createElement('script');
