@@ -742,6 +742,9 @@
           <p class="setting-name">إعادة التعيين</p>
           <p class="setting-hint">حذف كل البيانات والإعدادات والعودة للحالة الأولى</p>
         </div>
+        <button class="btn-danger" onclick="logout()" style="width:100%;justify-content:center;margin-bottom:12px;">
+  🚪 تسجيل الخروج
+        </button>
         <button class="btn-danger" onclick="resetAll()">
           إعادة تعيين
         </button>
@@ -916,5 +919,13 @@ window.addEventListener('load', () => {
 });
 </script>
   <script src="nav.js"></script>
+  <script>
+function logout(){
+  if(confirm('هل تريد تسجيل الخروج؟')){
+    try{ localStorage.removeItem('mzn_auth'); localStorage.removeItem('mzn_auth_time'); }catch(e){}
+    window.location.replace('mizan-login.html');
+  }
+}
+  </script>
 </body>
 </html>
