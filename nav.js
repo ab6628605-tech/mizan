@@ -153,7 +153,7 @@ document.body.appendChild(nav);
 hideOldNavs();
 
 /* ===== Load app.js & actions.js ===== */
-var V='v14';
+var V='v18';
 /* Load supabase.js FIRST, then app.js and actions.js */
 if(!window.MZN_SUPABASE_LOADED){
 window.MZN_SUPABASE_LOADED=true;
@@ -170,12 +170,21 @@ setTimeout(function(){
     document.head.appendChild(appScript);
   }
   if(!window.MZN_ACTIONS_LOADED){
-    window.MZN_ACTIONS_LOADED=true;
-    var actScript=document.createElement('script');
-    actScript.src='actions.js?'+V;
-    actScript.async=true;
-    document.head.appendChild(actScript);
-  }
+window.MZN_ACTIONS_LOADED=true;
+var actScript=document.createElement('script');
+actScript.src='actions.js?'+V;
+actScript.async=true;
+document.head.appendChild(actScript);
+}
+if(!window.MZN_STATS_LOADED){
+window.MZN_STATS_LOADED=true;
+setTimeout(function(){
+  var sScript=document.createElement('script');
+  sScript.src='stats.js?'+V;
+  sScript.async=true;
+  document.head.appendChild(sScript);
+}, 2500);
+}
 }, 100);
 }
 })();
