@@ -207,7 +207,7 @@ document.body.appendChild(nav);
 hideOldNavs();
 
 /* ===== Load all scripts ===== */
-var V='v21';
+var V='v29';
 
 /* 1. Supabase (must be first) */
 if(!window.MZN_SUPABASE_LOADED){
@@ -241,6 +241,13 @@ setTimeout(function(){
     sScript.async=true;
     document.head.appendChild(sScript);
   }
+  if(!window.MZN_PDF_LOADED){
+  window.MZN_PDF_LOADED=true;
+  var pScript=document.createElement('script');
+  pScript.src='pdf.js?'+V;
+  pScript.async=true;
+  document.head.appendChild(pScript);
+}
   if(!window.MZN_AI_LOADED){
     window.MZN_AI_LOADED=true;
     var aScript=document.createElement('script');
