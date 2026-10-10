@@ -683,6 +683,180 @@
         <div class="toggle on" data-toggle="audit-log"></div>
       </div>
     </section>
+    <!-- ===== BRANDING ===== -->
+<section class="mb-16" id="mznBrandingSection">
+  <p class="section-title">هوية المؤسسة</p>
+  <p class="section-desc">خصّص اسم شركتك وشعارها وألوانها.</p>
+
+  <div class="setting-row">
+    <div class="setting-info">
+      <p class="setting-name">اسم الشركة</p>
+      <p class="setting-hint">يظهر في الترويسة والتقارير</p>
+    </div>
+    <input type="text" class="input-min" id="mznCompanyName" placeholder="MIZAN" style="max-width:200px;">
+  </div>
+
+  <div class="setting-row">
+    <div class="setting-info">
+      <p class="setting-name">الوصف الفرعي</p>
+      <p class="setting-hint">يظهر تحت اسم الشركة</p>
+    </div>
+    <input type="text" class="input-min" id="mznTagline" placeholder="EXECUTIVE PROCUREMENT" style="max-width:220px;">
+  </div>
+
+  <div class="setting-row">
+    <div class="setting-info">
+      <p class="setting-name">الشعار</p>
+      <p class="setting-hint">اختر رمزاً يعبّر عن شركتك</p>
+    </div>
+    <div id="mznLogoPicker" style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="mzn-logo-opt" data-logo="scale" title="ميزان">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M5 8l7-5 7 5M5 8l-2 8h4zM19 8l2 8h-4z"/></svg>
+      </button>
+      <button class="mzn-logo-opt" data-logo="briefcase" title="حقيبة">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+      </button>
+      <button class="mzn-logo-opt" data-logo="chart" title="مخطط">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      </button>
+      <button class="mzn-logo-opt" data-logo="shield" title="درع">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </button>
+      <button class="mzn-logo-opt" data-logo="globe" title="كرة أرضية">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="setting-row">
+    <div class="setting-info">
+      <p class="setting-name">اللون الأساسي</p>
+      <p class="setting-hint">اللون الذهبي للهوية</p>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;" id="mznColorPicker">
+      <button class="mzn-color-opt" data-c="#C9A961" style="background:#C9A961;" title="ذهبي"></button>
+      <button class="mzn-color-opt" data-c="#9DC4E8" style="background:#9DC4E8;" title="جليدي"></button>
+      <button class="mzn-color-opt" data-c="#6EE7A0" style="background:#6EE7A0;" title="زمردي"></button>
+      <button class="mzn-color-opt" data-c="#B8A5E8" style="background:#B8A5E8;" title="بنفسجي"></button>
+      <button class="mzn-color-opt" data-c="#F0A0B0" style="background:#F0A0B0;" title="وردي"></button>
+      <button class="mzn-color-opt" data-c="#F0C474" style="background:#F0C474;" title="عنبري"></button>
+    </div>
+  </div>
+
+  <div class="setting-row">
+    <div class="setting-info">
+      <p class="setting-name">اسم المُعتمِد</p>
+      <p class="setting-hint">يظهر في توقيع التقارير</p>
+    </div>
+    <input type="text" class="input-min" id="mznSigner" placeholder="Executive Procurement Officer" style="max-width:220px;">
+  </div>
+
+  <div class="setting-row">
+    <div class="setting-info">
+      <p class="setting-name">إعادة تعيين الهوية</p>
+      <p class="setting-hint">العودة إلى MIZAN الافتراضية</p>
+    </div>
+    <button class="btn-outline" onclick="resetBranding()" style="padding:8px 16px;font-size:11px;">إعادة تعيين</button>
+  </div>
+</section>
+
+<style>
+.mzn-logo-opt{width:48px;height:48px;border-radius:12px;background:rgba(255,255,255,.02);border:1px solid var(--line);color:var(--text-dim);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .25s ease;padding:0;font-family:inherit;}
+.mzn-logo-opt svg{width:22px;height:22px;}
+.mzn-logo-opt:hover{border-color:rgba(201,169,97,.4);color:var(--gold-bright);}
+.mzn-logo-opt.active{border-color:var(--gold);color:var(--gold-bright);background:rgba(201,169,97,.12);box-shadow:0 0 12px rgba(201,169,97,.3);}
+.mzn-color-opt{width:36px;height:36px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:all .25s ease;padding:0;}
+.mzn-color-opt:hover{transform:scale(1.1);}
+.mzn-color-opt.active{border-color:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.15),0 0 16px currentColor;}
+</style>
+
+<script>
+(function(){
+  function initBrandingUI(){
+    if(!window.MZN_BRANDING) return;
+    var b=window.MZN_BRANDING.get();
+
+    var nameEl=document.getElementById('mznCompanyName');
+    var tagEl=document.getElementById('mznTagline');
+    var signerEl=document.getElementById('mznSigner');
+
+    if(nameEl){ nameEl.value=b.company||''; }
+    if(tagEl){ tagEl.value=b.tagline||''; }
+    if(signerEl){ signerEl.value=b.signer||''; }
+
+    /* Logo active */
+    document.querySelectorAll('.mzn-logo-opt').forEach(function(btn){
+      btn.classList.toggle('active', btn.dataset.logo===b.logo);
+      btn.addEventListener('click', function(e){
+        e.preventDefault();
+        window.MZN_BRANDING.set('logo', btn.dataset.logo);
+        document.querySelectorAll('.mzn-logo-opt').forEach(function(x){ x.classList.remove('active'); });
+        btn.classList.add('active');
+        if(window.MZN&&MZN.tone) MZN.tone(880,.08);
+        if(window.MZN&&MZN.toast) MZN.toast('✅ تم تحديث الشعار','success');
+      });
+    });
+
+    /* Color active */
+    document.querySelectorAll('.mzn-color-opt').forEach(function(btn){
+      btn.classList.toggle('active', btn.dataset.c.toUpperCase()===(b.primary||'').toUpperCase());
+      btn.addEventListener('click', function(e){
+        e.preventDefault();
+        var c=btn.dataset.c;
+        window.MZN_BRANDING.setAll({
+          primary: c,
+          primaryBright: lighten(c, 20),
+          copper: darken(c, 20)
+        });
+        document.querySelectorAll('.mzn-color-opt').forEach(function(x){ x.classList.remove('active'); });
+        btn.classList.add('active');
+        if(window.MZN&&MZN.tone) MZN.tone(880,.08);
+        if(window.MZN&&MZN.toast) MZN.toast('✅ تم تحديث اللون','success');
+      });
+    });
+
+    /* Text inputs */
+    [nameEl, tagEl, signerEl].forEach(function(el){
+      if(!el) return;
+      el.addEventListener('input', function(){
+        var key = el===nameEl?'company':el===tagEl?'tagline':'signer';
+        window.MZN_BRANDING.set(key, el.value);
+      });
+    });
+  }
+
+  /* Color helpers */
+  function lighten(hex, pct){
+    hex=hex.replace('#','');
+    if(hex.length===3) hex=hex.split('').map(function(c){return c+c}).join('');
+    var r=parseInt(hex.substr(0,2),16), g=parseInt(hex.substr(2,2),16), b=parseInt(hex.substr(4,2),16);
+    r=Math.min(255, r+Math.round(255*pct/100));
+    g=Math.min(255, g+Math.round(255*pct/100));
+    b=Math.min(255, b+Math.round(255*pct/100));
+    return '#'+[r,g,b].map(function(x){return x.toString(16).padStart(2,'0')}).join('');
+  }
+  function darken(hex, pct){
+    hex=hex.replace('#','');
+    if(hex.length===3) hex=hex.split('').map(function(c){return c+c}).join('');
+    var r=parseInt(hex.substr(0,2),16), g=parseInt(hex.substr(2,2),16), b=parseInt(hex.substr(4,2),16);
+    r=Math.max(0, r-Math.round(255*pct/100));
+    g=Math.max(0, g-Math.round(255*pct/100));
+    b=Math.max(0, b-Math.round(255*pct/100));
+    return '#'+[r,g,b].map(function(x){return x.toString(16).padStart(2,'0')}).join('');
+  }
+
+  /* Reset function */
+  window.resetBranding=function(){
+    if(!confirm('إعادة تعيين الهوية إلى MIZAN الافتراضية؟')) return;
+    if(window.MZN_BRANDING) window.MZN_BRANDING.reset();
+    location.reload();
+  };
+
+  setTimeout(initBrandingUI, 800);
+})();
+</script>
+
+<!-- ===== APPEARANCE ===== -->
 
     <!-- ===== APPEARANCE ===== -->
     <section class="mb-16 fade-in f8">
