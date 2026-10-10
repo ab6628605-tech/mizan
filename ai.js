@@ -5,7 +5,18 @@ if(path==='mizan-login.html') return;
 
 var AUTH_KEY='mzn_auth';
 var KEY_STORE='mzn_gemini_key';
-var API_BASE='https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
+
+/* قائمة النماذج — يُجرَّب واحداً تلو الآخر حتى ينجح */
+var MODELS=[
+  'gemini-flash-latest',
+  'gemini-2.5-flash',
+  'gemini-2.5-flash-lite',
+  'gemini-2.0-flash',
+  'gemini-2.0-flash-lite',
+  'gemini-2.5-pro',
+  'gemini-pro-latest'
+];
+var API_PREFIX='https://generativelanguage.googleapis.com/v1beta/models/';
 
 function getApiKey(){
   try{ return localStorage.getItem(KEY_STORE)||''; }catch(e){ return ''; }
@@ -46,6 +57,7 @@ css.textContent=
 '.mzn-ai-status{font-size:11px;color:#6EE7A0;display:flex;align-items:center;gap:6px;justify-content:flex-end}'+
 '.mzn-ai-status span{width:6px;height:6px;border-radius:50%;background:#6EE7A0;box-shadow:0 0 8px #6EE7A0;animation:aiPulse2 2s infinite}'+
 '.mzn-ai-status.err{color:#F0A0B0}.mzn-ai-status.err span{background:#F0A0B0;box-shadow:0 0 8px #F0A0B0}'+
+'.mzn-ai-status.trying{color:#E8CE8B}.mzn-ai-status.trying span{background:#E8CE8B;box-shadow:0 0 8px #E8CE8B}'+
 '@keyframes aiPulse2{0%,100%{opacity:1}50%{opacity:.4}}'+
 '.mzn-ai-close{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.04);border:none;color:#7A8090;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;font-family:inherit}'+
 '.mzn-ai-body{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:14px;min-height:300px;max-height:calc(92vh - 200px)}'+
@@ -73,7 +85,6 @@ css.textContent=
 '.mzn-ai-send:disabled{opacity:.4;cursor:not-allowed}'+
 '.mzn-ai-send svg{width:18px;height:18px;pointer-events:none}'+
 '.mzn-ai-send svg{transform:scaleX(-1)}'+
-/* Setup screen */
 '.mzn-ai-setup{padding:28px 22px;text-align:center}'+
 '.mzn-ai-setup h3{font-size:18px;color:#E8CE8B;font-weight:400;margin:0 0 8px}'+
 '.mzn-ai-setup p{font-size:12.5px;color:#7A8090;line-height:1.8;margin:0 0 20px}'+
@@ -196,17 +207,14 @@ function showSetup(){
       tone(330,.15);
       return;
     }
-    /* Only warn if clearly wrong — don't block */
-    if(k.indexOf('AIza')!==0 && k.indexOf('AQ')!==0){
+    if(k.indexOf('AIza')!==0){
       showErr('المفتاح يبدو غير صحيح (يجب أن يبدأ بـ AIza)');
       tone(330,.15);
       return;
     }
-    /* Save */
     setApiKey(k);
     tone(880,.12); setTimeout(function(){tone(1174,.15)},90);
     updateStatus();
-    /* Success message inside modal */
     body.innerHTML='';
     if(sugg) sugg.style.display='';
     if(inputArea) inputArea.style.display='';
@@ -377,48 +385,90 @@ function sendMessage(){
     generationConfig:{ temperature:0.7, maxOutputTokens:1024, topP:0.95 }
   };
 
-  fetch(API_BASE+'?key='+encodeURIComponent(key),{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify(payload)
-  })
-  .then(function(r){
-    if(!r.ok){
-      return r.text().then(function(t){ throw new Error('HTTP '+r.status+': '+t); });
-    }
-    return r.json();
-  })
-  .then(function(data){
-    removeTyping();
-    isSending=false;
-    sendBtn.disabled=false;
-    var reply='';
-    try{
-      reply=data.candidates[0].content.parts[0].text;
-    }catch(e){
-      reply='⚠️ لم أستطع معالجة الرد.';
-    }
-    addAIMessage(reply);
-    tone(880,.1); setTimeout(function(){tone(1174,.12)},80);
-  })
-  .catch(function(err){
-    removeTyping();
-    isSending=false;
-    sendBtn.disabled=false;
-    var msg='⚠️ حدث خطأ في الاتصال.\n\n';
-    if(err.message.indexOf('400')!==-1 || err.message.indexOf('403')!==-1){
-      msg+='المفتاح غير صحيح. اضغط على أيقونة الإعدادات لإعادة إدخاله.';
-      clearApiKey();
+  /* ============ TRY MULTIPLE MODELS ============ */
+  var modelIdx=0;
+
+  function tryFetch(){
+    if(modelIdx>=MODELS.length){
+      removeTyping();
+      isSending=false;
+      sendBtn.disabled=false;
+      addAIMessage('⚠️ تعذّر الاتصال بجميع النماذج المتاحة.\n\nالأسباب المحتملة:\n• المفتاح غير مُفعّل لـ Gemini API\n• المنطقة الجغرافية محجوبة\n• تجاوزت الحد اليومي\n\nجرّب لاحقاً أو أنشئ مفتاحاً جديداً من aistudio.google.com/apikey');
+      tone(330,.15);
       updateStatus();
-    } else if(err.message.indexOf('429')!==-1){
-      msg+='تجاوزت الحد اليومي. جرّب بعد قليل.';
-    } else {
-      msg+='تفاصيل: '+err.message.slice(0,150);
+      return;
     }
-    addAIMessage(msg);
-    tone(330,.15);
-  });
+    var model=MODELS[modelIdx];
+    var url=API_PREFIX+model+':generateContent?key='+encodeURIComponent(key);
+    console.log('[MIZAN] Trying model:', model);
+
+    fetch(url,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(payload)
+    })
+    .then(function(r){
+      if(r.status===404 || r.status===400){
+        /* Model not found or bad request — try next model */
+        return r.text().then(function(t){
+          console.log('[MIZAN] Model '+model+' failed:', r.status, t.slice(0,150));
+          modelIdx++;
+          tryFetch();
+          return null;
+        });
+      }
+      if(r.status===429){
+        return r.text().then(function(t){
+          throw new Error('429: تجاوزت الحد اليومي');
+        });
+      }
+      if(r.status===403 || r.status===401){
+        return r.text().then(function(t){
+          throw new Error('403: المفتاح غير صالح أو محظور');
+        });
+      }
+      if(!r.ok){
+        return r.text().then(function(t){ throw new Error('HTTP '+r.status+': '+t.slice(0,150)); });
+      }
+      return r.json();
+    })
+    .then(function(data){
+      if(!data) return;
+      removeTyping();
+      isSending=false;
+      sendBtn.disabled=false;
+      var reply='';
+      try{
+        reply=data.candidates[0].content.parts[0].text;
+      }catch(e){
+        reply='⚠️ لم أستطع معالجة الرد. حاول مرة أخرى.';
+      }
+      addAIMessage(reply);
+      tone(880,.1); setTimeout(function(){tone(1174,.12)},80);
+      console.log('[MIZAN] Success with model:', model);
+    })
+    .catch(function(err){
+      removeTyping();
+      isSending=false;
+      sendBtn.disabled=false;
+      var msg='⚠️ حدث خطأ في الاتصال.\n\n';
+      var em=err.message||'';
+      if(em.indexOf('429')!==-1){
+        msg+='تجاوزت الحد اليومي لـ Gemini. جرّب بعد قليل.';
+      } else if(em.indexOf('403')!==-1 || em.indexOf('401')!==-1){
+        msg+='المفتاح غير صالح أو أن Gemini API غير مُفعّل في حسابك.\n\nتحقق من:\n• صلاحية المفتاح\n• تفعيل Gemini API\n\nأو أنشئ مفتاحاً جديداً من aistudio.google.com/apikey';
+        clearApiKey();
+        updateStatus();
+      } else {
+        msg+='تفاصيل: '+em.slice(0,150);
+      }
+      addAIMessage(msg);
+      tone(330,.15);
+    });
+  }
+
+  tryFetch();
 }
 
-console.log('[MIZAN] AI assistant ready (secure mode)');
+console.log('[MIZAN] AI assistant ready — multi-model fallback');
 })();
