@@ -153,7 +153,7 @@ document.body.appendChild(nav);
 hideOldNavs();
 
 /* ===== Load app.js & actions.js ===== */
-var V='v18';
+var V='v20';
 /* Load supabase.js FIRST, then app.js and actions.js */
 if(!window.MZN_SUPABASE_LOADED){
 window.MZN_SUPABASE_LOADED=true;
