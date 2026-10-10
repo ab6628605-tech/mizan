@@ -204,13 +204,66 @@ function updateProfileUI(){
     role=localStorage.getItem('mzn_user_role')||role;
   }catch(e){}
 
+  /* Update avatar: show full name or initials */
   document.querySelectorAll('.avatar-lg').forEach(function(el){
-    if(name){
-      var initials=name.split(' ').map(function(s){return s.charAt(0);}).slice(0,2).join('').toUpperCase();
-      el.textContent=initials;
+    if(!name) return;
+
+    var firstName=name.split(' ')[0] || name;
+    var initials=name.split(' ').map(function(s){return s.charAt(0);}).slice(0,2).join('').toUpperCase();
+
+    /* Adapt size to name length */
+    var displayText = name;
+    var fontSize = '22px';
+    var paddingH = '20px';
+    var minWidth = '72px';
+    var maxWidth = 'calc(100% - 100px)'; /* leave room for notification dot */
+
+    if(name.length <= 2){
+      displayText = initials;
+      fontSize = '26px';
+      paddingH = '0';
+      minWidth = '72px';
+    } else if(name.length <= 6){
+      displayText = name;
+      fontSize = '24px';
+      paddingH = '16px';
+    } else if(name.length <= 10){
+      displayText = name;
+      fontSize = '20px';
+      paddingH = '18px';
+    } else if(name.length <= 15){
+      displayText = name;
+      fontSize = '16px';
+      paddingH = '20px';
+    } else {
+      displayText = name;
+      fontSize = '14px';
+      paddingH = '22px';
     }
+
+    /* Apply styles */
+    el.style.setProperty('width','auto','important');
+    el.style.setProperty('height','auto','important');
+    el.style.setProperty('min-width', minWidth, 'important');
+    el.style.setProperty('min-height','72px','important');
+    el.style.setProperty('max-width', maxWidth, 'important');
+    el.style.setProperty('padding', '18px ' + paddingH, 'important');
+    el.style.setProperty('border-radius','20px','important');
+    el.style.setProperty('font-size', fontSize, 'important');
+    el.style.setProperty('font-weight','500','important');
+    el.style.setProperty('letter-spacing','0.02em','important');
+    el.style.setProperty('white-space','nowrap','important');
+    el.style.setProperty('overflow','hidden','important');
+    el.style.setProperty('text-overflow','ellipsis','important');
+    el.style.setProperty('display','flex','important');
+    el.style.setProperty('align-items','center','important');
+    el.style.setProperty('justify-content','center','important');
+    el.style.setProperty('line-height','1.2','important');
+    el.textContent = displayText;
+    el.setAttribute('title', name);
   });
 
+  /* Update role and email */
   document.querySelectorAll('p').forEach(function(p){
     var txt=p.textContent||'';
     if(txt.indexOf('المسؤول التنفيذي للمشتريات')!==-1){
@@ -225,7 +278,6 @@ function updateProfileUI(){
     try{ localStorage.setItem('mzn_auth', name); }catch(e){}
   }
 }
-
 /* ============ HOOK EDIT BUTTON ============ */
 function hookEditButton(){
   if(window.location.pathname.indexOf('mizan-settings')===-1) return;
