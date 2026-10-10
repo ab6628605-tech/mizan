@@ -10,6 +10,67 @@ if(path!=='mizan-login.html'){
     return;
   }
 }
+  /* ============ PWA SETUP ============ */
+(function setupPWA(){
+  try{
+    /* Theme color */
+    if(!document.querySelector('meta[name="theme-color"]')){
+      var m=document.createElement('meta');
+      m.name='theme-color';
+      m.content='#08090E';
+      document.head.appendChild(m);
+    }
+    /* Viewport (mobile) */
+    if(!document.querySelector('meta[name="viewport"]')){
+      var v=document.createElement('meta');
+      v.name='viewport';
+      v.content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover';
+      document.head.appendChild(v);
+    }
+    /* Manifest */
+    if(!document.querySelector('link[rel="manifest"]')){
+      var l=document.createElement('link');
+      l.rel='manifest';
+      l.href='manifest.json';
+      document.head.appendChild(l);
+    }
+    /* Apple touch icon */
+    if(!document.querySelector('link[rel="apple-touch-icon"]')){
+      var a=document.createElement('link');
+      a.rel='apple-touch-icon';
+      a.href='icon.svg';
+      document.head.appendChild(a);
+    }
+    /* Apple mobile web app */
+    if(!document.querySelector('meta[name="apple-mobile-web-app-capable"]')){
+      var ac=document.createElement('meta');
+      ac.name='apple-mobile-web-app-capable';
+      ac.content='yes';
+      document.head.appendChild(ac);
+
+      var ast=document.createElement('meta');
+      ast.name='apple-mobile-web-app-status-bar-style';
+      ast.content='black-translucent';
+      document.head.appendChild(ast);
+
+      var at=document.createElement('meta');
+      at.name='apple-mobile-web-app-title';
+      at.content='MIZAN';
+      document.head.appendChild(at);
+    }
+    /* Register service worker */
+    if('serviceWorker' in navigator && location.protocol==='https:'){
+      window.addEventListener('load', function(){
+        navigator.serviceWorker.register('sw.js').then(function(reg){
+          console.log('[MIZAN] SW registered');
+        }).catch(function(e){
+          console.warn('[MIZAN] SW failed:', e);
+        });
+      });
+    }
+  }catch(e){ console.warn('[MIZAN] PWA setup error:', e); }
+})();
+
 var ICONS={
 home:'<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
 grid:'<rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/>',
