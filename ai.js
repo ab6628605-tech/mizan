@@ -5,7 +5,7 @@ if(path==='mizan-login.html') return;
 
 var AUTH_KEY='mzn_auth';
 var KEY_STORE='mzn_gemini_key';
-var API_BASE='https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+var API_BASE='https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
 
 function getApiKey(){
   try{ return localStorage.getItem(KEY_STORE)||''; }catch(e){ return ''; }
