@@ -120,7 +120,6 @@ function openProfileEditor(){
     userRole=localStorage.getItem('mzn_user_role')||'المسؤول التنفيذي للمشتريات';
   }catch(e){}
 
-  /* Remove old instance if exists */
   var old=document.getElementById('mznProfileEditor');
   if(old) old.remove();
 
@@ -204,62 +203,49 @@ function updateProfileUI(){
     role=localStorage.getItem('mzn_user_role')||role;
   }catch(e){}
 
-  /* Update avatar: show full name or initials */
+  /* Update avatar: show full name if <= 12 chars, else initials */
   document.querySelectorAll('.avatar-lg').forEach(function(el){
     if(!name) return;
 
-    var firstName=name.split(' ')[0] || name;
     var initials=name.split(' ').map(function(s){return s.charAt(0);}).slice(0,2).join('').toUpperCase();
+    var displayText='';
+    var fontSize='22px';
+    var paddingH='18px';
+    var minW='72px';
 
-    /* Adapt size to name length */
-    var displayText = name;
-    var fontSize = '22px';
-    var paddingH = '20px';
-    var minWidth = '72px';
-    var maxWidth = 'calc(100% - 100px)'; /* leave room for notification dot */
+    var nameLen=name.length;
 
-    if(name.length <= 2){
-      displayText = initials;
-      fontSize = '26px';
-      paddingH = '0';
-      minWidth = '72px';
-    } else if(name.length <= 6){
-      displayText = name;
-      fontSize = '24px';
-      paddingH = '16px';
-    } else if(name.length <= 10){
-      displayText = name;
-      fontSize = '20px';
-      paddingH = '18px';
-    } else if(name.length <= 15){
-      displayText = name;
-      fontSize = '16px';
-      paddingH = '20px';
+    if(nameLen <= 12){
+      /* Full name fits */
+      displayText=name;
+      if(nameLen<=4){ fontSize='26px'; paddingH='18px'; }
+      else if(nameLen<=8){ fontSize='22px'; paddingH='20px'; }
+      else { fontSize='18px'; paddingH='20px'; }
     } else {
-      displayText = name;
-      fontSize = '14px';
-      paddingH = '22px';
+      /* Too long → initials */
+      displayText=initials;
+      fontSize='26px';
+      paddingH='18px';
     }
 
-    /* Apply styles */
     el.style.setProperty('width','auto','important');
-    el.style.setProperty('height','auto','important');
-    el.style.setProperty('min-width', minWidth, 'important');
-    el.style.setProperty('min-height','72px','important');
-    el.style.setProperty('max-width', maxWidth, 'important');
-    el.style.setProperty('padding', '18px ' + paddingH, 'important');
+    el.style.setProperty('height','72px','important');
+    el.style.setProperty('min-width',minW,'important');
+    el.style.setProperty('max-width','calc(100% - 30px)','important');
+    el.style.setProperty('padding','0 '+paddingH,'important');
     el.style.setProperty('border-radius','20px','important');
-    el.style.setProperty('font-size', fontSize, 'important');
+    el.style.setProperty('font-size',fontSize,'important');
     el.style.setProperty('font-weight','500','important');
-    el.style.setProperty('letter-spacing','0.02em','important');
+    el.style.setProperty('letter-spacing','0.01em','important');
     el.style.setProperty('white-space','nowrap','important');
     el.style.setProperty('overflow','hidden','important');
     el.style.setProperty('text-overflow','ellipsis','important');
-    el.style.setProperty('display','flex','important');
+    el.style.setProperty('display','inline-flex','important');
     el.style.setProperty('align-items','center','important');
     el.style.setProperty('justify-content','center','important');
-    el.style.setProperty('line-height','1.2','important');
-    el.textContent = displayText;
+    el.style.setProperty('box-sizing','border-box','important');
+    el.style.setProperty('line-height','1','important');
+    el.textContent=displayText;
     el.setAttribute('title', name);
   });
 
@@ -278,6 +264,7 @@ function updateProfileUI(){
     try{ localStorage.setItem('mzn_auth', name); }catch(e){}
   }
 }
+
 /* ============ HOOK EDIT BUTTON ============ */
 function hookEditButton(){
   if(window.location.pathname.indexOf('mizan-settings')===-1) return;
@@ -318,27 +305,37 @@ function hideOldEditButton(){
 
   profileRow.style.setProperty('display','flex','important');
   profileRow.style.setProperty('flex-wrap','wrap','important');
-  profileRow.style.setProperty('gap','14px','important');
+  profileRow.style.setProperty('gap','16px','important');
   profileRow.style.setProperty('align-items','center','important');
-  profileRow.style.setProperty('padding','24px 0','important');
+  profileRow.style.setProperty('justify-content','center','important');
+  profileRow.style.setProperty('padding','28px 0','important');
   profileRow.style.setProperty('width','100%','important');
   profileRow.style.setProperty('box-sizing','border-box','important');
   profileRow.style.setProperty('overflow','visible','important');
+  profileRow.style.setProperty('text-align','center','important');
 
   var avatar=profileRow.querySelector('.avatar-lg');
-  if(avatar) avatar.style.setProperty('flex-shrink','0','important');
+  if(avatar){
+    avatar.style.setProperty('flex-shrink','0','important');
+    avatar.style.setProperty('margin','0 auto','important');
+  }
 
   var info=profileRow.querySelector('.flex-1');
   if(info){
     info.style.setProperty('min-width','0','important');
-    info.style.setProperty('flex','1 1 auto','important');
+    info.style.setProperty('flex','1 1 100%','important');
+    info.style.setProperty('text-align','center','important');
+    info.style.setProperty('order','2','important');
   }
+
+  /* Put avatar first */
+  if(avatar) avatar.style.setProperty('order','1','important');
 
   /* Add new button if not exists */
   if(!profileRow.querySelector('.mzn-edit-new')){
     var newBtn=document.createElement('button');
     newBtn.className='mzn-edit-new';
-    newBtn.style.cssText='background:transparent;border:1px solid rgba(201,169,97,.35);color:#E8CE8B;font-family:inherit;font-size:11.5px;padding:9px 16px;border-radius:99px;cursor:pointer;transition:all .25s ease;letter-spacing:.03em;flex-shrink:0;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;-webkit-tap-highlight-color:rgba(201,169,97,.25);font-weight:500';
+    newBtn.style.cssText='background:transparent;border:1px solid rgba(201,169,97,.35);color:#E8CE8B;font-family:inherit;font-size:11.5px;padding:9px 18px;border-radius:99px;cursor:pointer;transition:all .25s ease;letter-spacing:.03em;flex-shrink:0;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;-webkit-tap-highlight-color:rgba(201,169,97,.25);font-weight:500;order:3;margin:0 auto';
     newBtn.innerHTML=
       '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none">'+
       '<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>'+
@@ -377,5 +374,5 @@ setTimeout(hideOldEditButton, 1600);
 setInterval(hookEditButton, 2500);
 setInterval(hideOldEditButton, 3000);
 
-console.log('[MIZAN] Branding v2 ready —', current.company);
+console.log('[MIZAN] Branding v3 ready —', current.company);
 })();
