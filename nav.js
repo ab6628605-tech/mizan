@@ -207,7 +207,7 @@ document.body.appendChild(nav);
 hideOldNavs();
 
 /* ===== Load all scripts ===== */
-var V='v32';
+var V='v33';
 
 /* 1. Supabase (must be first) */
   if(!window.MZN_BRANDING_LOADED){
