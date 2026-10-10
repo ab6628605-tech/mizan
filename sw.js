@@ -1,5 +1,5 @@
 /* MIZAN Service Worker */
-const CACHE = 'mizan-v4';
+const CACHE = 'mizan-v5';
 const CORE = [
   './',
   './index.html',
