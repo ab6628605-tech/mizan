@@ -164,6 +164,7 @@ function showSetup(){
     '<div class="info-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>يُحفظ محلياً في متصفحك فقط</div>'+
     '<h3>ضبط مساعد MIZAN</h3>'+
     '<p>للحصول على تحليل ذكي وقرارات ذكية، أدخل مفتاح Gemini الخاص بك.<br>المفتاح لن يُرفع إلى الإنترنت — يبقى في جهازك فقط.</p>'+
+    '<div id="mznSetupError" style="display:none;padding:10px 14px;border-radius:10px;background:rgba(240,160,176,.1);border:1px solid rgba(240,160,176,.25);color:#F0A0B0;font-size:12px;margin-bottom:14px;text-align:center"></div>'+
     '<input type="password" id="mznApiKeyInput" placeholder="AIzaSy..." autocomplete="off" spellcheck="false">'+
     '<p class="hint">لم تحصل على مفتاح بعد؟<br>اذهب إلى <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> وأنشئ مفتاحاً مجانياً.</p>'+
     '<button class="save-btn" id="mznSaveKey">حفظ المفتاح</button>'+
@@ -171,30 +172,53 @@ function showSetup(){
   body.appendChild(setup);
   var keyInput=document.getElementById('mznApiKeyInput');
   var saveBtn=document.getElementById('mznSaveKey');
+  var errBox=document.getElementById('mznSetupError');
+
+  function showErr(msg){
+    if(errBox){
+      errBox.textContent='⚠️ '+msg;
+      errBox.style.display='block';
+      setTimeout(function(){ errBox.style.display='none'; }, 4000);
+    }
+  }
+
   setTimeout(function(){ if(keyInput) keyInput.focus(); }, 300);
+
   saveBtn.addEventListener('click', function(){
     var k=(keyInput.value||'').trim();
-    if(!k || k.length<20){
-      toast('⚠️ المفتاح غير صالح','warning');
+    if(!k){
+      showErr('أدخل المفتاح أولاً');
       tone(330,.15);
       return;
     }
-    if(k.indexOf('AIza')!==0){
-      toast('⚠️ المفتاح يجب أن يبدأ بـ AIza','warning');
+    if(k.length<20){
+      showErr('المفتاح قصير جداً — تأكد من نسخه كاملاً');
       tone(330,.15);
       return;
     }
+    /* Only warn if clearly wrong — don't block */
+    if(k.indexOf('AIza')!==0 && k.indexOf('AQ')!==0){
+      showErr('المفتاح يبدو غير صحيح (يجب أن يبدأ بـ AIza)');
+      tone(330,.15);
+      return;
+    }
+    /* Save */
     setApiKey(k);
     tone(880,.12); setTimeout(function(){tone(1174,.15)},90);
-    toast('✅ تم حفظ المفتاح','success');
     updateStatus();
-    /* Reload chat UI */
+    /* Success message inside modal */
     body.innerHTML='';
     if(sugg) sugg.style.display='';
     if(inputArea) inputArea.style.display='';
     renderSuggestions();
-    addAIMessage('مرحباً '+getUser()+' 👋\n\nتم ضبط المساعد بنجاح! يمكنني:\n• تحليل بياناتك\n• اقتراح قرارات\n• كتابة مسودات\n• إجابة أسئلتك\n\nكيف أساعدك؟');
+    var m=document.createElement('div');
+    m.className='mzn-ai-msg mzn-ai-ai';
+    m.style.maxWidth='100%';
+    m.innerHTML='<div style="text-align:center;padding:8px 0"><div style="width:56px;height:56px;margin:0 auto 14px;border-radius:50%;background:rgba(110,231,160,.15);border:1px solid rgba(110,231,160,.3);display:flex;align-items:center;justify-content:center;color:#6EE7A0"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><b style="color:#6EE7A0;font-size:14px">تم حفظ المفتاح بنجاح</b><p style="color:#7A8090;font-size:12.5px;line-height:1.7;margin-top:8px">مرحباً '+esc(getUser())+' 👋<br>أنا مساعد MIZAN جاهز للعمل.<br>اسألني عن أي شيء، أو اختر من الاقتراحات أدناه.</p></div>';
+    body.appendChild(m);
+    setTimeout(function(){ if(input) input.focus(); }, 400);
   });
+
   keyInput.addEventListener('keydown', function(e){
     if(e.key==='Enter') saveBtn.click();
   });
