@@ -2,100 +2,451 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>MIZAN · رفع العروض</title>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@200;300;400;500;600&family=Inter:wght@200;300;400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@200;300;400;500;600&family=Inter:wght@200;300;400;500&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#08090E;--gold:#C9A961;--gb:#E8CE8B;--ice:#9DC4E8;--em:#6EE7A0;--am:#F0C474;--tx:#EDEDED;--td:#7A8090;--tm:#4A5060;--ln:rgba(255,255,255,.05)}
-*{margin:0;padding:0;box-sizing:border-box}
-body{background:var(--bg);color:var(--tx);font-family:'IBM Plex Sans Arabic',sans-serif;font-weight:300;min-height:100vh;position:relative}
-.aura{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse 80% 50% at 50% -20%,rgba(201,169,97,.1),transparent 60%)}
+:root{--bg:#08090E;--gold:#C9A961;--gb:#E8CE8B;--copper:#B87333;--ice:#9DC4E8;--em:#6EE7A0;--am:#F0C474;--rose:#F0A0B0;--tx:#EDEDED;--td:#7A8090;--tm:#4A5060;--ln:rgba(255,255,255,.05)}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--tx);font-family:'IBM Plex Sans Arabic',sans-serif;font-weight:300;min-height:100vh;position:relative;overflow-x:hidden}
+.aura{position:fixed;inset:0;pointer-events:none;z-index:0;background:
+radial-gradient(ellipse 80% 50% at 50% -20%,rgba(201,169,97,.1),transparent 60%),
+radial-gradient(ellipse 60% 40% at 100% 100%,rgba(157,196,232,.05),transparent 60%)}
 .wrap{max-width:800px;margin:0 auto;padding:32px 20px;position:relative;z-index:2}
-.back{display:inline-flex;align-items:center;gap:8px;color:var(--td);font-size:13px;text-decoration:none;margin-bottom:32px}
-.back:hover{color:var(--gb)}
 header{display:flex;align-items:center;justify-content:space-between;margin-bottom:32px}
-.logo-text{font-family:'Inter',sans-serif;font-size:13px;letter-spacing:.35em;color:var(--gb)}
+.logo-text{font-family:'Inter',sans-serif;font-size:13px;letter-spacing:.35em;color:var(--gb);font-weight:400}
 .tag{font-size:11px;color:var(--tm);letter-spacing:.2em;text-transform:uppercase}
 h1{font-family:'Inter',sans-serif;font-weight:200;font-size:clamp(34px,7vw,52px);letter-spacing:-.03em;line-height:1;margin-bottom:12px;background:linear-gradient(180deg,#fff,#6A7080);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
 h1 span{color:var(--gb);-webkit-text-fill-color:var(--gb)}
 .sub{font-size:13px;color:var(--td);line-height:1.9;margin-bottom:32px}
-.drop{border:1px dashed rgba(201,169,97,.3);border-radius:24px;padding:56px 24px;text-align:center;background:linear-gradient(180deg,rgba(201,169,97,.03),transparent);transition:all .4s ease;cursor:pointer;margin-bottom:24px}
-.drop:hover{border-color:var(--gb);background:linear-gradient(180deg,rgba(201,169,97,.06),transparent)}
-.drop-icon{width:64px;height:64px;margin:0 auto 20px;border-radius:20px;background:linear-gradient(135deg,rgba(201,169,97,.15),rgba(201,169,97,.03));border:1px solid rgba(201,169,97,.25);display:flex;align-items:center;justify-content:center;color:var(--gb)}
-.drop-title{font-size:16px;font-weight:400;margin-bottom:6px}
+
+/* Drop zone */
+.drop{border:1px dashed rgba(201,169,97,.3);border-radius:24px;padding:56px 24px;text-align:center;background:linear-gradient(180deg,rgba(201,169,97,.03),transparent);transition:all .4s ease;cursor:pointer;margin-bottom:24px;position:relative}
+.drop:hover,.drop.dragging{border-color:var(--gb);background:linear-gradient(180deg,rgba(201,169,97,.08),transparent);transform:scale(1.01)}
+.drop-icon{width:64px;height:64px;margin:0 auto 20px;border-radius:20px;background:linear-gradient(135deg,rgba(201,169,97,.15),rgba(201,169,97,.03));border:1px solid rgba(201,169,97,.25);display:flex;align-items:center;justify-content:center;color:var(--gb);transition:all .4s ease}
+.drop:hover .drop-icon{transform:translateY(-6px);box-shadow:0 20px 40px -10px rgba(201,169,97,.4)}
+.drop-icon svg{width:28px;height:28px}
+.drop-title{font-size:16px;font-weight:400;margin-bottom:6px;color:var(--tx)}
 .drop-sub{font-size:12px;color:var(--tm);margin-bottom:20px}
-.btn{display:inline-flex;align-items:center;gap:8px;padding:12px 26px;border-radius:99px;background:linear-gradient(135deg,var(--gb),var(--gold));color:#08090E;font-weight:600;font-size:13px;border:none;cursor:pointer;font-family:inherit;box-shadow:0 10px 30px -8px rgba(201,169,97,.5)}
-.btn:hover{transform:translateY(-2px);box-shadow:0 15px 40px -8px rgba(201,169,97,.7)}
+.btn-pick{display:inline-flex;align-items:center;gap:8px;padding:13px 28px;border-radius:99px;background:linear-gradient(135deg,var(--gb),var(--gold),var(--copper));color:#08090E;font-weight:600;font-size:13.5px;border:none;cursor:pointer;font-family:inherit;box-shadow:0 10px 30px -8px rgba(201,169,97,.5);transition:all .3s ease}
+.btn-pick:active{transform:scale(.96)}
+.btn-pick svg{width:14px;height:14px}
 .hint{font-size:11px;color:var(--tm);margin-top:16px}
+
+/* Files list */
+.files-head{display:flex;align-items:center;justify-content:space-between;margin:32px 0 16px}
+.files-title{font-size:11px;letter-spacing:.25em;color:var(--tm);text-transform:uppercase;font-weight:500}
+.files-count{font-size:12px;color:var(--td)}
+.files-list{display:flex;flex-direction:column;gap:10px;margin-bottom:24px}
+.file-item{display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:16px;background:linear-gradient(160deg,rgba(255,255,255,.025),rgba(255,255,255,.005));border:1px solid var(--ln);animation:slideIn .4s cubic-bezier(.16,1,.3,1)}
+@keyframes slideIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.file-icon{width:44px;height:44px;border-radius:12px;background:rgba(201,169,97,.08);border:1px solid rgba(201,169,97,.2);display:flex;align-items:center;justify-content:center;color:var(--gb);flex-shrink:0;font-family:Inter;font-size:9px;font-weight:700;letter-spacing:.05em}
+.file-info{flex:1;min-width:0}
+.file-name{font-size:13.5px;color:var(--tx);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.file-meta{font-size:11px;color:var(--tm)}
+.file-remove{width:30px;height:30px;border-radius:50%;background:rgba(240,160,176,.1);border:1px solid rgba(240,160,176,.25);color:var(--rose);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;font-family:inherit}
+.file-remove:active{background:rgba(240,160,176,.2);transform:scale(.9)}
+.file-remove svg{width:12px;height:12px;pointer-events:none}
+
+/* Analysis button */
+.btn-analyze{width:100%;padding:16px 28px;border-radius:99px;background:linear-gradient(135deg,var(--gb),var(--gold));color:#08090E;font-weight:600;font-size:14px;border:none;cursor:pointer;font-family:inherit;box-shadow:0 12px 32px -8px rgba(201,169,97,.5);transition:all .3s ease;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:24px}
+.btn-analyze:active{transform:scale(.97)}
+.btn-analyze:disabled{opacity:.4;cursor:not-allowed}
+.btn-analyze svg{width:16px;height:16px}
+.btn-analyze .spin{width:14px;height:14px;border:2px solid rgba(8,9,14,.3);border-top-color:#08090E;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Result card */
+.result{margin-top:20px;padding:24px;border-radius:20px;background:linear-gradient(160deg,rgba(110,231,160,.06),rgba(110,231,160,.01));border:1px solid rgba(110,231,160,.25);animation:slideIn .5s}
+.result h3{font-size:15px;color:var(--em);font-weight:500;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.result h3 svg{width:16px;height:16px}
+.result p{font-size:13px;color:var(--td);line-height:1.8;white-space:pre-wrap}
+.result .cta{margin-top:16px;display:inline-flex;align-items:center;gap:6px;color:var(--gb);font-size:12.5px;text-decoration:none;font-weight:500}
+
+/* Samples */
 .samples-title{font-size:11px;letter-spacing:.3em;color:var(--tm);text-transform:uppercase;font-weight:500;text-align:center;margin-bottom:16px}
 .samples{display:grid;grid-template-columns:1fr;gap:10px}
 @media(min-width:600px){.samples{grid-template-columns:repeat(3,1fr)}}
 .sample{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:14px;background:linear-gradient(160deg,rgba(255,255,255,.025),rgba(255,255,255,.005));border:1px solid var(--ln);cursor:pointer;transition:all .3s ease;text-align:right;font-family:inherit;color:var(--tx)}
+.sample:active{transform:scale(.97)}
 .sample:hover{border-color:rgba(201,169,97,.3);transform:translateY(-2px)}
 .sample-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:'Inter';font-size:9px;font-weight:700;border:1px solid;flex-shrink:0}
 .sample-title{font-size:13px;font-weight:500;margin-bottom:2px}
 .sample-meta{font-size:11px;color:var(--tm)}
+
+/* Footer */
 footer{margin-top:48px;padding-top:20px;border-top:1px solid var(--ln);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:10px;color:var(--tm);letter-spacing:.15em;text-transform:uppercase}
+
+/* Hidden file input */
+#mznFileInput{display:none}
 </style>
 </head>
 <body>
+
 <div class="aura"></div>
 <div class="wrap">
-<a href="index.html" class="back">→ العودة للرئيسية</a>
 <header>
 <div class="logo-text">MIZAN</div>
 <div class="tag">Upload</div>
 </header>
+
 <h1>ارفع العروض.<br><span>وأترك الباقي عليّ.</span></h1>
 <p class="sub">أرسل ملفات PDF أو Excel من مورديك. سأستخرج البيانات، أوحّدها، وأجهّزها للمقارنة.</p>
-<div class="drop">
-<div class="drop-icon">
-<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+
+<!-- Hidden file input -->
+<input type="file" id="mznFileInput" multiple accept=".pdf,.xlsx,.xls,.docx,.doc,.csv,.txt,application/pdf,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,image/*">
+
+<!-- Drop zone -->
+<div class="drop" id="mznDrop">
+  <div class="drop-icon">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+  </div>
+  <div class="drop-title">اسحب الملفات هنا</div>
+  <div class="drop-sub">أو اضغط للاختيار</div>
+  <button class="btn-pick" id="mznPickBtn" type="button">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    اختر ملفات
+  </button>
+  <div class="hint">PDF · Excel · Word · حتى 25 ميجابايت</div>
 </div>
-<div class="drop-title">اسحب الملفات هنا</div>
-<div class="drop-sub">أو اضغط للاختيار</div>
-<button class="btn">اختر ملفات</button>
-<div class="hint">PDF · Excel · Word · حتى 25 ميجابايت</div>
+
+<!-- Files list -->
+<div class="files-head" id="mznFilesHead" style="display:none">
+  <span class="files-title">الملفات المختارة</span>
+  <span class="files-count" id="mznFilesCount">0 ملف</span>
 </div>
-<div class="samples-title">— أو جرّب نموذجاً —</div>
-<div class="samples">
-<button class="sample">
-<div class="sample-icon" style="background:rgba(110,231,160,.1);color:var(--em);border-color:rgba(110,231,160,.25)">PDF</div>
-<div><div class="sample-title">STC Solutions</div><div class="sample-meta">24 صنف</div></div>
+<div class="files-list" id="mznFilesList"></div>
+
+<!-- Analyze button -->
+<button class="btn-analyze" id="mznAnalyzeBtn" type="button" style="display:none">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 0-7 7c0 3 2 5 3 6v3a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-3c1-1 3-3 3-6a7 7 0 0 0-7-7z"/></svg>
+  تحليل الملفات بواسطة AI
 </button>
-<button class="sample">
-<div class="sample-icon" style="background:rgba(240,160,176,.1);color:#F0A0B0;border-color:rgba(240,160,176,.25)">XLSX</div>
-<div><div class="sample-title">Huawei</div><div class="sample-meta">18 صنف</div></div>
-</button>
-<button class="sample">
-<div class="sample-icon" style="background:rgba(201,169,97,.1);color:var(--gb);border-color:rgba(201,169,97,.25)">PDF</div>
-<div><div class="sample-title">Mobily</div><div class="sample-meta">12 صنف</div></div>
-</button>
+
+<!-- Result -->
+<div id="mznResult"></div>
+
+<!-- Samples -->
+<div style="margin-top:40px">
+  <div class="samples-title">— أو جرّب نموذجاً —</div>
+  <div class="samples">
+    <button class="sample" data-sample="stc" type="button">
+      <div class="sample-icon" style="background:rgba(110,231,160,.1);color:var(--em);border-color:rgba(110,231,160,.25)">PDF</div>
+      <div><div class="sample-title">STC Solutions</div><div class="sample-meta">24 صنف</div></div>
+    </button>
+    <button class="sample" data-sample="huawei" type="button">
+      <div class="sample-icon" style="background:rgba(240,160,176,.1);color:var(--rose);border-color:rgba(240,160,176,.25)">XLSX</div>
+      <div><div class="sample-title">Huawei</div><div class="sample-meta">18 صنف</div></div>
+    </button>
+    <button class="sample" data-sample="mobily" type="button">
+      <div class="sample-icon" style="background:rgba(201,169,97,.1);color:var(--gb);border-color:rgba(201,169,97,.25)">PDF</div>
+      <div><div class="sample-title">Mobily</div><div class="sample-meta">12 صنف</div></div>
+    </button>
+  </div>
 </div>
+
 <footer>
 <div>MIZAN · UPLOAD</div>
 <div>2025</div>
 </footer>
 </div>
-</body>
+
 <script>
-document.querySelector('.btn').addEventListener('click',function(){
-  this.textContent='✨ جارٍ التحليل...';
-  this.style.opacity='.7';
-  setTimeout(()=>{
-    this.textContent='✅ تم استلام الملف (تجريبي)';
-    setTimeout(()=>{
-      this.textContent='اختر ملفات';
-      this.style.opacity='1';
-    },2000);
-  },1500);
+(function(){
+'use strict';
+
+/* ============ STATE ============ */
+var selectedFiles=[];
+
+/* ============ AUDIO ============ */
+var audioCtx;
+function initAudio(){ if(!audioCtx){ try{ audioCtx=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } }
+function tone(f,d,v){
+  initAudio();
+  if(!audioCtx) return;
+  try{
+    var o=audioCtx.createOscillator();
+    var g=audioCtx.createGain();
+    o.type='sine'; o.frequency.value=f; d=d||.1;
+    g.gain.setValueAtTime(0,audioCtx.currentTime);
+    g.gain.linearRampToValueAtTime(v||.05,audioCtx.currentTime+.01);
+    g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+d);
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start(); o.stop(audioCtx.currentTime+d);
+  }catch(e){}
+}
+function successChime(){ tone(659,.12); setTimeout(function(){tone(880,.15)},90); setTimeout(function(){tone(1174,.22)},200); }
+
+/* ============ TOAST ============ */
+function toast(m,t){
+  if(window.MZN && MZN.toast){ MZN.toast(m,t); return; }
+  var el=document.createElement('div');
+  el.style.cssText='position:fixed;top:80px;left:50%;transform:translateX(-50%);z-index:2147483647;padding:12px 22px;border-radius:99px;background:rgba(14,16,24,.95);backdrop-filter:blur(20px);border:1px solid rgba(201,169,97,.25);color:#EDEDED;font-family:inherit;font-size:13px;box-shadow:0 20px 50px rgba(0,0,0,.6);max-width:90vw;text-align:center';
+  el.textContent=m;
+  document.body.appendChild(el);
+  setTimeout(function(){ el.style.opacity='0'; el.style.transform='translateX(-50%) translateY(-20px)'; el.style.transition='all .4s ease'; setTimeout(function(){ el.remove(); }, 400); }, 3000);
+}
+
+/* ============ FORMAT HELPERS ============ */
+function formatBytes(b){
+  if(b<1024) return b+' B';
+  if(b<1048576) return (b/1024).toFixed(1)+' KB';
+  return (b/1048576).toFixed(2)+' MB';
+}
+function fileExt(name){
+  var parts=name.split('.');
+  return (parts.length>1 ? parts.pop().toUpperCase() : 'FILE').slice(0,4);
+}
+
+/* ============ UPDATE UI ============ */
+function updateUI(){
+  var head=document.getElementById('mznFilesHead');
+  var count=document.getElementById('mznFilesCount');
+  var analyzeBtn=document.getElementById('mznAnalyzeBtn');
+
+  if(selectedFiles.length>0){
+    head.style.display='flex';
+    count.textContent=selectedFiles.length+' ملف';
+    analyzeBtn.style.display='flex';
+  } else {
+    head.style.display='none';
+    analyzeBtn.style.display='none';
+  }
+}
+
+/* ============ RENDER FILE LIST ============ */
+function renderFiles(){
+  var list=document.getElementById('mznFilesList');
+  list.innerHTML='';
+  selectedFiles.forEach(function(f, idx){
+    var div=document.createElement('div');
+    div.className='file-item';
+    div.style.animationDelay=(idx*0.05)+'s';
+
+    var iconColor='rgba(201,169,97,.08)';
+    var iconBorder='rgba(201,169,97,.2)';
+    var iconText=fileExt(f.name);
+    if(iconText.indexOf('PDF')!==-1){ iconColor='rgba(110,231,160,.1)'; iconBorder='rgba(110,231,160,.25)'; }
+    else if(iconText.indexOf('XLS')!==-1 || iconText.indexOf('CSV')!==-1){ iconColor='rgba(240,160,176,.1)'; iconBorder='rgba(240,160,176,.25)'; }
+    else if(iconText.indexOf('DOC')!==-1){ iconColor='rgba(157,196,232,.1)'; iconBorder='rgba(157,196,232,.25)'; }
+
+    div.innerHTML=
+      '<div class="file-icon" style="background:'+iconColor+';border-color:'+iconBorder+'">'+iconText+'</div>'+
+      '<div class="file-info">'+
+        '<div class="file-name">'+escapeHTML(f.name)+'</div>'+
+        '<div class="file-meta">'+formatBytes(f.size)+'</div>'+
+      '</div>'+
+      '<button class="file-remove" type="button" data-idx="'+idx+'" aria-label="حذف">'+
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'+
+      '</button>';
+
+    div.querySelector('.file-remove').addEventListener('click', function(e){
+      e.stopPropagation();
+      tone(500,.08);
+      selectedFiles.splice(idx,1);
+      renderFiles();
+      updateUI();
+    });
+
+    list.appendChild(div);
+  });
+}
+
+function escapeHTML(s){
+  return String(s||'').replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+
+/* ============ ADD FILES ============ */
+function addFiles(files){
+  var added=0;
+  Array.from(files).forEach(function(f){
+    if(selectedFiles.some(function(x){ return x.name===f.name && x.size===f.size; })) return;
+    selectedFiles.push(f);
+    added++;
+  });
+  if(added>0){
+    tone(880,.12); setTimeout(function(){ tone(1174,.15); }, 90);
+    toast('✅ أُضيف '+added+' ملف');
+    renderFiles();
+    updateUI();
+  } else {
+    toast('⚠️ الملفات مكررة');
+  }
+}
+
+/* ============ FILE INPUT ============ */
+var fileInput=document.getElementById('mznFileInput');
+var dropZone=document.getElementById('mznDrop');
+var pickBtn=document.getElementById('mznPickBtn');
+
+function openPicker(e){
+  if(e){ e.preventDefault(); e.stopPropagation(); }
+  tone(660,.06);
+  fileInput.click();
+}
+
+pickBtn.addEventListener('click', openPicker);
+dropZone.addEventListener('click', function(e){
+  if(e.target.closest('.btn-pick')) return;
+  openPicker(e);
 });
-document.querySelectorAll('.sample').forEach(s=>{
-  s.addEventListener('click',function(){
-    alert('📄 سيتم تحليل نموذج '+this.querySelector('.sample-title').textContent+' في المرحلة النهائية');
+
+fileInput.addEventListener('change', function(e){
+  if(e.target.files && e.target.files.length){
+    addFiles(e.target.files);
+    fileInput.value='';
+  }
+});
+
+/* ============ DRAG & DROP ============ */
+['dragenter','dragover'].forEach(function(ev){
+  dropZone.addEventListener(ev, function(e){
+    e.preventDefault();
+    e.stopPropagation();
+    dropZone.classList.add('dragging');
   });
 });
-  
-  </script>
-  <script src="nav.js"></script>
+['dragleave','drop'].forEach(function(ev){
+  dropZone.addEventListener(ev, function(e){
+    e.preventDefault();
+    e.stopPropagation();
+    dropZone.classList.remove('dragging');
+  });
+});
+dropZone.addEventListener('drop', function(e){
+  if(e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length){
+    addFiles(e.dataTransfer.files);
+  }
+});
+
+/* ============ SAMPLES ============ */
+document.querySelectorAll('.sample').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    var sample=btn.dataset.sample;
+    tone(660,.08);
+    addFiles([{name: sampleName(sample), size: 850000 + Math.random()*1500000}]);
+    // Fake File object
+  });
+});
+
+function sampleName(key){
+  var map={
+    stc: 'STC-Offer-Network-Batch3.pdf',
+    huawei: 'Huawei-Quotation-2026.xlsx',
+    mobily: 'Mobily-Laptops-Tender.pdf'
+  };
+  return map[key]||'Sample.pdf';
+}
+
+/* ============ ANALYZE (uses Gemini) ============ */
+var analyzeBtn=document.getElementById('mznAnalyzeBtn');
+
+analyzeBtn.addEventListener('click', function(){
+  if(selectedFiles.length===0) return;
+  if(analyzeBtn.disabled) return;
+
+  var originalHTML=analyzeBtn.innerHTML;
+  analyzeBtn.disabled=true;
+  analyzeBtn.innerHTML='<span class="spin"></span> جارٍ التحليل...';
+
+  var fileList=selectedFiles.map(function(f){ return f.name; }).join('\n');
+
+  // Get API key
+  var key='';
+  try{ key=localStorage.getItem('mzn_gemini_key')||''; }catch(e){}
+
+  if(!key){
+    setTimeout(function(){
+      analyzeBtn.disabled=false;
+      analyzeBtn.innerHTML=originalHTML;
+      showLocalPreview();
+    }, 800);
+    return;
+  }
+
+  // Call Gemini
+  var prompt=
+    'أنت MIZAN، محلل عروض مشتريات. المستخدم رفع الملفات التالية:\n\n'+fileList+'\n\n'+
+    'قدم تحليلاً موجزاً:\n'+
+    '1. تصنيف كل ملف حسب ما يبدو من الاسم (PDF عرض / Excel / وغيرها)\n'+
+    '2. نوع المورد المتوقع\n'+
+    '3. أولويات المراجعة\n'+
+    '4. التوصية التالية\n\n'+
+    'أجب بشكل مختصر ومهني بالعربية.';
+
+  var models=['gemini-flash-latest','gemini-2.5-flash','gemini-2.0-flash','gemini-2.0-flash-lite'];
+  var idx=0;
+
+  function tryModel(){
+    if(idx>=models.length){
+      analyzeBtn.disabled=false;
+      analyzeBtn.innerHTML=originalHTML;
+      showLocalPreview();
+      return;
+    }
+    var model=models[idx];
+    var url='https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent?key='+encodeURIComponent(key);
+    fetch(url, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        contents:[{parts:[{text:prompt}]}],
+        generationConfig:{temperature:0.7,maxOutputTokens:800}
+      })
+    }).then(function(r){
+      if(r.status===404||r.status===400){ idx++; tryModel(); return null; }
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      return r.json();
+    }).then(function(data){
+      if(!data) return;
+      analyzeBtn.disabled=false;
+      analyzeBtn.innerHTML=originalHTML;
+      var text='';
+      try{ text=data.candidates[0].content.parts[0].text; }catch(e){ text='تعذّر استخراج الرد'; }
+      showResult(text);
+    }).catch(function(err){
+      console.warn('[MIZAN]', err);
+      analyzeBtn.disabled=false;
+      analyzeBtn.innerHTML=originalHTML;
+      showLocalPreview();
+    });
+  }
+  tryModel();
+});
+
+function showResult(text){
+  var r=document.getElementById('mznResult');
+  r.innerHTML=
+    '<div class="result">'+
+      '<h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>تحليل AI</h3>'+
+      '<p>'+escapeHTML(text).replace(/\n/g,'<br>')+'</p>'+
+      '<a class="cta" href="mizan-compare.html">→ الانتقال إلى المقارنة</a>'+
+    '</div>';
+  successChime();
+  r.scrollIntoView({behavior:'smooth', block:'center'});
+}
+
+function showLocalPreview(){
+  var r=document.getElementById('mznResult');
+  r.innerHTML=
+    '<div class="result">'+
+      '<h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>جاهز للتحليل</h3>'+
+      '<p>تم استلام <b style="color:var(--gb)">'+selectedFiles.length+' ملف</b> بنجاح.\n\nللاستفادة من التحليل الذكي، فعّل مساعد AI بإدخال مفتاح Gemini من أيقونة 💡 أسفل يمين الشاشة.\n\nستستخرج البيانات تلقائياً، وتُقارن العروض، وتُعطى توصية نهائية.</p>'+
+      '<a class="cta" href="mizan-compare.html">→ الانتقال إلى المقارنة</a>'+
+    '</div>';
+  successChime();
+  r.scrollIntoView({behavior:'smooth', block:'center'});
+}
+
+/* ============ INIT ============ */
+document.body.addEventListener('touchstart', initAudio, {once:true, passive:true});
+document.body.addEventListener('click', initAudio, {once:true});
+setTimeout(function(){ tone(523,.12,.03); }, 400);
+setTimeout(function(){ tone(659,.15,.03); }, 600);
+
+})();
+</script>
+</body>
 </html>
