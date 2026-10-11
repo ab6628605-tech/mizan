@@ -27,10 +27,7 @@ h1 span{color:var(--gb);-webkit-text-fill-color:var(--gb)}
 .kpi{background:linear-gradient(160deg,rgba(255,255,255,.025),rgba(255,255,255,.005));border:1px solid var(--ln);border-radius:16px;padding:20px}
 .kpi-label{font-size:10px;letter-spacing:.2em;color:var(--tm);text-transform:uppercase;font-weight:500;margin-bottom:10px}
 .kpi-value{font-family:Inter,sans-serif;font-weight:300;font-size:22px;letter-spacing:-.02em;color:var(--tx)}
-.kpi-value.gold{color:var(--gb)}
-.kpi-value.em{color:var(--em)}
-.kpi-value.ice{color:var(--ice)}
-.kpi-value.vi{color:var(--vi)}
+.kpi-value.gold{color:var(--gb)}.kpi-value.em{color:var(--em)}.kpi-value.ice{color:var(--ice)}.kpi-value.vi{color:var(--vi)}
 .kpi-sub{font-size:11px;color:var(--td);margin-top:6px}
 .search-box{display:flex;align-items:center;gap:10px;padding:12px 18px;border-radius:99px;background:rgba(255,255,255,.02);border:1px solid var(--ln);margin-bottom:16px;width:100%}
 .search-box:focus-within{border-color:rgba(201,169,97,.4);background:rgba(201,169,97,.02)}
@@ -120,26 +117,10 @@ footer{margin-top:48px;padding-top:20px;border-top:1px solid var(--ln);display:f
 </div>
 
 <div class="kpi-grid">
-<div class="kpi">
-<div class="kpi-label">صور</div>
-<div class="kpi-value ice" id="kpiImg">0</div>
-<div class="kpi-sub" id="kpiImgSize">—</div>
-</div>
-<div class="kpi">
-<div class="kpi-label">فواتير</div>
-<div class="kpi-value em" id="kpiInv">0</div>
-<div class="kpi-sub">Invoices</div>
-</div>
-<div class="kpi">
-<div class="kpi-label">PO</div>
-<div class="kpi-value gold" id="kpiPo">0</div>
-<div class="kpi-sub">أوامر شراء</div>
-</div>
-<div class="kpi">
-<div class="kpi-label">أخرى</div>
-<div class="kpi-value vi" id="kpiOther">0</div>
-<div class="kpi-sub">مستندات متنوعة</div>
-</div>
+<div class="kpi"><div class="kpi-label">صور</div><div class="kpi-value ice" id="kpiImg">0</div><div class="kpi-sub" id="kpiImgSize">—</div></div>
+<div class="kpi"><div class="kpi-label">فواتير</div><div class="kpi-value em" id="kpiInv">0</div><div class="kpi-sub">Invoices</div></div>
+<div class="kpi"><div class="kpi-label">PO</div><div class="kpi-value gold" id="kpiPo">0</div><div class="kpi-sub">أوامر شراء</div></div>
+<div class="kpi"><div class="kpi-label">أخرى</div><div class="kpi-value vi" id="kpiOther">0</div><div class="kpi-sub">مستندات متنوعة</div></div>
 </div>
 
 <div class="search-box">
@@ -194,70 +175,492 @@ footer{margin-top:48px;padding-top:20px;border-top:1px solid var(--ln);display:f
 <button class="modal-x" data-close>✕</button>
 <div id="previewBody"></div>
 </div>
-  </div>
-  
+</div>
 <script>
 (function(){
 'use strict';
 
-function toast(m,t){
-  var wrap=document.getElementById('mznToastWrap');
+/* ============================================================
+   MIZAN VAULT — كود مستقل تماماً
+   ============================================================ */
+
+var SUPABASE_URL = 'https://aibtdqkzzfohdvhmkzxw.supabase.co';
+var BUCKET = 'mizan-vault';
+var MAX_SIZE = 5 * 1024 * 1024;      /* 5 MB */
+var MAX_BATCH = 20 * 1024 * 1024;    /* 20 MB */
+
+var DOC_TYPES = [
+  {k:'rfq', l:'RFQ · طلب عرض سعر'},
+  {k:'offer', l:'عرض مورد'},
+  {k:'compare', l:'تقرير مقارنة'},
+  {k:'decision', l:'قرار اعتماد'},
+  {k:'po', l:'أمر شراء PO'},
+  {k:'bol', l:'بوليصة شحن'},
+  {k:'insurance', l:'بوليصة تأمين'},
+  {k:'invoice', l:'فاتورة'},
+  {k:'packing', l:'قائمة تعبئة'},
+  {k:'origin', l:'شهادة منشأ'},
+  {k:'customs', l:'بيان جمركي'},
+  {k:'grn', l:'سند استلام'},
+  {k:'photos', l:'صور استلام'},
+  {k:'letters', l:'مراسلات'},
+  {k:'other', l:'أخرى'}
+];
+
+var allFiles = [];
+var currentFilter = 'all';
+var currentSearch = '';
+var selectedFiles = [];
+
+/* ============================================================
+   1. أدوات مساعدة
+   ============================================================ */
+
+function getKey(){
+  /* 1. من MZN_DB */
+  if(window.MZN_DB && window.MZN_DB.key) return window.MZN_DB.key;
+  /* 2. من window مباشرة */
+  if(window.SUPABASE_KEY) return window.SUPABASE_KEY;
+  if(window.MZN_SUPABASE_KEY) return window.MZN_SUPABASE_KEY;
+  /* 3. من localStorage */
+  try{
+    var k = localStorage.getItem('mzn_supabase_key');
+    if(k) return k;
+  }catch(e){}
+  return '';
+}
+
+function esc(s){
+  return String(s||'').replace(/[&<>"']/g,function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+
+function fmtBytes(b){
+  b = parseInt(b)||0;
+  if(b < 1024) return b + ' B';
+  if(b < 1048576) return (b/1024).toFixed(1) + ' KB';
+  return (b/1048576).toFixed(2) + ' MB';
+}
+
+function tone(f, d, v){
+  try{
+    if(window.MZN && typeof MZN.tone === 'function'){
+      MZN.tone(f, d, 'sine', v || 0.05);
+    }
+  }catch(e){}
+}
+
+function toast(msg, type){
+  var wrap = document.getElementById('mznToastWrap');
   if(!wrap) return;
-  var colors={info:'#9DC4E8',success:'#6EE7A0',warning:'#F0C474',danger:'#F0A0B0'};
-  var color=colors[t]||colors.info;
-  var el=document.createElement('div');
-  el.style.cssText='padding:12px 22px;border-radius:99px;background:rgba(14,16,24,.95);backdrop-filter:blur(20px);border:1px solid rgba(201,169,97,.25);color:#EDEDED;font-family:inherit;font-size:13px;display:flex;align-items:center;gap:10px;box-shadow:0 20px 50px rgba(0,0,0,.6);max-width:90vw';
-  el.innerHTML='<span style="width:6px;height:6px;border-radius:50%;background:'+color+';box-shadow:0 0 8px '+color+';flex-shrink:0"></span><span>'+m+'</span>';
+  var colors = {info:'#9DC4E8', success:'#6EE7A0', warning:'#F0C474', danger:'#F0A0B0'};
+  var color = colors[type] || colors.info;
+  var el = document.createElement('div');
+  el.style.cssText = 'padding:12px 22px;border-radius:99px;background:rgba(14,16,24,.95);backdrop-filter:blur(20px);border:1px solid rgba(201,169,97,.25);color:#EDEDED;font-size:13px;display:flex;align-items:center;gap:10px;max-width:90vw;box-shadow:0 20px 50px rgba(0,0,0,.6);pointer-events:auto';
+  el.innerHTML = '<span style="width:6px;height:6px;border-radius:50%;background:'+color+';box-shadow:0 0 8px '+color+';flex-shrink:0"></span><span>'+esc(msg)+'</span>';
   wrap.appendChild(el);
   setTimeout(function(){
-    el.style.opacity='0'; el.style.transform='translateY(-20px)';
-    el.style.transition='all .4s'; setTimeout(function(){el.remove()},400);
-  },3200);
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(-20px)';
+    el.style.transition = 'all .4s';
+    setTimeout(function(){ el.remove(); }, 400);
+  }, 3200);
 }
-function esc(s){return String(s||'').replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
-function fmtBytes(b){
-  b=parseInt(b)||0;
-  if(b<1024) return b+' B';
-  if(b<1048576) return (b/1024).toFixed(1)+' KB';
-  return (b/1048576).toFixed(2)+' MB';
-}
-function tone(f,d,v){ if(window.MZN&&MZN.tone) MZN.tone(f,d,'sine',v||.05); }
-
-var allFiles=[];
-var currentFilter='all';
-var currentSearch='';
-var selectedFiles=[];
 
 function fileClass(name, mime){
-  name=(name||'').toLowerCase();
-  mime=(mime||'').toLowerCase();
+  name = (name||'').toLowerCase();
+  mime = (mime||'').toLowerCase();
   if(mime.indexOf('image/')===0 || /\.(jpg|jpeg|png|gif|webp|bmp)$/.test(name)) return 'img';
-  if(mime==='application/pdf' || /\.pdf$/.test(name)) return 'pdf';
+  if(mime === 'application/pdf' || /\.pdf$/.test(name)) return 'pdf';
   if(/\.(xlsx|xls|csv)$/.test(name) || mime.indexOf('spreadsheet')!==-1) return 'xls';
   if(/\.(docx?|doc)$/.test(name) || mime.indexOf('word')!==-1) return 'doc';
   return 'other';
 }
+
 function fileExt(name){
-  var parts=(name||'').split('.');
-  if(parts.length<2) return 'FILE';
-  var e=parts[parts.length-1].toUpperCase();
-  return e.length>4 ? e.slice(0,4) : e;
+  var parts = (name||'').split('.');
+  if(parts.length < 2) return 'FILE';
+  var e = parts[parts.length-1].toUpperCase();
+  return e.length > 4 ? e.slice(0,4) : e;
 }
 
-async function loadFiles(){
-  var listEl=document.getElementById('fileList');
-  listEl.innerHTML='<div class="loading" style="grid-column:1/-1"><div class="spin"></div><div>جارٍ التحميل...</div></div>';
-  if(!window.MZN_VAULT){
-    listEl.innerHTML='<div class="empty" style="grid-column:1/-1">⚠️ الوحدة غير محمّلة</div>';
+function docLabel(k){
+  for(var i=0; i<DOC_TYPES.length; i++){
+    if(DOC_TYPES[i].k === k) return DOC_TYPES[i].l;
+  }
+  return k || 'أخرى';
+}
+
+/* ============================================================
+   2. فتح/إغلاق النوافذ
+   ============================================================ */
+
+function openModal(id){
+  var m = document.getElementById(id);
+  if(!m){ console.warn('Modal not found:', id); return; }
+  m.style.display = 'block';
+  document.body.style.overflow = 'hidden';
+  requestAnimationFrame(function(){ m.classList.add('show'); });
+}
+
+function closeModal(id){
+  var m = document.getElementById(id);
+  if(!m) return;
+  m.classList.remove('show');
+  document.body.style.overflow = '';
+  setTimeout(function(){ m.style.display = 'none'; }, 350);
+}
+
+/* ============================================================
+   3. رفع الملفات إلى Supabase Storage
+   ============================================================ */
+
+async function uploadToStorage(file, poCode){
+  var key = getKey();
+  if(!key) throw new Error('مفتاح Supabase مفقود');
+
+  var today = new Date().toISOString().slice(0,10);
+  var ts = Date.now();
+  var rand = Math.random().toString(36).slice(2,8);
+  var ext = file.name.split('.').pop().toLowerCase().slice(0,8);
+  var safePo = (poCode||'general').replace(/[^a-zA-Z0-9-]/g, '_');
+  var path = safePo + '/' + today + '-' + ts + '-' + rand + '.' + ext;
+
+  var uploadUrl = SUPABASE_URL + '/storage/v1/object/' + BUCKET + '/' + path;
+
+  var res = await fetch(uploadUrl, {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer ' + key,
+      'apikey': key,
+      'Content-Type': file.type || 'application/octet-stream',
+      'x-upsert': 'false'
+    },
+    body: file
+  });
+
+  if(!res.ok){
+    var errText = '';
+    try{ errText = await res.text(); }catch(e){}
+    throw new Error('فشل الرفع (' + res.status + '): ' + errText);
+  }
+
+  var publicUrl = SUPABASE_URL + '/storage/v1/object/public/' + BUCKET + '/' + path;
+  return {path: path, url: publicUrl};
+}
+
+/* ============================================================
+   4. حفظ Metadata في جدول vault
+   ============================================================ */
+
+async function saveMetadata(data){
+  var key = getKey();
+  if(!key) throw new Error('مفتاح Supabase مفقود');
+
+  var res = await fetch(SUPABASE_URL + '/rest/v1/vault', {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer ' + key,
+      'apikey': key,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation'
+    },
+    body: JSON.stringify(data)
+  });
+
+  if(!res.ok){
+    var errText = '';
+    try{ errText = await res.text(); }catch(e){}
+    throw new Error('فشل حفظ البيانات (' + res.status + '): ' + errText);
+  }
+
+  return await res.json();
+}
+
+/* ============================================================
+   5. جلب قائمة الملفات
+   ============================================================ */
+
+async function fetchFiles(){
+  var key = getKey();
+  if(!key) throw new Error('مفتاح Supabase مفقود');
+
+  var res = await fetch(SUPABASE_URL + '/rest/v1/vault?select=*&order=created_at.desc', {
+    headers: {
+      'Authorization': 'Bearer ' + key,
+      'apikey': key
+    }
+  });
+
+  if(!res.ok){
+    var errText = '';
+    try{ errText = await res.text(); }catch(e){}
+    throw new Error('فشل الجلب (' + res.status + '): ' + errText);
+  }
+
+  return await res.json();
+}
+
+/* ============================================================
+   6. حذف ملف
+   ============================================================ */
+
+async function deleteFile(item){
+  var key = getKey();
+  if(!key) throw new Error('مفتاح Supabase مفقود');
+
+  /* حذف من Storage */
+  var parts = (item.doc_url||'').split('/object/public/' + BUCKET + '/');
+  if(parts.length === 2){
+    var storagePath = parts[1];
+    try{
+      await fetch(SUPABASE_URL + '/storage/v1/object/' + BUCKET + '/' + storagePath, {
+        method: 'DELETE',
+        headers: { 'Authorization': 'Bearer ' + key, 'apikey': key }
+      });
+    }catch(e){ console.warn('[MIZAN] Storage delete failed', e); }
+  }
+
+  /* حذف من الجدول */
+  if(item.id){
+    var res = await fetch(SUPABASE_URL + '/rest/v1/vault?id=eq.' + item.id, {
+      method: 'DELETE',
+      headers: { 'Authorization': 'Bearer ' + key, 'apikey': key }
+    });
+    if(!res.ok) throw new Error('فشل حذف السجل');
+  }
+  return true;
+}
+
+/* ============================================================
+   7. معالجة الرفع من النموذج
+   ============================================================ */
+
+async function handleUpload(){
+  var poCode = (document.getElementById('upPO').value||'').trim();
+  if(!poCode){
+    toast('⚠️ أدخل رقم أمر الشراء (PO)', 'warning');
+    tone(330, 0.15);
     return;
   }
-  try{
-    allFiles=await window.MZN_VAULT.listFiles({});
-    renderAll();
-  }catch(e){
-    console.warn('[MIZAN]', e);
-    listEl.innerHTML='<div class="empty" style="grid-column:1/-1">⚠️ تعذّر الاتصال بالسحابة</div>';
+  if(!selectedFiles.length){
+    toast('⚠️ اختر ملفات أولاً', 'warning');
+    return;
   }
+
+  var supplier = (document.getElementById('upSupplier').value||'').trim();
+  var docType = document.getElementById('upDocType').value;
+  var notes = (document.getElementById('upNotes').value||'').trim();
+
+  var btn = document.getElementById('btnUpload');
+  var btnText = document.getElementById('btnUploadText');
+  btn.disabled = true;
+
+  var success = 0, failed = 0;
+
+  for(var i=0; i<selectedFiles.length; i++){
+    var f = selectedFiles[i];
+    btnText.innerHTML = '<span class="spin2"></span> رفع ' + (i+1) + '/' + selectedFiles.length + '...';
+
+    try{
+      /* 1. ارفع الملف */
+      var uploaded = await uploadToStorage(f, poCode);
+
+      /* 2. احفظ السجل */
+      var user = 'المستخدم';
+      try{ user = localStorage.getItem('mzn_auth') || 'المستخدم'; }catch(e){}
+
+      await saveMetadata({
+        po_code: poCode,
+        supplier: supplier,
+        doc_type: docType,
+        doc_name: f.name,
+        doc_url: uploaded.url,
+        doc_size: f.size,
+        doc_mime: f.type || '',
+        notes: notes,
+        uploaded_by: user
+      });
+
+      success++;
+    }catch(err){
+      console.warn('[MIZAN Upload Error]', err);
+      toast('❌ ' + f.name + ': ' + err.message, 'danger');
+      failed++;
+    }
+  }
+
+  if(success > 0){
+    tone(880, 0.12);
+    setTimeout(function(){ tone(1174, 0.15); }, 90);
+    toast('✅ رُفع ' + success + ' ملف بنجاح', 'success');
+  }
+  if(failed > 0){
+    toast('⚠️ فشل ' + failed + ' ملف', 'warning');
+  }
+
+  /* إعادة الضبط */
+  selectedFiles = [];
+  renderPicked();
+  document.getElementById('upPO').value = '';
+  document.getElementById('upSupplier').value = '';
+  document.getElementById('upNotes').value = '';
+  closeModal('uploadModal');
+
+  setTimeout(loadFiles, 500);
+}
+
+/* ============================================================
+   8. إدارة الملفات المختارة
+   ============================================================ */
+
+function addFiles(files){
+  Array.from(files).forEach(function(f){
+    if(f.size > MAX_SIZE){
+      toast('⚠️ ' + f.name + ' كبير جداً (حد 5 MB)', 'warning');
+      return;
+    }
+    if(selectedFiles.some(function(x){ return x.name === f.name && x.size === f.size; })) return;
+    selectedFiles.push(f);
+  });
+  renderPicked();
+  tone(880, 0.08);
+}
+
+function renderPicked(){
+  var cont = document.getElementById('pickedFiles');
+  cont.innerHTML = '';
+  var totalSize = 0;
+
+  selectedFiles.forEach(function(f, i){
+    totalSize += f.size;
+    var div = document.createElement('div');
+    div.className = 'file-picked';
+    div.innerHTML = '<span class="name">' + esc(f.name) + '</span>' +
+                    '<span class="size">' + fmtBytes(f.size) + '</span>' +
+                    '<button data-i="' + i + '">✕</button>';
+    div.querySelector('button').addEventListener('click', function(e){
+      e.stopPropagation();
+      selectedFiles.splice(i, 1);
+      renderPicked();
+    });
+    cont.appendChild(div);
+  });
+
+  var btn = document.getElementById('btnUpload');
+  var txt = document.getElementById('btnUploadText');
+
+  if(!selectedFiles.length){
+    btn.disabled = true;
+    txt.textContent = 'اختر ملفات أولاً';
+  } else if(totalSize > MAX_BATCH){
+    btn.disabled = true;
+    txt.textContent = '⚠️ تجاوزت حد 20 MB';
+  } else {
+    btn.disabled = false;
+    txt.textContent = 'رفع ' + selectedFiles.length + ' ملف (' + fmtBytes(totalSize) + ')';
+  }
+}
+
+/* ============================================================
+   9. عرض القائمة والإحصائيات
+   ============================================================ */
+
+function computeKPIs(){
+  var imgCount=0, imgSize=0, invCount=0, poCount=0, otherCount=0;
+  var total=0, totalSize=0;
+
+  allFiles.forEach(function(f){
+    total++;
+    totalSize += parseInt(f.doc_size)||0;
+    var cls = fileClass(f.doc_name, f.doc_mime);
+    if(cls === 'img'){ imgCount++; imgSize += parseInt(f.doc_size)||0; }
+    else if(f.doc_type === 'invoice') invCount++;
+    else if(f.doc_type === 'po') poCount++;
+    else otherCount++;
+  });
+
+  document.getElementById('totalFiles').textContent = total;
+  document.getElementById('totalSize').textContent = fmtBytes(totalSize);
+  document.getElementById('kpiImg').textContent = imgCount;
+  document.getElementById('kpiImgSize').textContent = fmtBytes(imgSize);
+  document.getElementById('kpiInv').textContent = invCount;
+  document.getElementById('kpiPo').textContent = poCount;
+  document.getElementById('kpiOther').textContent = otherCount;
+}
+
+function renderFilters(){
+  var bar = document.getElementById('filtersBar');
+  bar.innerHTML = '';
+
+  var filters = [{k:'all', l:'الكل'}];
+  DOC_TYPES.forEach(function(t){
+    var cnt = allFiles.filter(function(f){ return f.doc_type === t.k; }).length;
+    if(cnt > 0) filters.push({k: t.k, l: t.l});
+  });
+
+  filters.forEach(function(f){
+    var cnt = allFiles.filter(function(i){ return f.k === 'all' || i.doc_type === f.k; }).length;
+    var btn = document.createElement('button');
+    btn.className = 'fchip' + (currentFilter === f.k ? ' active' : '');
+    btn.innerHTML = f.l + ' <span class="fcount">' + cnt + '</span>';
+    btn.addEventListener('click', function(){
+      tone(660, 0.06);
+      currentFilter = f.k;
+      renderAll();
+    });
+    bar.appendChild(btn);
+  });
+}
+
+function renderList(){
+  var listEl = document.getElementById('fileList');
+  var filtered = allFiles.filter(function(f){
+    if(currentFilter !== 'all' && f.doc_type !== currentFilter) return false;
+    if(currentSearch){
+      var q = currentSearch.toLowerCase();
+      return (f.doc_name||'').toLowerCase().indexOf(q) !== -1 ||
+             (f.po_code||'').toLowerCase().indexOf(q) !== -1 ||
+             (f.supplier||'').toLowerCase().indexOf(q) !== -1;
+    }
+    return true;
+  });
+
+  if(!filtered.length){
+    listEl.innerHTML = '<div class="empty" style="grid-column:1/-1">لا توجد ملفات مطابقة</div>';
+    document.getElementById('footerCount').textContent = '0 ملف';
+    return;
+  }
+
+  listEl.innerHTML = '';
+  filtered.forEach(function(f){
+    var cls = fileClass(f.doc_name, f.doc_mime);
+    var ext = fileExt(f.doc_name);
+    var card = document.createElement('div');
+    card.className = 'file-card';
+    card.innerHTML =
+      '<div class="file-head">' +
+        '<div class="file-icon ' + cls + '">' + esc(ext) + '</div>' +
+        '<div class="file-info">' +
+          '<div class="file-name">' + esc(f.doc_name || '---') + '</div>' +
+          '<div class="file-meta">' + fmtBytes(f.doc_size) + '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div><span class="file-doc-type">' + esc(docLabel(f.doc_type)) + '</span></div>' +
+      '<div class="file-foot">' +
+        '<span class="file-po">' + esc(f.po_code || '---') + '</span>' +
+        '<span class="file-size">' + esc((f.created_at||'').slice(0,10)) + '</span>' +
+      '</div>';
+
+    card.addEventListener('click', function(){
+      tone(660, 0.08);
+      openPreview(f);
+    });
+    listEl.appendChild(card);
+  });
+
+  document.getElementById('footerCount').textContent = filtered.length + ' ملف';
 }
 
 function renderAll(){
@@ -266,302 +669,153 @@ function renderAll(){
   renderList();
 }
 
-function computeKPIs(){
-  var imgCount=0, imgSize=0, invCount=0, poCount=0, otherCount=0;
-  var total=0, totalSize=0;
-  allFiles.forEach(function(f){
-    total++;
-    totalSize+=parseInt(f.doc_size)||0;
-    var cls=fileClass(f.doc_name, f.doc_mime);
-    if(cls==='img'){ imgCount++; imgSize+=parseInt(f.doc_size)||0; }
-    else if(f.doc_type==='invoice') invCount++;
-    else if(f.doc_type==='po') poCount++;
-    else otherCount++;
-  });
-  document.getElementById('totalFiles').textContent=total;
-  document.getElementById('totalSize').textContent=fmtBytes(totalSize);
-  document.getElementById('kpiImg').textContent=imgCount;
-  document.getElementById('kpiImgSize').textContent=fmtBytes(imgSize);
-  document.getElementBjyId('kpiInv').textContent=invCount;
-  document.getElementById('kpiPo').textContent=poCount;
-  document.getElementById('kpiOther').textContent=otherCount;
-}
-
-function renderFilters(){
-  var bar=document.getElementById('filtersBar');
-  var types=window.MZN_VAULT.DOC_TYPES;
-  var filters=[{k:'all',l:'الكل'}];
-  types.forEach(function(t){
-    var cnt=allFiles.filter(function(f){return f.doc_type===t.k;}).length;
-    if(cnt>0) filters.push({k:t.k, l:t.l});
-  });
-  bar.innerHTML='';
-  filters.forEach(function(f){
-    var cnt=allFiles.filter(function(i){return f.k==='all'||i.doc_type===f.k;}).length;
-    var btn=document.createElement('button');
-    btn.className='fchip'+(currentFilter===f.k?' active':'');
-    btn.innerHTML=f.l+' <span class="fcount">'+cnt+'</span>';
-    btn.addEventListener('click', function(){
-      tone(660,.06);
-      currentFilter=f.k;
-      renderAll();
-    });
-    bar.appendChild(btn);
-  });
-}
-
-function renderList(){
-  var listEl=document.getElementById('fileList');
-  var filtered=allFiles.filter(function(f){
-    if(currentFilter!=='all' && f.doc_type!==currentFilter) return false;
-    if(currentSearch){
-      var q=currentSearch.toLowerCase();
-      return (f.doc_name||'').toLowerCase().indexOf(q)!==-1 ||
-             (f.po_code||'').toLowerCase().indexOf(q)!==-1 ||
-             (f.supplier||'').toLowerCase().indexOf(q)!==-1;
-    }
-    return true;
-  });
-  if(!filtered.length){
-    listEl.innerHTML='<div class="empty" style="grid-column:1/-1">لا توجد ملفات مطابقة</div>';
-    document.getElementById('footerCount').textContent='0 ملف';
-    return;
-  }
-  listEl.innerHTML='';
-  filtered.forEach(function(f){
-    var cls=fileClass(f.doc_name, f.doc_mime);
-    var ext=fileExt(f.doc_name);
-    var card=document.createElement('div');
-    card.className='file-card';
-    card.innerHTML=
-      '<div class="file-head">'+
-        '<div class="file-icon '+cls+'">'+esc(ext)+'</div>'+
-        '<div class="file-info">'+
-          '<div class="file-name">'+esc(f.doc_name||'—')+'</div>'+
-          '<div class="file-meta">'+fmtBytes(f.doc_size)+'</div>'+
-        '</div>'+
-      '</div>'+
-      '<div><span class="file-doc-type">'+esc(window.MZN_VAULT.docLabel(f.doc_type))+'</span></div>'+
-      '<div class="file-foot">'+
-        '<span class="file-po">'+esc(f.po_code||'—')+'</span>'+
-        '<span class="file-size">'+esc((f.created_at||'').slice(0,10))+'</span>'+
-      '</div>';
-    card.addEventListener('click', function(){
-      tone(660,.08);
-      openPreview(f);
-    });
-    listEl.appendChild(card);
-  });
-  document.getElementById('footerCount').textContent=filtered.length+' ملف';
-}
-
-function openModal(id){
-  var m=document.getElementById(id);
-  m.style.display='block';
-  document.body.style.overflow='hidden';
-  requestAnimationFrame(function(){ m.classList.add('show'); });
-}
-function closeModal(id){
-  var m=document.getElementById(id);
-  m.classList.remove('show');
-  document.body.style.overflow='';
-  setTimeout(function(){ m.style.display='none'; },350);
-}
-
-var uploadModal=document.getElementById('uploadModal');
-uploadModal.querySelectorAll('[data-close]').forEach(function(el){
-  el.addEventListener('click', function(){ closeModal('uploadModal'); });
-});
-
-(function(){
-  var sel=document.getElementById('upDocType');
-  window.MZN_VAULT.DOC_TYPES.forEach(function(t){
-    var opt=document.createElement('option');
-    opt.value=t.k;
-    opt.textContent=t.l;
-    sel.appendChild(opt);
-  });
-})();
-
-document.getElementById('fabUpload').addEventListener('click', function(){
-  tone(660,.1);
-  openModal('uploadModal');
-});
-
-var dropzone=document.getElementById('dropzone');
-var fileInput=document.getElementById('fileInput');
-dropzone.addEventListener('click', function(){ fileInput.click(); });
-['dragenter','dragover'].forEach(function(ev){
-  dropzone.addEventListener(ev, function(e){
-    e.preventDefault(); e.stopPropagation();
-    dropzone.classList.add('dragging');
-  });
-});
-['dragleave','drop'].forEach(function(ev){
-  dropzone.addEventListener(ev, function(e){
-    e.preventDefault(); e.stopPropagation();
-    dropzone.classList.remove('dragging');
-  });
-});
-dropzone.addEventListener('drop', function(e){
-  if(e.dataTransfer && e.dataTransfer.files) addFiles(e.dataTransfer.files);
-});
-fileInput.addEventListener('change', function(e){
-  if(e.target.files) addFiles(e.target.files);
-  fileInput.value='';
-});
-
-function addFiles(files){
-  Array.from(files).forEach(function(f){
-    if(f.size > window.MZN_VAULT.MAX_SIZE){
-      toast('⚠️ '+f.name+' كبير جداً (حد 5 MB)','warning');
-      return;
-    }
-    if(selectedFiles.some(function(x){return x.name===f.name && x.size===f.size;})) return;
-    selectedFiles.push(f);
-  });
-  renderPicked();
-  tone(880,.08);
-}
-
-function renderPicked(){
-  var cont=document.getElementById('pickedFiles');
-  cont.innerHTML='';
-  var totalSize=0;
-  selectedFiles.forEach(function(f, i){
-    totalSize+=f.size;
-    var div=document.createElement('div');
-    div.className='file-picked';
-    div.innerHTML='<span class="name">'+esc(f.name)+'</span><span class="size">'+fmtBytes(f.size)+'</span><button data-i="'+i+'">✕</button>';
-    div.querySelector('button').addEventListener('click', function(e){
-      e.stopPropagation();
-      selectedFiles.splice(i,1);
-      renderPicked();
-    });
-    cont.appendChild(div);
-  });
-  var btn=document.getElementById('btnUpload');
-  var txt=document.getElementById('btnUploadText');
-  if(!selectedFiles.length){
-    btn.disabled=true;
-    txt.textContent='اختر ملفات أولاً';
-  } else if(totalSize > window.MZN_VAULT.MAX_BATCH){
-    btn.disabled=true;
-    txt.textContent='⚠️ تجاوزت حد 20 MB';
-  } else {
-    btn.disabled=false;
-    txt.textContent='رفع '+selectedFiles.length+' ملف ('+fmtBytes(totalSize)+')';
-  }
-}
-
-document.getElementById('btnUpload').addEventListener('click', async function(){
-  var poCode=(document.getElementById('upPO').value||'').trim();
-  if(!poCode){
-    toast('⚠️ أدخل رقم أمر الشراء (PO)','warning');
-    tone(330,.15);
-    return;
-  }
-  if(!selectedFiles.length) return;
-
-  var supplier=(document.getElementById('upSupplier').value||'').trim();
-  var docType=document.getElementById('upDocType').value;
-  var notes=(document.getElementById('upNotes').value||'').trim();
-
-  var btn=this;
-  var btnText=document.getElementById('btnUploadText');
-  btn.disabled=true;
-
-  var success=0, failed=0, savedBytes=0;
-  for(var i=0;i<selectedFiles.length;i++){
-    var f=selectedFiles[i];
-    btnText.innerHTML='<span class="spin2"></span> رفع '+(i+1)+'/'+selectedFiles.length+'...';
-    try{
-      var res=await window.MZN_VAULT.uploadFile(f, {
-        po_code:poCode, supplier:supplier, doc_type:docType, notes:notes
-      });
-      success++;
-      savedBytes+=res.savedBytes||0;
-    }catch(e){
-      console.warn('[MIZAN]', e);
-      failed++;
-    }
-  }
-
-  if(success>0){
-    tone(880,.12); setTimeout(function(){tone(1174,.15)},90);
-    var msg='✅ رُفع '+success+' ملف';
-    if(savedBytes>0) msg+=' · وفّرنا '+fmtBytes(savedBytes);
-    toast(msg, 'success');
-  }
-  if(failed>0) toast('⚠️ فشل '+failed+' ملف','warning');
-
-  selectedFiles=[];
-  renderPicked();
-  document.getElementById('upPO').value='';
-  document.getElementById('upSupplier').value='';
-  document.getElementById('upNotes').value='';
-
-  closeModal('uploadModal');
-  setTimeout(loadFiles, 500);
-});
+/* ============================================================
+   10. المعاينة
+   ============================================================ */
 
 function openPreview(f){
-  var body=document.getElementById('previewBody');
-  var cls=fileClass(f.doc_name, f.doc_mime);
-  var previewHTML='';
-  if(cls==='img'){
-    previewHTML='<img src="'+esc(f.doc_url)+'" style="width:100%;border-radius:12px;margin-bottom:14px;" alt="">';
-  } else if(cls==='pdf'){
-    previewHTML='<iframe src="'+esc(f.doc_url)+'" style="width:100%;height:50vh;border-radius:12px;border:none;margin-bottom:14px;background:#fff;"></iframe>';
+  var body = document.getElementById('previewBody');
+  var cls = fileClass(f.doc_name, f.doc_mime);
+  var previewHTML = '';
+
+  if(cls === 'img'){
+    previewHTML = '<img src="' + esc(f.doc_url) + '" style="width:100%;border-radius:12px;margin-bottom:14px;" alt="">';
+  } else if(cls === 'pdf'){
+    previewHTML = '<iframe src="' + esc(f.doc_url) + '" style="width:100%;height:50vh;border-radius:12px;border:none;margin-bottom:14px;background:#fff;"></iframe>';
   }
 
-  body.innerHTML=
-    '<h3>'+esc(f.doc_name)+'</h3>'+
-    '<p class="modal-sub">'+esc(window.MZN_VAULT.docLabel(f.doc_type))+' · '+fmtBytes(f.doc_size)+'</p>'+
-    previewHTML+
-    '<div style="background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:14px;margin-bottom:16px">'+
-      '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px"><span style="color:var(--td)">أمر الشراء</span><span style="color:var(--gb);font-family:Inter">'+esc(f.po_code||'—')+'</span></div>'+
-      '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px"><span style="color:var(--td)">المورد</span><span>'+esc(f.supplier||'—')+'</span></div>'+
-      '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px"><span style="color:var(--td)">تاريخ الرفع</span><span style="font-family:Inter">'+esc((f.created_at||'').slice(0,10))+'</span></div>'+
-      '<div style="display:flex;justify-content:space-between;padding:6px 0;font-size:12px"><span style="color:var(--td)">الحجم</span><span style="font-family:Inter">'+fmtBytes(f.doc_size)+'</span></div>'+
-      (f.notes?'<div style="padding-top:8px;margin-top:8px;border-top:1px solid rgba(255,255,255,.04);font-size:12px;color:var(--td);line-height:1.7">'+esc(f.notes)+'</div>':'')+
-    '</div>'+
-    '<a href="'+esc(f.doc_url)+'" download style="display:block;width:100%;padding:14px;border-radius:99px;background:linear-gradient(135deg,var(--gb),var(--gold));color:#08090E;font-weight:600;font-size:14px;text-align:center;text-decoration:none;margin-bottom:10px;box-sizing:border-box">تحميل الملف</a>'+
+  body.innerHTML =
+    '<h3>' + esc(f.doc_name) + '</h3>' +
+    '<p class="modal-sub">' + esc(docLabel(f.doc_type)) + ' · ' + fmtBytes(f.doc_size) + '</p>' +
+    previewHTML +
+    '<div style="background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:14px;margin-bottom:16px;">' +
+      '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px;"><span style="color:var(--td)">أمر الشراء</span><span style="color:var(--gb);font-family:Inter">' + esc(f.po_code||'---') + '</span></div>' +
+      '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px;"><span style="color:var(--td)">المورد</span><span>' + esc(f.supplier||'---') + '</span></div>' +
+      '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px;"><span style="color:var(--td)">تاريخ الرفع</span><span style="font-family:Inter">' + esc((f.created_at||'').slice(0,10)) + '</span></div>' +
+      '<div style="display:flex;justify-content:space-between;padding:6px 0;font-size:12px;"><span style="color:var(--td)">الحجم</span><span style="font-family:Inter">' + fmtBytes(f.doc_size) + '</span></div>' +
+      (f.notes ? '<div style="padding-top:8px;margin-top:8px;border-top:1px solid rgba(255,255,255,.04);font-size:12px;color:var(--td);line-height:1.7">' + esc(f.notes) + '</div>' : '') +
+    '</div>' +
+    '<a href="' + esc(f.doc_url) + '" download style="display:block;width:100%;padding:14px;border-radius:99px;background:linear-gradient(135deg,var(--gb),var(--gold));color:#08090E;font-weight:600;font-size:14px;text-align:center;text-decoration:none;margin-bottom:10px;box-sizing:border-box">تحميل الملف</a>' +
     '<button style="width:100%;padding:13px;border-radius:99px;background:transparent;color:var(--rose);font-size:13px;border:1px solid rgba(240,160,176,.3);cursor:pointer;font-family:inherit" id="delBtn">🗑 حذف الملف</button>';
 
   document.getElementById('delBtn').addEventListener('click', async function(){
     if(!confirm('حذف الملف نهائياً؟')) return;
     try{
-      await window.MZN_VAULT.deleteFile(f);
-      toast('🗑 حُذف الملف','success');
+      await deleteFile(f);
+      toast('🗑 حُذف الملف', 'success');
       closeModal('previewModal');
       setTimeout(loadFiles, 300);
     }catch(e){
-      toast('⚠️ فشل الحذف','warning');
+      toast('⚠️ فشل الحذف: ' + e.message, 'danger');
     }
   });
 
   openModal('previewModal');
 }
-document.getElementById('previewModal').querySelectorAll('[data-close]').forEach(function(el){
-  el.addEventListener('click', function(){ closeModal('previewModal'); });
-});
 
-document.getElementById('searchInput').addEventListener('input', function(e){
-  currentSearch=e.target.value||'';
-  renderList();
-});
+/* ============================================================
+   11. تحميل الملفات
+   ============================================================ */
 
-window.addEventListener('load', function(){
-  setTimeout(loadFiles, 500);
+async function loadFiles(){
+  var listEl = document.getElementById('fileList');
+  listEl.innerHTML = '<div class="loading" style="grid-column:1/-1"><div class="spin"></div><div>جارٍ التحميل...</div></div>';
+
+  try{
+    allFiles = await fetchFiles();
+    renderAll();
+  }catch(e){
+    console.warn('[MIZAN]', e);
+    listEl.innerHTML = '<div class="empty" style="grid-column:1/-1">⚠️ ' + esc(e.message) + '</div>';
+  }
+}
+
+/* ============================================================
+   12. ربط الأحداث
+   ============================================================ */
+
+document.addEventListener('DOMContentLoaded', function(){
+
+  /* زر الرفع العائم */
+  var fab = document.getElementById('fabUpload');
+  if(fab){
+    fab.addEventListener('click', function(){
+      tone(660, 0.1);
+      openModal('uploadModal');
+    });
+  }
+
+  /* تعبئة قائمة أنواع المستندات */
+  var sel = document.getElementById('upDocType');
+  if(sel){
+    DOC_TYPES.forEach(function(t){
+      var opt = document.createElement('option');
+      opt.value = t.k;
+      opt.textContent = t.l;
+      sel.appendChild(opt);
+    });
+  }
+
+  /* أزرار الإغلاق */
+  document.querySelectorAll('[data-close]').forEach(function(el){
+    el.addEventListener('click', function(){
+      var modal = el.closest('.modal');
+      if(modal) closeModal(modal.id);
+    });
+  });
+
+  /* المنطقة القابلة للسحب */
+  var dropzone = document.getElementById('dropzone');
+  var fileInput = document.getElementById('fileInput');
+
+  if(dropzone && fileInput){
+    dropzone.addEventListener('click', function(){ fileInput.click(); });
+
+    ['dragenter','dragover'].forEach(function(ev){
+      dropzone.addEventListener(ev, function(e){
+        e.preventDefault(); e.stopPropagation();
+        dropzone.classList.add('dragging');
+      });
+    });
+
+    ['dragleave','drop'].forEach(function(ev){
+      dropzone.addEventListener(ev, function(e){
+        e.preventDefault(); e.stopPropagation();
+        dropzone.classList.remove('dragging');
+      });
+    });
+
+    dropzone.addEventListener('drop', function(e){
+      if(e.dataTransfer && e.dataTransfer.files) addFiles(e.dataTransfer.files);
+    });
+
+    fileInput.addEventListener('change', function(e){
+      if(e.target.files) addFiles(e.target.files);
+      fileInput.value = '';
+    });
+  }
+
+  /* زر الرفع داخل النافذة */
+  var btnUpload = document.getElementById('btnUpload');
+  if(btnUpload) btnUpload.addEventListener('click', handleUpload);
+
+  /* البحث */
+  var searchInput = document.getElementById('searchInput');
+  if(searchInput){
+    searchInput.addEventListener('input', function(e){
+      currentSearch = e.target.value || '';
+      renderList();
+    });
+  }
+
+  /* تحميل أولي */
+  setTimeout(loadFiles, 300);
 });
 
 })();
 </script>
 
-<!-- ✅ تحميل وحدات الخزنة (مُصلَح) -->
 <script src="supabase.js"></script>
-<script src="vault.js"></script>
 <script src="nav.js"></script>
 
 </body>
