@@ -9,13 +9,18 @@ var MAX_SIZE=5*1024*1024;   /* 5 MB */
 var MAX_BATCH=20*1024*1024; /* 20 MB in one batch */
 
 function getKey(){
-  /* Use the same key as supabase.js */
-  try{
-    var raw=localStorage.getItem('mzn_gemini_key');
-    /* Not the gemini key — supabase key is in supabase.js */
-  }catch(e){}
+  /* 1. من MZN_DB */
   if(window.MZN_DB && window.MZN_DB.key) return window.MZN_DB.key;
-  return '';
+  /* 2. من window مباشرة */
+  if(window.SUPABASE_KEY) return window.SUPABASE_KEY;
+  if(window.MZN_SUPABASE_KEY) return window.MZN_SUPABASE_KEY;
+  /* 3. من localStorage */
+  try{
+    var k = localStorage.getItem('mzn_supabase_key');
+    if(k) return k;
+  }catch(e){}
+  /* 4. المفتاح المُضمّن (احتياطي) */
+  return 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFpYnRkcWt6emZvaGR2aG1renh3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzAwMDAwMDAsImV4cCI6MjA0NTU3NjAwMH0.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFpYnRkcWt6emZvaGR2aG1renh3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE1NTQxMDUsImV4cCI6MjEwNzEzMDEwNX0.yIZzBaemkbSUglUYkMThP2swkZfpHQ0gV_n0ANW5hIE';
 }
 function getUrl(){ return SUPABASE_URL; }
 function esc(s){return String(s||'').replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
