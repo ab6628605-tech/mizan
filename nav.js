@@ -98,7 +98,6 @@ var items=[
 {href:'mizan-suppliers.html',icon:'users',label:'موردون'},
 {href:'mizan-reports.html',icon:'chart',label:'تقارير'},
 {href:'mizan-vault.html',icon:'vault',label:'خزنة'},
-{href:'mizan-vault.html',icon:'vault',label:'خزنة'},
 {href:'mizan-settings.html',icon:'settings',label:'إعدادات'}
 ];
 
