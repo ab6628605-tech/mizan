@@ -65,7 +65,6 @@ h1 span{color:var(--gb);-webkit-text-fill-color:var(--gb)}
 .loading{padding:80px 20px;text-align:center;color:var(--tm);font-size:13px}
 .loading .spin{display:inline-block;width:20px;height:20px;border:2px solid rgba(201,169,97,.3);border-top-color:var(--gb);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:12px}
 @keyframes spin{to{transform:rotate(360deg)}}
-/* FAB — moved ABOVE the AI button to avoid overlap */
 .fab{position:fixed;bottom:152px;right:18px;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--gb),var(--gold),var(--copper));border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 12px 32px -8px rgba(201,169,97,.6),0 0 24px rgba(201,169,97,.3);z-index:2147483643;color:#08090E;transition:all .3s}
 .fab:active{transform:scale(.92)}
 .fab svg{width:26px;height:26px}
@@ -100,7 +99,7 @@ footer{margin-top:48px;padding-top:20px;border-top:1px solid var(--ln);display:f
 .toast-wrap{position:fixed;top:24px;left:50%;transform:translateX(-50%);z-index:2147483647;display:flex;flex-direction:column;gap:10px;align-items:center;pointer-events:none;max-width:90vw}
 </style>
 </head>
-  <body>
+<body>
 
 <div class="aura"></div>
 <div class="toast-wrap" id="mznToastWrap"></div>
@@ -167,19 +166,14 @@ footer{margin-top:48px;padding-top:20px;border-top:1px solid var(--ln);display:f
 <button class="modal-x" data-close>✕</button>
 <h3>رفع ملف جديد</h3>
 <p class="modal-sub">اربط الملف بأمر شراء، صنّفه، ثم ارفعه.</p>
-
 <label class="form-label">أمر الشراء (إلزامي)</label>
 <input type="text" class="input-field" id="upPO" placeholder="PO-2025-0087" style="direction:ltr;text-align:left">
-
 <label class="form-label">المورد (اختياري)</label>
 <input type="text" class="input-field" id="upSupplier" placeholder="STC Solutions">
-
 <label class="form-label">نوع المستند</label>
 <select class="input-field" id="upDocType"></select>
-
 <label class="form-label">ملاحظات (اختياري)</label>
 <textarea class="input-field" id="upNotes" placeholder="أي ملاحظات على الملف..."></textarea>
-
 <label class="form-label">الملفات</label>
 <div class="dropzone" id="dropzone">
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
@@ -188,7 +182,6 @@ footer{margin-top:48px;padding-top:20px;border-top:1px solid var(--ln);display:f
 <input type="file" id="fileInput" multiple>
 </div>
 <div id="pickedFiles"></div>
-
 <button class="btn-primary" id="btnUpload" disabled>
 <span id="btnUploadText">اختر ملفات أولاً</span>
 </button>
@@ -207,7 +200,6 @@ footer{margin-top:48px;padding-top:20px;border-top:1px solid var(--ln);display:f
 (function(){
 'use strict';
 
-/* ============ HELPERS ============ */
 function toast(m,t){
   var wrap=document.getElementById('mznToastWrap');
   if(!wrap) return;
@@ -231,13 +223,11 @@ function fmtBytes(b){
 }
 function tone(f,d,v){ if(window.MZN&&MZN.tone) MZN.tone(f,d,'sine',v||.05); }
 
-/* ============ STATE ============ */
 var allFiles=[];
 var currentFilter='all';
 var currentSearch='';
 var selectedFiles=[];
 
-/* ============ FILE HELPERS ============ */
 function fileClass(name, mime){
   name=(name||'').toLowerCase();
   mime=(mime||'').toLowerCase();
@@ -254,7 +244,6 @@ function fileExt(name){
   return e.length>4 ? e.slice(0,4) : e;
 }
 
-/* ============ LOAD ============ */
 async function loadFiles(){
   var listEl=document.getElementById('fileList');
   listEl.innerHTML='<div class="loading" style="grid-column:1/-1"><div class="spin"></div><div>جارٍ التحميل...</div></div>';
@@ -271,7 +260,6 @@ async function loadFiles(){
   }
 }
 
-/* ============ RENDER ============ */
 function renderAll(){
   computeKPIs();
   renderFilters();
@@ -367,7 +355,6 @@ function renderList(){
   document.getElementById('footerCount').textContent=filtered.length+' ملف';
 }
 
-/* ============ MODAL HELPERS ============ */
 function openModal(id){
   var m=document.getElementById(id);
   m.style.display='block';
@@ -381,7 +368,6 @@ function closeModal(id){
   setTimeout(function(){ m.style.display='none'; },350);
 }
 
-/* ============ UPLOAD ============ */
 var uploadModal=document.getElementById('uploadModal');
 uploadModal.querySelectorAll('[data-close]').forEach(function(el){
   el.addEventListener('click', function(){ closeModal('uploadModal'); });
@@ -519,7 +505,6 @@ document.getElementById('btnUpload').addEventListener('click', async function(){
   setTimeout(loadFiles, 500);
 });
 
-/* ============ PREVIEW ============ */
 function openPreview(f){
   var body=document.getElementById('previewBody');
   var cls=fileClass(f.doc_name, f.doc_mime);
@@ -562,13 +547,11 @@ document.getElementById('previewModal').querySelectorAll('[data-close]').forEach
   el.addEventListener('click', function(){ closeModal('previewModal'); });
 });
 
-/* ============ SEARCH ============ */
 document.getElementById('searchInput').addEventListener('input', function(e){
   currentSearch=e.target.value||'';
   renderList();
 });
 
-/* ============ INIT ============ */
 window.addEventListener('load', function(){
   setTimeout(loadFiles, 500);
 });
@@ -578,4 +561,4 @@ window.addEventListener('load', function(){
 
 <script src="nav.js"></script>
 </body>
-  </html>  
+</html>
