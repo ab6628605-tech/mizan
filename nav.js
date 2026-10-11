@@ -72,6 +72,7 @@ if(path!=='mizan-login.html'){
 })();
 
 var ICONS={
+vault:'<path d="M21 8v13H3V8"/><path d="M1 3h22v5H1z"/><path d="M10 12h4"/><circle cx="12" cy="18" r="1"/>',  
 vault:'<path d="M21 8v13H3V8"/><path d="M1 3h22v5H1z"/><path d="M10 12h4"/><circle cx="12" cy="18" r="1"/>',
 file:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>',
 home:'<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
@@ -96,7 +97,8 @@ var items=[
 {href:'mizan-grn.html',icon:'grn',label:'استلام'},
 {href:'mizan-suppliers.html',icon:'users',label:'موردون'},
 {href:'mizan-reports.html',icon:'chart',label:'تقارير'},
-  {href:'mizan-vault.html',icon:'vault',label:'خزنة'},
+{href:'mizan-vault.html',icon:'vault',label:'خزنة'},
+{href:'mizan-vault.html',icon:'vault',label:'خزنة'},
 {href:'mizan-settings.html',icon:'settings',label:'إعدادات'}
 ];
 
@@ -236,7 +238,7 @@ setTimeout(function(){
 }, 1200);
 
 /* ===== Load all scripts ===== */
-var V='v38';
+var V='v39';
 
 /* 1. Supabase (must be first) */
   if(!window.MZN_BRANDING_LOADED){
