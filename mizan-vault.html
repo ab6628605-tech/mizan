@@ -100,3 +100,106 @@ footer{margin-top:48px;padding-top:20px;border-top:1px solid var(--ln);display:f
 .toast-wrap{position:fixed;top:24px;left:50%;transform:translateX(-50%);z-index:2147483647;display:flex;flex-direction:column;gap:10px;align-items:center;pointer-events:none;max-width:90vw}
 </style>
 </head>
+  <body>
+
+<div class="aura"></div>
+<div class="toast-wrap" id="mznToastWrap"></div>
+
+<div class="wrap">
+<header>
+<div class="logo-text">MIZAN</div>
+<div class="tag">Vault</div>
+</header>
+
+<h1>خزنة <span>الملفات.</span></h1>
+<p style="font-size:13px;color:var(--td);line-height:1.9;margin-bottom:28px;">كل مستنداتك في مكان واحد — محفوظة، منظمة، ومربوطة بأوامر الشراء.</p>
+
+<div class="hero">
+<div class="hero-label">إجمالي الملفات المحفوظة</div>
+<div class="hero-num"><span id="totalFiles">0</span></div>
+<div class="hero-sub"><span class="dot"></span><span id="totalSize">0 B</span></div>
+</div>
+
+<div class="kpi-grid">
+<div class="kpi">
+<div class="kpi-label">صور</div>
+<div class="kpi-value ice" id="kpiImg">0</div>
+<div class="kpi-sub" id="kpiImgSize">—</div>
+</div>
+<div class="kpi">
+<div class="kpi-label">فواتير</div>
+<div class="kpi-value em" id="kpiInv">0</div>
+<div class="kpi-sub">Invoices</div>
+</div>
+<div class="kpi">
+<div class="kpi-label">PO</div>
+<div class="kpi-value gold" id="kpiPo">0</div>
+<div class="kpi-sub">أوامر شراء</div>
+</div>
+<div class="kpi">
+<div class="kpi-label">أخرى</div>
+<div class="kpi-value vi" id="kpiOther">0</div>
+<div class="kpi-sub">مستندات متنوعة</div>
+</div>
+</div>
+
+<div class="search-box">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+<input type="text" id="searchInput" placeholder="ابحث باسم الملف، الـ PO، أو المورد...">
+</div>
+
+<div class="filters" id="filtersBar"></div>
+<div class="file-list" id="fileList"></div>
+
+<footer>
+<div>MIZAN · VAULT</div>
+<div id="footerCount">— ملف</div>
+</footer>
+</div>
+
+<button class="fab" id="fabUpload" aria-label="رفع ملف">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+</button>
+
+<div class="modal" id="uploadModal">
+<div class="modal-bd" data-close></div>
+<div class="modal-sh">
+<button class="modal-x" data-close>✕</button>
+<h3>رفع ملف جديد</h3>
+<p class="modal-sub">اربط الملف بأمر شراء، صنّفه، ثم ارفعه.</p>
+
+<label class="form-label">أمر الشراء (إلزامي)</label>
+<input type="text" class="input-field" id="upPO" placeholder="PO-2025-0087" style="direction:ltr;text-align:left">
+
+<label class="form-label">المورد (اختياري)</label>
+<input type="text" class="input-field" id="upSupplier" placeholder="STC Solutions">
+
+<label class="form-label">نوع المستند</label>
+<select class="input-field" id="upDocType"></select>
+
+<label class="form-label">ملاحظات (اختياري)</label>
+<textarea class="input-field" id="upNotes" placeholder="أي ملاحظات على الملف..."></textarea>
+
+<label class="form-label">الملفات</label>
+<div class="dropzone" id="dropzone">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+<p>اسحب الملفات هنا أو <strong>اضغط للاختيار</strong></p>
+<p style="font-size:11px;color:var(--tm);margin-top:6px;">حتى 5 ميجا لكل ملف · حتى 20 ميجا في الجلسة</p>
+<input type="file" id="fileInput" multiple>
+</div>
+<div id="pickedFiles"></div>
+
+<button class="btn-primary" id="btnUpload" disabled>
+<span id="btnUploadText">اختر ملفات أولاً</span>
+</button>
+</div>
+</div>
+
+<div class="modal" id="previewModal">
+<div class="modal-bd" data-close></div>
+<div class="modal-sh">
+<button class="modal-x" data-close>✕</button>
+<div id="previewBody"></div>
+</div>
+  </div>
+    
