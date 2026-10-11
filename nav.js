@@ -232,7 +232,7 @@ setTimeout(function(){
 }, 1200);
 
 /* ===== Load all scripts ===== */
-var V='v35';
+var V='v36';
 
 /* 1. Supabase (must be first) */
   if(!window.MZN_BRANDING_LOADED){
@@ -279,6 +279,13 @@ setTimeout(function(){
   nScript.src='notify.js?'+V;
   nScript.async=true;
   document.head.appendChild(nScript);
+}
+  if(!window.MZN_SETTINGS_LOADED){
+  window.MZN_SETTINGS_LOADED=true;
+  var setScript=document.createElement('script');
+  setScript.src='settings.js?'+V;
+  setScript.async=true;
+  document.head.appendChild(setScript);
 }
   if(!window.MZN_APPROVE_LOADED){
   window.MZN_APPROVE_LOADED=true;
