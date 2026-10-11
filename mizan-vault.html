@@ -202,4 +202,380 @@ footer{margin-top:48px;padding-top:20px;border-top:1px solid var(--ln);display:f
 <div id="previewBody"></div>
 </div>
   </div>
-    
+  
+<script>
+(function(){
+'use strict';
+
+/* ============ HELPERS ============ */
+function toast(m,t){
+  var wrap=document.getElementById('mznToastWrap');
+  if(!wrap) return;
+  var colors={info:'#9DC4E8',success:'#6EE7A0',warning:'#F0C474',danger:'#F0A0B0'};
+  var color=colors[t]||colors.info;
+  var el=document.createElement('div');
+  el.style.cssText='padding:12px 22px;border-radius:99px;background:rgba(14,16,24,.95);backdrop-filter:blur(20px);border:1px solid rgba(201,169,97,.25);color:#EDEDED;font-family:inherit;font-size:13px;display:flex;align-items:center;gap:10px;box-shadow:0 20px 50px rgba(0,0,0,.6);max-width:90vw';
+  el.innerHTML='<span style="width:6px;height:6px;border-radius:50%;background:'+color+';box-shadow:0 0 8px '+color+';flex-shrink:0"></span><span>'+m+'</span>';
+  wrap.appendChild(el);
+  setTimeout(function(){
+    el.style.opacity='0'; el.style.transform='translateY(-20px)';
+    el.style.transition='all .4s'; setTimeout(function(){el.remove()},400);
+  },3200);
+}
+function esc(s){return String(s||'').replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function fmtBytes(b){
+  b=parseInt(b)||0;
+  if(b<1024) return b+' B';
+  if(b<1048576) return (b/1024).toFixed(1)+' KB';
+  return (b/1048576).toFixed(2)+' MB';
+}
+function tone(f,d,v){ if(window.MZN&&MZN.tone) MZN.tone(f,d,'sine',v||.05); }
+
+/* ============ STATE ============ */
+var allFiles=[];
+var currentFilter='all';
+var currentSearch='';
+var selectedFiles=[];
+
+/* ============ FILE HELPERS ============ */
+function fileClass(name, mime){
+  name=(name||'').toLowerCase();
+  mime=(mime||'').toLowerCase();
+  if(mime.indexOf('image/')===0 || /\.(jpg|jpeg|png|gif|webp|bmp)$/.test(name)) return 'img';
+  if(mime==='application/pdf' || /\.pdf$/.test(name)) return 'pdf';
+  if(/\.(xlsx|xls|csv)$/.test(name) || mime.indexOf('spreadsheet')!==-1) return 'xls';
+  if(/\.(docx?|doc)$/.test(name) || mime.indexOf('word')!==-1) return 'doc';
+  return 'other';
+}
+function fileExt(name){
+  var parts=(name||'').split('.');
+  if(parts.length<2) return 'FILE';
+  var e=parts[parts.length-1].toUpperCase();
+  return e.length>4 ? e.slice(0,4) : e;
+}
+
+/* ============ LOAD ============ */
+async function loadFiles(){
+  var listEl=document.getElementById('fileList');
+  listEl.innerHTML='<div class="loading" style="grid-column:1/-1"><div class="spin"></div><div>جارٍ التحميل...</div></div>';
+  if(!window.MZN_VAULT){
+    listEl.innerHTML='<div class="empty" style="grid-column:1/-1">⚠️ الوحدة غير محمّلة</div>';
+    return;
+  }
+  try{
+    allFiles=await window.MZN_VAULT.listFiles({});
+    renderAll();
+  }catch(e){
+    console.warn('[MIZAN]', e);
+    listEl.innerHTML='<div class="empty" style="grid-column:1/-1">⚠️ تعذّر الاتصال بالسحابة</div>';
+  }
+}
+
+/* ============ RENDER ============ */
+function renderAll(){
+  computeKPIs();
+  renderFilters();
+  renderList();
+}
+
+function computeKPIs(){
+  var imgCount=0, imgSize=0, invCount=0, poCount=0, otherCount=0;
+  var total=0, totalSize=0;
+  allFiles.forEach(function(f){
+    total++;
+    totalSize+=parseInt(f.doc_size)||0;
+    var cls=fileClass(f.doc_name, f.doc_mime);
+    if(cls==='img'){ imgCount++; imgSize+=parseInt(f.doc_size)||0; }
+    else if(f.doc_type==='invoice') invCount++;
+    else if(f.doc_type==='po') poCount++;
+    else otherCount++;
+  });
+  document.getElementById('totalFiles').textContent=total;
+  document.getElementById('totalSize').textContent=fmtBytes(totalSize);
+  document.getElementById('kpiImg').textContent=imgCount;
+  document.getElementById('kpiImgSize').textContent=fmtBytes(imgSize);
+  document.getElementById('kpiInv').textContent=invCount;
+  document.getElementById('kpiPo').textContent=poCount;
+  document.getElementById('kpiOther').textContent=otherCount;
+}
+
+function renderFilters(){
+  var bar=document.getElementById('filtersBar');
+  var types=window.MZN_VAULT.DOC_TYPES;
+  var filters=[{k:'all',l:'الكل'}];
+  types.forEach(function(t){
+    var cnt=allFiles.filter(function(f){return f.doc_type===t.k;}).length;
+    if(cnt>0) filters.push({k:t.k, l:t.l});
+  });
+  bar.innerHTML='';
+  filters.forEach(function(f){
+    var cnt=allFiles.filter(function(i){return f.k==='all'||i.doc_type===f.k;}).length;
+    var btn=document.createElement('button');
+    btn.className='fchip'+(currentFilter===f.k?' active':'');
+    btn.innerHTML=f.l+' <span class="fcount">'+cnt+'</span>';
+    btn.addEventListener('click', function(){
+      tone(660,.06);
+      currentFilter=f.k;
+      renderAll();
+    });
+    bar.appendChild(btn);
+  });
+}
+
+function renderList(){
+  var listEl=document.getElementById('fileList');
+  var filtered=allFiles.filter(function(f){
+    if(currentFilter!=='all' && f.doc_type!==currentFilter) return false;
+    if(currentSearch){
+      var q=currentSearch.toLowerCase();
+      return (f.doc_name||'').toLowerCase().indexOf(q)!==-1 ||
+             (f.po_code||'').toLowerCase().indexOf(q)!==-1 ||
+             (f.supplier||'').toLowerCase().indexOf(q)!==-1;
+    }
+    return true;
+  });
+  if(!filtered.length){
+    listEl.innerHTML='<div class="empty" style="grid-column:1/-1">لا توجد ملفات مطابقة</div>';
+    document.getElementById('footerCount').textContent='0 ملف';
+    return;
+  }
+  listEl.innerHTML='';
+  filtered.forEach(function(f){
+    var cls=fileClass(f.doc_name, f.doc_mime);
+    var ext=fileExt(f.doc_name);
+    var card=document.createElement('div');
+    card.className='file-card';
+    card.innerHTML=
+      '<div class="file-head">'+
+        '<div class="file-icon '+cls+'">'+esc(ext)+'</div>'+
+        '<div class="file-info">'+
+          '<div class="file-name">'+esc(f.doc_name||'—')+'</div>'+
+          '<div class="file-meta">'+fmtBytes(f.doc_size)+'</div>'+
+        '</div>'+
+      '</div>'+
+      '<div><span class="file-doc-type">'+esc(window.MZN_VAULT.docLabel(f.doc_type))+'</span></div>'+
+      '<div class="file-foot">'+
+        '<span class="file-po">'+esc(f.po_code||'—')+'</span>'+
+        '<span class="file-size">'+esc((f.created_at||'').slice(0,10))+'</span>'+
+      '</div>';
+    card.addEventListener('click', function(){
+      tone(660,.08);
+      openPreview(f);
+    });
+    listEl.appendChild(card);
+  });
+  document.getElementById('footerCount').textContent=filtered.length+' ملف';
+}
+
+/* ============ MODAL HELPERS ============ */
+function openModal(id){
+  var m=document.getElementById(id);
+  m.style.display='block';
+  document.body.style.overflow='hidden';
+  requestAnimationFrame(function(){ m.classList.add('show'); });
+}
+function closeModal(id){
+  var m=document.getElementById(id);
+  m.classList.remove('show');
+  document.body.style.overflow='';
+  setTimeout(function(){ m.style.display='none'; },350);
+}
+
+/* ============ UPLOAD ============ */
+var uploadModal=document.getElementById('uploadModal');
+uploadModal.querySelectorAll('[data-close]').forEach(function(el){
+  el.addEventListener('click', function(){ closeModal('uploadModal'); });
+});
+
+(function(){
+  var sel=document.getElementById('upDocType');
+  window.MZN_VAULT.DOC_TYPES.forEach(function(t){
+    var opt=document.createElement('option');
+    opt.value=t.k;
+    opt.textContent=t.l;
+    sel.appendChild(opt);
+  });
+})();
+
+document.getElementById('fabUpload').addEventListener('click', function(){
+  tone(660,.1);
+  openModal('uploadModal');
+});
+
+var dropzone=document.getElementById('dropzone');
+var fileInput=document.getElementById('fileInput');
+dropzone.addEventListener('click', function(){ fileInput.click(); });
+['dragenter','dragover'].forEach(function(ev){
+  dropzone.addEventListener(ev, function(e){
+    e.preventDefault(); e.stopPropagation();
+    dropzone.classList.add('dragging');
+  });
+});
+['dragleave','drop'].forEach(function(ev){
+  dropzone.addEventListener(ev, function(e){
+    e.preventDefault(); e.stopPropagation();
+    dropzone.classList.remove('dragging');
+  });
+});
+dropzone.addEventListener('drop', function(e){
+  if(e.dataTransfer && e.dataTransfer.files) addFiles(e.dataTransfer.files);
+});
+fileInput.addEventListener('change', function(e){
+  if(e.target.files) addFiles(e.target.files);
+  fileInput.value='';
+});
+
+function addFiles(files){
+  Array.from(files).forEach(function(f){
+    if(f.size > window.MZN_VAULT.MAX_SIZE){
+      toast('⚠️ '+f.name+' كبير جداً (حد 5 MB)','warning');
+      return;
+    }
+    if(selectedFiles.some(function(x){return x.name===f.name && x.size===f.size;})) return;
+    selectedFiles.push(f);
+  });
+  renderPicked();
+  tone(880,.08);
+}
+
+function renderPicked(){
+  var cont=document.getElementById('pickedFiles');
+  cont.innerHTML='';
+  var totalSize=0;
+  selectedFiles.forEach(function(f, i){
+    totalSize+=f.size;
+    var div=document.createElement('div');
+    div.className='file-picked';
+    div.innerHTML='<span class="name">'+esc(f.name)+'</span><span class="size">'+fmtBytes(f.size)+'</span><button data-i="'+i+'">✕</button>';
+    div.querySelector('button').addEventListener('click', function(e){
+      e.stopPropagation();
+      selectedFiles.splice(i,1);
+      renderPicked();
+    });
+    cont.appendChild(div);
+  });
+  var btn=document.getElementById('btnUpload');
+  var txt=document.getElementById('btnUploadText');
+  if(!selectedFiles.length){
+    btn.disabled=true;
+    txt.textContent='اختر ملفات أولاً';
+  } else if(totalSize > window.MZN_VAULT.MAX_BATCH){
+    btn.disabled=true;
+    txt.textContent='⚠️ تجاوزت حد 20 MB';
+  } else {
+    btn.disabled=false;
+    txt.textContent='رفع '+selectedFiles.length+' ملف ('+fmtBytes(totalSize)+')';
+  }
+}
+
+document.getElementById('btnUpload').addEventListener('click', async function(){
+  var poCode=(document.getElementById('upPO').value||'').trim();
+  if(!poCode){
+    toast('⚠️ أدخل رقم أمر الشراء (PO)','warning');
+    tone(330,.15);
+    return;
+  }
+  if(!selectedFiles.length) return;
+
+  var supplier=(document.getElementById('upSupplier').value||'').trim();
+  var docType=document.getElementById('upDocType').value;
+  var notes=(document.getElementById('upNotes').value||'').trim();
+
+  var btn=this;
+  var btnText=document.getElementById('btnUploadText');
+  btn.disabled=true;
+
+  var success=0, failed=0, savedBytes=0;
+  for(var i=0;i<selectedFiles.length;i++){
+    var f=selectedFiles[i];
+    btnText.innerHTML='<span class="spin2"></span> رفع '+(i+1)+'/'+selectedFiles.length+'...';
+    try{
+      var res=await window.MZN_VAULT.uploadFile(f, {
+        po_code:poCode, supplier:supplier, doc_type:docType, notes:notes
+      });
+      success++;
+      savedBytes+=res.savedBytes||0;
+    }catch(e){
+      console.warn('[MIZAN]', e);
+      failed++;
+    }
+  }
+
+  if(success>0){
+    tone(880,.12); setTimeout(function(){tone(1174,.15)},90);
+    var msg='✅ رُفع '+success+' ملف';
+    if(savedBytes>0) msg+=' · وفّرنا '+fmtBytes(savedBytes);
+    toast(msg, 'success');
+  }
+  if(failed>0) toast('⚠️ فشل '+failed+' ملف','warning');
+
+  selectedFiles=[];
+  renderPicked();
+  document.getElementById('upPO').value='';
+  document.getElementById('upSupplier').value='';
+  document.getElementById('upNotes').value='';
+
+  closeModal('uploadModal');
+  setTimeout(loadFiles, 500);
+});
+
+/* ============ PREVIEW ============ */
+function openPreview(f){
+  var body=document.getElementById('previewBody');
+  var cls=fileClass(f.doc_name, f.doc_mime);
+  var previewHTML='';
+  if(cls==='img'){
+    previewHTML='<img src="'+esc(f.doc_url)+'" style="width:100%;border-radius:12px;margin-bottom:14px;" alt="">';
+  } else if(cls==='pdf'){
+    previewHTML='<iframe src="'+esc(f.doc_url)+'" style="width:100%;height:50vh;border-radius:12px;border:none;margin-bottom:14px;background:#fff;"></iframe>';
+  }
+
+  body.innerHTML=
+    '<h3>'+esc(f.doc_name)+'</h3>'+
+    '<p class="modal-sub">'+esc(window.MZN_VAULT.docLabel(f.doc_type))+' · '+fmtBytes(f.doc_size)+'</p>'+
+    previewHTML+
+    '<div style="background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:14px;margin-bottom:16px">'+
+      '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px"><span style="color:var(--td)">أمر الشراء</span><span style="color:var(--gb);font-family:Inter">'+esc(f.po_code||'—')+'</span></div>'+
+      '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px"><span style="color:var(--td)">المورد</span><span>'+esc(f.supplier||'—')+'</span></div>'+
+      '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px"><span style="color:var(--td)">تاريخ الرفع</span><span style="font-family:Inter">'+esc((f.created_at||'').slice(0,10))+'</span></div>'+
+      '<div style="display:flex;justify-content:space-between;padding:6px 0;font-size:12px"><span style="color:var(--td)">الحجم</span><span style="font-family:Inter">'+fmtBytes(f.doc_size)+'</span></div>'+
+      (f.notes?'<div style="padding-top:8px;margin-top:8px;border-top:1px solid rgba(255,255,255,.04);font-size:12px;color:var(--td);line-height:1.7">'+esc(f.notes)+'</div>':'')+
+    '</div>'+
+    '<a href="'+esc(f.doc_url)+'" download style="display:block;width:100%;padding:14px;border-radius:99px;background:linear-gradient(135deg,var(--gb),var(--gold));color:#08090E;font-weight:600;font-size:14px;text-align:center;text-decoration:none;margin-bottom:10px;box-sizing:border-box">تحميل الملف</a>'+
+    '<button style="width:100%;padding:13px;border-radius:99px;background:transparent;color:var(--rose);font-size:13px;border:1px solid rgba(240,160,176,.3);cursor:pointer;font-family:inherit" id="delBtn">🗑 حذف الملف</button>';
+
+  document.getElementById('delBtn').addEventListener('click', async function(){
+    if(!confirm('حذف الملف نهائياً؟')) return;
+    try{
+      await window.MZN_VAULT.deleteFile(f);
+      toast('🗑 حُذف الملف','success');
+      closeModal('previewModal');
+      setTimeout(loadFiles, 300);
+    }catch(e){
+      toast('⚠️ فشل الحذف','warning');
+    }
+  });
+
+  openModal('previewModal');
+}
+document.getElementById('previewModal').querySelectorAll('[data-close]').forEach(function(el){
+  el.addEventListener('click', function(){ closeModal('previewModal'); });
+});
+
+/* ============ SEARCH ============ */
+document.getElementById('searchInput').addEventListener('input', function(e){
+  currentSearch=e.target.value||'';
+  renderList();
+});
+
+/* ============ INIT ============ */
+window.addEventListener('load', function(){
+  setTimeout(loadFiles, 500);
+});
+
+})();
+</script>
+
+<script src="nav.js"></script>
+</body>
+  </html>  
