@@ -31,7 +31,31 @@ function fmtBytes(b){
   return (b/1048576).toFixed(2)+' MB';
 }
 function tone(f,d,v){ if(window.MZN&&MZN.tone) MZN.tone(f,d,'sine',v||0.05); }
-function toast(m,t){ if(window.MZN&&MZN.toast) MZN.toast(m,t||'info'); }
+function toast(m,t){
+  /* 1. جرّب MZN */
+  if(window.MZN && typeof MZN.toast === 'function'){
+    MZN.toast(m, t||'info');
+    return;
+  }
+  /* 2. جرّب mznToastWrap مباشرة */
+  var wrap = document.getElementById('mznToastWrap');
+  if(wrap){
+    var colors = {info:'#9DC4E8', success:'#6EE7A0', warning:'#F0C474', danger:'#F0A0B0'};
+    var color = colors[t] || colors.info;
+    var el = document.createElement('div');
+    el.style.cssText = 'padding:12px 22px;border-radius:99px;background:rgba(14,16,24,.95);backdrop-filter:blur(20px);border:1px solid rgba(201,169,97,.25);color:#EDEDED;font-size:13px;display:flex;align-items:center;gap:10px;max-width:90vw;box-shadow:0 20px 50px rgba(0,0,0,.6)';
+    el.innerHTML = '<span style="width:6px;height:6px;border-radius:50%;background:'+color+';box-shadow:0 0 8px '+color+';flex-shrink:0"></span><span>'+m+'</span>';
+    wrap.appendChild(el);
+    setTimeout(function(){
+      el.style.opacity='0'; el.style.transition='all .4s';
+      setTimeout(function(){el.remove()},400);
+    },3200);
+    return;
+  }
+  /* 3. Fallback */
+  console.log('[MIZAN Toast]', t||'info', m);
+  if(t==='danger' || t==='warning') alert(m);
+                                                                           }
 
 /* ============ DOC TYPES ============ */
 var DOC_TYPES=[
