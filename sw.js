@@ -3,8 +3,8 @@
    الإصدار: v35
    ============================================================ */
 
-const CACHE = 'mizan-v35';
-const RUNTIME = 'mizan-runtime-v35';
+const CACHE = 'mizan-v36';
+const RUNTIME = 'mizan-runtime-v36';
 
 /* الملفات الأساسية — بدون theme.js */
 const PRECACHE = [
