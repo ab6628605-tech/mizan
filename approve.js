@@ -129,41 +129,41 @@ function pushNotify(title, body){
 function showSuccessModal(record, cloudSaved){
   var w=document.createElement('div');
   w.id='mznApproveModal';
-  w.style.cssText='position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.88);backdrop-filter:blur(12px);font-family:"IBM Plex Sans Arabic",sans-serif;animation:mznFadeIn .3s';
+  w.style.cssText='position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:20px;background:rgb(var(--ov) / calc(.88 * var(--ovk)));backdrop-filter:blur(12px);font-family:"IBM Plex Sans Arabic",sans-serif;animation:mznFadeIn .3s';
   w.innerHTML=
     '<style>@keyframes mznFadeIn{from{opacity:0}to{opacity:1}}@keyframes mznPop{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}</style>'+
-    '<div style="background:linear-gradient(180deg,#0E1018,#08090E);border:1px solid rgba(110,231,160,.3);border-radius:24px;padding:32px 24px;max-width:460px;width:100%;text-align:center;box-shadow:0 30px 80px rgba(0,0,0,.8);animation:mznPop .35s cubic-bezier(.16,1,.3,1);max-height:90vh;overflow-y:auto">'+
-      '<div style="width:80px;height:80px;margin:0 auto 20px;border-radius:50%;background:linear-gradient(135deg,rgba(110,231,160,.2),rgba(110,231,160,.05));border:2px solid rgba(110,231,160,.4);display:flex;align-items:center;justify-content:center;color:#6EE7A0;box-shadow:0 0 40px rgba(110,231,160,.4);animation:mznPop .5s cubic-bezier(.16,1.5,.3,1)">'+
+    '<div style="background:linear-gradient(180deg,var(--surface),var(--bg));border:1px solid rgba(110,231,160,.3);border-radius:24px;padding:32px 24px;max-width:460px;width:100%;text-align:center;box-shadow:0 30px 80px rgb(var(--sh) / calc(.8 * var(--shk)));animation:mznPop .35s cubic-bezier(.16,1,.3,1);max-height:90vh;overflow-y:auto">'+
+      '<div style="width:80px;height:80px;margin:0 auto 20px;border-radius:50%;background:linear-gradient(135deg,rgba(110,231,160,.2),rgba(110,231,160,.05));border:2px solid rgba(110,231,160,.4);display:flex;align-items:center;justify-content:center;color:var(--em);box-shadow:0 0 40px rgba(110,231,160,.4);animation:mznPop .5s cubic-bezier(.16,1.5,.3,1)">'+
         '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'+
       '</div>'+
-      '<h2 style="color:#6EE7A0;font-size:22px;font-weight:500;margin:0 0 10px">تم اعتماد القرار</h2>'+
-      '<p style="color:#7A8090;font-size:13.5px;line-height:1.8;margin:0 0 24px">تم تسجيل القرار بنجاح'+(cloudSaved?' وحفظه في السحابة ☁️':' محلياً')+'</p>'+
-      '<div style="background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:18px;margin-bottom:20px;text-align:right">'+
-        '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05)">'+
-          '<span style="font-size:11px;letter-spacing:.15em;color:#4A5060;text-transform:uppercase">الرقم</span>'+
-          '<span style="font-family:Inter;font-size:12px;color:#E8CE8B">'+esc(record.code)+'</span>'+
+      '<h2 style="color:var(--em);font-size:22px;font-weight:500;margin:0 0 10px">تم اعتماد القرار</h2>'+
+      '<p style="color:var(--td);font-size:13.5px;line-height:1.8;margin:0 0 24px">تم تسجيل القرار بنجاح'+(cloudSaved?' وحفظه في السحابة ☁️':' محلياً')+'</p>'+
+      '<div style="background:rgb(var(--w) / calc(.02 * var(--wk)));border:1px solid rgb(var(--w) / calc(.06 * var(--wk)));border-radius:16px;padding:18px;margin-bottom:20px;text-align:right">'+
+        '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgb(var(--w) / calc(.05 * var(--wk)))">'+
+          '<span style="font-size:11px;letter-spacing:.15em;color:var(--tm);text-transform:uppercase">الرقم</span>'+
+          '<span style="font-family:Inter;font-size:12px;color:var(--gb)">'+esc(record.code)+'</span>'+
         '</div>'+
-        '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05)">'+
-          '<span style="font-size:11px;letter-spacing:.15em;color:#4A5060;text-transform:uppercase">المورد الفائز</span>'+
-          '<span style="font-size:12.5px;color:#EDEDED;font-weight:500">'+esc(record.winner)+'</span>'+
+        '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgb(var(--w) / calc(.05 * var(--wk)))">'+
+          '<span style="font-size:11px;letter-spacing:.15em;color:var(--tm);text-transform:uppercase">المورد الفائز</span>'+
+          '<span style="font-size:12.5px;color:var(--tx);font-weight:500">'+esc(record.winner)+'</span>'+
         '</div>'+
-        '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05)">'+
-          '<span style="font-size:11px;letter-spacing:.15em;color:#4A5060;text-transform:uppercase">النتيجة</span>'+
-          '<span style="font-family:Inter;font-size:12.5px;color:#6EE7A0">'+esc(record.score)+'</span>'+
+        '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgb(var(--w) / calc(.05 * var(--wk)))">'+
+          '<span style="font-size:11px;letter-spacing:.15em;color:var(--tm);text-transform:uppercase">النتيجة</span>'+
+          '<span style="font-family:Inter;font-size:12.5px;color:var(--em)">'+esc(record.score)+'</span>'+
         '</div>'+
         '<div style="display:flex;justify-content:space-between;padding:8px 0">'+
-          '<span style="font-size:11px;letter-spacing:.15em;color:#4A5060;text-transform:uppercase">المعتمِد</span>'+
-          '<span style="font-size:12.5px;color:#EDEDED">'+esc(record.user)+'</span>'+
+          '<span style="font-size:11px;letter-spacing:.15em;color:var(--tm);text-transform:uppercase">المعتمِد</span>'+
+          '<span style="font-size:12.5px;color:var(--tx)">'+esc(record.user)+'</span>'+
         '</div>'+
       '</div>'+
       '<div style="display:flex;flex-direction:column;gap:10px">'+
-        '<a href="mizan-po.html" style="padding:14px 24px;border-radius:99px;background:linear-gradient(135deg,#E8CE8B,#C9A961);color:#08090E;font-weight:600;font-size:14px;text-decoration:none;box-shadow:0 10px 30px -8px rgba(201,169,97,.5);display:flex;align-items:center;justify-content:center;gap:8px">'+
+        '<a href="mizan-po.html" style="padding:14px 24px;border-radius:99px;background:linear-gradient(135deg,#E8CE8B,#C9A961);color:var(--btn-ink);font-weight:600;font-size:14px;text-decoration:none;box-shadow:0 10px 30px -8px rgba(201,169,97,.5);display:flex;align-items:center;justify-content:center;gap:8px">'+
           '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>'+
           'إنشاء أمر شراء'+
         '</a>'+
-        '<button id="mznApproveClose" style="padding:14px 24px;border-radius:99px;background:transparent;color:#7A8090;font-size:13.5px;border:1px solid rgba(255,255,255,.08);cursor:pointer;font-family:inherit">إغلاق</button>'+
+        '<button id="mznApproveClose" style="padding:14px 24px;border-radius:99px;background:transparent;color:var(--td);font-size:13.5px;border:1px solid rgb(var(--w) / calc(.08 * var(--wk)));cursor:pointer;font-family:inherit">إغلاق</button>'+
       '</div>'+
-      '<p style="font-size:10.5px;color:#4A5060;margin-top:16px;line-height:1.6">🔒 القرار محفوظ في السجل ومتاح للرجوع إليه لاحقاً</p>'+
+      '<p style="font-size:10.5px;color:var(--tm);margin-top:16px;line-height:1.6">🔒 القرار محفوظ في السجل ومتاح للرجوع إليه لاحقاً</p>'+
     '</div>';
   document.body.appendChild(w);
   document.getElementById('mznApproveClose').addEventListener('click', function(){ w.remove(); });

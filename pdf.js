@@ -38,7 +38,7 @@ function addExportButton(){
 
   var b=document.createElement('button');
   b.id='mznExport';
-  b.style.cssText='position:fixed;bottom:150px;left:18px;z-index:2147483644;display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:99px;background:rgba(8,9,14,.9);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid rgba(201,169,97,.3);color:#E8CE8B;font-family:Inter,"IBM Plex Sans Arabic",sans-serif;font-size:11.5px;font-weight:500;letter-spacing:.05em;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.5);transition:all .25s ease;-webkit-tap-highlight-color:rgba(201,169,97,.25)';
+  b.style.cssText='position:fixed;bottom:150px;left:18px;z-index:2147483644;display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:99px;background:rgb(var(--bg-rgb) / .9);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid rgba(201,169,97,.3);color:var(--gb);font-family:Inter,"IBM Plex Sans Arabic",sans-serif;font-size:11.5px;font-weight:500;letter-spacing:.05em;cursor:pointer;box-shadow:0 8px 24px rgb(var(--sh) / calc(.5 * var(--shk)));transition:all .25s ease;-webkit-tap-highlight-color:rgba(201,169,97,.25)';
   b.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg><span style="pointer-events:none">تصدير PDF</span>';
   b.addEventListener('click', function(e){
     e.preventDefault();

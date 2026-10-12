@@ -8,7 +8,7 @@ function ensureIndicator(){
   if(indicator) return indicator;
   indicator=document.createElement('div');
   indicator.id='mznStatus';
-  indicator.style.cssText='position:fixed;top:18px;right:18px;z-index:2147483645;display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:99px;background:rgba(8,9,14,.92);backdrop-filter:blur(18px);border:1px solid rgba(110,231,160,.3);font-family:Inter,"IBM Plex Sans Arabic",sans-serif;font-size:10px;letter-spacing:.1em;color:#6EE7A0;transition:all .3s ease;pointer-events:none';
+  indicator.style.cssText='position:fixed;top:18px;right:18px;z-index:2147483645;display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:99px;background:rgb(var(--bg-rgb) / .92);backdrop-filter:blur(18px);border:1px solid rgba(110,231,160,.3);font-family:Inter,"IBM Plex Sans Arabic",sans-serif;font-size:10px;letter-spacing:.1em;color:var(--em);transition:all .3s ease;pointer-events:none';
   indicator.innerHTML='<span style="width:6px;height:6px;border-radius:50%;background:#6EE7A0;box-shadow:0 0 8px #6EE7A0;animation:pulseDot 2s infinite"></span><span id="mznStatusText">LIVE</span>';
   document.body.appendChild(indicator);
   var st=document.createElement('style');
@@ -168,7 +168,7 @@ function addSyncButton(){
   if(document.getElementById('mznSync')) return;
   var btn=document.createElement('button');
   btn.id='mznSync';
-  btn.style.cssText='position:fixed;bottom:86px;left:18px;z-index:2147483645;width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,rgba(201,169,97,.15),rgba(201,169,97,.05));border:1px solid rgba(201,169,97,.3);color:#E8CE8B;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.4);transition:all .3s ease;font-family:inherit';
+  btn.style.cssText='position:fixed;bottom:86px;left:18px;z-index:2147483645;width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,rgba(201,169,97,.15),rgba(201,169,97,.05));border:1px solid rgba(201,169,97,.3);color:var(--gb);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 8px 24px rgb(var(--sh) / calc(.4 * var(--shk)));transition:all .3s ease;font-family:inherit';
   btn.innerHTML='<svg id="syncIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><polyline points="23 20 23 14 17 14"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>';
   btn.addEventListener('click', function(){
     if(window.MZN&&MZN.tone) MZN.tone(880,.1);

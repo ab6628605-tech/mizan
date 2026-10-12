@@ -1,10 +1,10 @@
 /* ============================================================
    MIZAN — Service Worker
-   الإصدار: v29
+   الإصدار: v31
    ============================================================ */
 
-const CACHE = 'mizan-v29';
-const RUNTIME = 'mizan-runtime-v29';
+const CACHE = 'mizan-v31';
+const RUNTIME = 'mizan-runtime-v31';
 
 /* الملفات الأساسية التي تُخزّن مسبقاً */
 const PRECACHE = [
@@ -13,6 +13,7 @@ const PRECACHE = [
   './mizan-login.html',
   './dashboard.html',
   './mizan-vault.html',
+  './theme.js',
   './icon.svg',
   './manifest.json'
 ];
@@ -21,7 +22,7 @@ const PRECACHE = [
    Install — تخزين مسبق
    ============================================================ */
 self.addEventListener('install', function(event){
-  console.log('[SW] Install v29');
+  console.log('[SW] Install v31');
   event.waitUntil(
     caches.open(CACHE).then(function(cache){
       return cache.addAll(PRECACHE).catch(function(err){
@@ -37,7 +38,7 @@ self.addEventListener('install', function(event){
    Activate — حذف الكاشات القديمة
    ============================================================ */
 self.addEventListener('activate', function(event){
-  console.log('[SW] Activate v29');
+  console.log('[SW] Activate v31');
   event.waitUntil(
     caches.keys().then(function(keys){
       return Promise.all(
@@ -140,4 +141,4 @@ self.addEventListener('message', function(event){
   }
 });
 
-console.log('[SW] MIZAN v29 loaded');
+console.log('[SW] MIZAN v31 loaded');

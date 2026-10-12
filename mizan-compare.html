@@ -6,11 +6,12 @@
 <title>MIZAN · المقارنة الذكية</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@200;300;400;500;600&family=Inter:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+<script src="theme.js"></script>
 <style>
   :root {
     --bg: #08090E;
     --surface: #0E1018;
-    --line: rgba(255,255,255,0.05);
+    --line: rgb(var(--w) / calc(0.05 * var(--wk)));
     --line-strong: rgba(201,169,97,0.2);
     --gold: #C9A961;
     --gold-bright: #E8CE8B;
@@ -56,7 +57,7 @@
     font-size: clamp(48px, 8vw, 108px);
     letter-spacing: -0.05em;
     line-height: 0.9;
-    background: linear-gradient(180deg, #FFFFFF 0%, #B8A76A 100%);
+    background: linear-gradient(180deg, var(--h1a) 0%, var(--gold) 100%);
     -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
   }
   .hero-win .accent {
@@ -73,7 +74,7 @@
     transition: all 0.5s cubic-bezier(0.16,1,0.3,1);
     cursor: pointer;
     position: relative;
-    background: linear-gradient(180deg, rgba(255,255,255,0.01), transparent);
+    background: linear-gradient(180deg, rgb(var(--w) / calc(0.01 * var(--wk))), transparent);
   }
   .sup-col:hover {
     border-color: rgba(201,169,97,0.3);
@@ -139,7 +140,7 @@
     font-size: 12px;
   }
   .bar-label { color: var(--text-mute); font-size: 11px; }
-  .bar-track { height: 3px; background: rgba(255,255,255,0.04); border-radius: 99px; overflow: hidden; }
+  .bar-track { height: 3px; background: rgb(var(--w) / calc(0.04 * var(--wk))); border-radius: 99px; overflow: hidden; }
   .bar-fill {
     height: 100%; border-radius: 99px;
     transition: width 0.6s cubic-bezier(0.16,1,0.3,1);
@@ -161,7 +162,7 @@
   input[type="range"] {
     -webkit-appearance: none;
     width: 100%; height: 2px;
-    background: rgba(255,255,255,0.06);
+    background: rgb(var(--w) / calc(0.06 * var(--wk)));
     border-radius: 99px; outline: none;
   }
   input[type="range"]::-webkit-slider-thumb {
@@ -190,7 +191,7 @@
   .btn-primary {
     padding: 14px 32px; border-radius: 99px;
     background: linear-gradient(135deg, var(--gold-bright), var(--gold), var(--copper));
-    color: #08090E; font-weight: 600; font-size: 13px;
+    color:var(--btn-ink); font-weight: 600; font-size: 13px;
     border: none; cursor: pointer; font-family: inherit;
     transition: all 0.3s cubic-bezier(0.16,1,0.3,1);
     box-shadow: 0 10px 30px -8px rgba(201,169,97,0.5);
@@ -218,7 +219,7 @@
   .btn-whatsapp {
     padding: 13px 28px; border-radius: 99px;
     background: transparent;
-    color: #6EE7A0; font-weight: 500; font-size: 13px;
+    color:var(--em); font-weight: 500; font-size: 13px;
     border: 1px solid rgba(110,231,160,0.3); cursor: pointer; font-family: inherit;
     transition: all 0.3s ease;
     display: inline-flex; align-items: center; gap: 8px;
@@ -283,12 +284,12 @@
   .toast-wrap { position: fixed; top: 24px; left: 50%; transform: translateX(-50%); z-index: 999; display: flex; flex-direction: column; gap: 10px; align-items: center; }
   .toast-min {
     padding: 12px 22px; border-radius: 99px;
-    background: rgba(14,16,24,0.95); backdrop-filter: blur(20px);
+    background: rgb(var(--surface-rgb) / 0.95); backdrop-filter: blur(20px);
     border: 1px solid rgba(201,169,97,0.2);
     font-size: 13px; color: var(--text);
     display: flex; align-items: center; gap: 12px;
     animation: fadeIn 0.5s cubic-bezier(0.16,1,0.3,1);
-    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    box-shadow: 0 20px 50px rgb(var(--sh) / calc(0.5 * var(--shk)));
     white-space: nowrap;
   }
   .dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
@@ -651,7 +652,7 @@ function renderDimensions(data) {
         <div class="bar-line">
           <span class="bar-label">${s.name.split(' ')[0]}</span>
           <div class="bar-track">
-            <div class="bar-fill" style="width: ${pct}%; background: ${isTop ? colors[s.id] : 'rgba(255,255,255,0.15)'};"></div>
+            <div class="bar-fill" style="width: ${pct}%; background: ${isTop ? colors[s.id] : 'rgb(var(--w) / calc(0.15 * var(--wk)))'};"></div>
           </div>
           <span class="bar-value" style="color: ${isTop ? colors[s.id] : 'var(--text-mute)'};">${d.display(s)}</span>
         </div>
