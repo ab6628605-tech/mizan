@@ -237,7 +237,7 @@ setTimeout(function(){
 }, 1200);
 
 /* ===== Load all scripts ===== */
-var V='v39';
+var V='v40';
 
 /* 1. Supabase (must be first) */
   if(!window.MZN_BRANDING_LOADED){
