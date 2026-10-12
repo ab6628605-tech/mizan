@@ -7,13 +7,13 @@ const CACHE = 'mizan-v34';
 const RUNTIME = 'mizan-runtime-v34';
 
 /* الملفات الأساسية التي تُخزّن مسبقاً */
+
 const PRECACHE = [
   './',
   './index.html',
   './mizan-login.html',
   './dashboard.html',
   './mizan-vault.html',
-  './theme.js',
   './icon.svg',
   './manifest.json'
 ];
