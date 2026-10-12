@@ -1,83 +1,143 @@
-/* MIZAN Service Worker */
-const CACHE = 'mizan-v28';
-const CORE = [
+/* ============================================================
+   MIZAN — Service Worker
+   الإصدار: v29
+   ============================================================ */
+
+const CACHE = 'mizan-v29';
+const RUNTIME = 'mizan-runtime-v29';
+
+/* الملفات الأساسية التي تُخزّن مسبقاً */
+const PRECACHE = [
   './',
   './index.html',
   './mizan-login.html',
-  './nav.js',
-  './app.js',
-  './actions.js',
-  './stats.js',
-  './ai.js',
-  './supabase.js'
+  './dashboard.html',
+  './mizan-vault.html',
+  './icon.svg',
+  './manifest.json'
 ];
 
-/* Install: cache core files */
-self.addEventListener('install', function(e){
-  self.skipWaiting();
-  e.waitUntil(
-    caches.open(CACHE).then(function(c){
-      return c.addAll(CORE).catch(function(){});
+/* ============================================================
+   Install — تخزين مسبق
+   ============================================================ */
+self.addEventListener('install', function(event){
+  console.log('[SW] Install v29');
+  event.waitUntil(
+    caches.open(CACHE).then(function(cache){
+      return cache.addAll(PRECACHE).catch(function(err){
+        console.warn('[SW] Precache partial fail:', err);
+      });
+    }).then(function(){
+      return self.skipWaiting();
     })
   );
 });
 
-/* Activate: clean old caches */
-self.addEventListener('activate', function(e){
-  self.clients.claim();
-  e.waitUntil(
+/* ============================================================
+   Activate — حذف الكاشات القديمة
+   ============================================================ */
+self.addEventListener('activate', function(event){
+  console.log('[SW] Activate v29');
+  event.waitUntil(
     caches.keys().then(function(keys){
       return Promise.all(
-        keys.filter(function(k){ return k !== CACHE; })
-            .map(function(k){ return caches.delete(k); })
+        keys.filter(function(k){
+          return k !== CACHE && k !== RUNTIME;
+        }).map(function(k){
+          console.log('[SW] Delete old cache:', k);
+          return caches.delete(k);
+        })
       );
+    }).then(function(){
+      return self.clients.claim();
     })
   );
 });
 
-/* Fetch: cache-first for static, network for API */
-self.addEventListener('fetch', function(e){
-  if(e.request.method !== 'GET') return;
-  var url = new URL(e.request.url);
+/* ============================================================
+   Fetch — استراتيجيات ذكية
+   ============================================================ */
+self.addEventListener('fetch', function(event){
+  const req = event.request;
+  const url = new URL(req.url);
 
-  /* Skip API calls — always go to network */
+  /* تجاهل الطلبات غير GET */
+  if(req.method !== 'GET') return;
+
+  /* تجاهل Supabase — دائماً من الشبكة */
   if(url.hostname.indexOf('supabase.co') !== -1) return;
-  if(url.hostname.indexOf('googleapis.com') !== -1) return;
-  if(url.hostname.indexOf('vercel.app') !== -1 && url.pathname.indexOf('.js') === -1 && url.pathname.indexOf('.html') === -1) return;
 
-  /* Network-first for HTML (to get latest) */
-  if(e.request.headers.get('accept') && e.request.headers.get('accept').indexOf('text/html') !== -1){
-    e.respondWith(
-      fetch(e.request).then(function(res){
-        var copy = res.clone();
-        caches.open(CACHE).then(function(c){ c.put(e.request, copy); });
+  /* تجاهل Google Fonts و Gemini — من الشبكة */
+  if(url.hostname.indexOf('googleapis.com') !== -1) return;
+  if(url.hostname.indexOf('gstatic.com') !== -1) return;
+
+  /* تجاهل التنقل بين الصفحات — من الشبكة أولاً */
+  if(req.mode === 'navigate'){
+    event.respondWith(
+      fetch(req).then(function(res){
+        const copy = res.clone();
+        caches.open(RUNTIME).then(function(cache){
+          cache.put(req, copy);
+        });
         return res;
       }).catch(function(){
-        return caches.match(e.request);
+        return caches.match(req).then(function(cached){
+          return cached || caches.match('./index.html');
+        });
       })
     );
     return;
   }
 
-  /* Cache-first for assets */
-  e.respondWith(
-    caches.match(e.request).then(function(cached){
-      if(cached) return cached;
-      return fetch(e.request).then(function(res){
-        if(res && res.status === 200 && res.type === 'basic'){
-          var copy = res.clone();
-          caches.open(CACHE).then(function(c){ c.put(e.request, copy); });
-        }
-        return res;
-      }).catch(function(){
-        return cached;
-      });
+  /* ملفات JS/CSS/SVG — Cache First */
+  if(/\.(js|css|svg|woff2?|ttf)$/i.test(url.pathname)){
+    event.respondWith(
+      caches.match(req).then(function(cached){
+        if(cached) return cached;
+        return fetch(req).then(function(res){
+          if(res && res.status === 200){
+            const copy = res.clone();
+            caches.open(CACHE).then(function(cache){
+              cache.put(req, copy);
+            });
+          }
+          return res;
+        });
+      })
+    );
+    return;
+  }
+
+  /* الباقي — Network First مع fallback */
+  event.respondWith(
+    fetch(req).then(function(res){
+      if(res && res.status === 200 && res.type === 'basic'){
+        const copy = res.clone();
+        caches.open(RUNTIME).then(function(cache){
+          cache.put(req, copy);
+        });
+      }
+      return res;
+    }).catch(function(){
+      return caches.match(req);
     })
   );
 });
 
-/* Notification click: open app */
-self.addEventListener('notificationclick', function(e){
-  e.notification.close();
-  e.waitUntil(self.clients.openWindow('/index.html'));
+/* ============================================================
+   رسائل من الصفحة
+   ============================================================ */
+self.addEventListener('message', function(event){
+  if(event.data && event.data.type === 'SKIP_WAITING'){
+    self.skipWaiting();
+  }
+  if(event.data && event.data.type === 'CLEAR_CACHE'){
+    caches.keys().then(function(keys){
+      return Promise.all(keys.map(function(k){ return caches.delete(k); }));
+    }).then(function(){
+      console.log('[SW] All caches cleared');
+    });
+  }
 });
+
+console.log('[SW] MIZAN v29 loaded');
