@@ -45,7 +45,7 @@ var DEFAULTS={
   aiNegotiation: true,
 
   /* Appearance */
-  theme: 'dark',
+  theme: 'auto',
   fontSize: 'default',
   animations: true
 };
@@ -102,28 +102,9 @@ function applySetting(k, v){
 
 /* ============ THEME ============ */
 function applyTheme(theme){
-  var html=document.documentElement;
-  html.setAttribute('data-mzn-theme', theme);
-  var existing=document.getElementById('mznThemeStyle');
-  if(!existing){
-    existing=document.createElement('style');
-    existing.id='mznThemeStyle';
-    document.head.appendChild(existing);
-  }
-  if(theme==='light'){
-    existing.textContent=
-      'html[data-mzn-theme="light"] body{background:#F5F5F7 !important;color:#111 !important}'+
-      'html[data-mzn-theme="light"] .wrap,html[data-mzn-theme="light"] .main{color:#111}'+
-      'html[data-mzn-theme="light"] h1{background:linear-gradient(180deg,#222,#666) !important;-webkit-background-clip:text !important;background-clip:text !important;-webkit-text-fill-color:transparent !important}'+
-      'html[data-mzn-theme="light"] .hero-number{background:linear-gradient(180deg,#222,#666) !important;-webkit-background-clip:text !important;background-clip:text !important;-webkit-text-fill-color:transparent !important}'+
-      'html[data-mzn-theme="light"] .card,html[data-mzn-theme="light"] .row,html[data-mzn-theme="light"] .kpi,html[data-mzn-theme="light"] .neu-card,html[data-mzn-theme="light"] .glass{background:rgba(0,0,0,.03) !important;border-color:rgba(0,0,0,.08) !important}'+
-      'html[data-mzn-theme="light"] .label,html[data-mzn-theme="light"] .eyebrow{color:#666 !important}'+
-      'html[data-mzn-theme="light"] .mzn-nav{background:rgba(255,255,255,.95) !important;border-top-color:rgba(0,0,0,.08) !important}'+
-      'html[data-mzn-theme="light"] .mzn-item{color:#666 !important}'+
-      'html[data-mzn-theme="light"] .mzn-item.active{color:#B87333 !important;background:rgba(184,115,51,.1) !important}';
-  } else {
-    existing.textContent='';
-  }
+  /* المحرك المركزي في theme.js (متغيرات CSS) — لا تعديلات !important بعد الآن */
+  if(window.MZNTheme){ window.MZNTheme.apply(theme); }
+  else { document.documentElement.setAttribute('data-mzn-theme', theme); }
 }
 
 /* ============ FONT SIZE ============ */
@@ -251,22 +232,22 @@ function renderMandatorySection(){
   sec.id='mznMandatorySection';
   sec.className='mb-16';
   sec.innerHTML=
-    '<p class="section-title" style="color:#E8CE8B">🔒 الموافقة الإلزامية</p>'+
+    '<p class="section-title" style="color:var(--gb)">🔒 الموافقة الإلزامية</p>'+
     '<p class="section-desc">قاعدة ثابتة في النظام — لا يمكن تعطيلها أو تجاوزها.</p>'+
 
     '<div class="setting-row" style="background:linear-gradient(135deg,rgba(201,169,97,.06),rgba(201,169,97,.01));border:1px solid rgba(201,169,97,.2);border-radius:16px;padding:20px;flex-direction:column;align-items:stretch;gap:12px">'+
       '<div style="display:flex;align-items:center;gap:12px">'+
-        '<div style="width:36px;height:36px;border-radius:50%;background:rgba(110,231,160,.12);border:1px solid rgba(110,231,160,.3);display:flex;align-items:center;justify-content:center;color:#6EE7A0;flex-shrink:0">'+
+        '<div style="width:36px;height:36px;border-radius:50%;background:rgba(110,231,160,.12);border:1px solid rgba(110,231,160,.3);display:flex;align-items:center;justify-content:center;color:var(--em);flex-shrink:0">'+
           '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'+
         '</div>'+
-        '<p style="font-size:14px;color:#6EE7A0;font-weight:500;margin:0">مفعّلة دائماً</p>'+
+        '<p style="font-size:14px;color:var(--em);font-weight:500;margin:0">مفعّلة دائماً</p>'+
       '</div>'+
-      '<p style="font-size:12.5px;color:#7A8090;line-height:1.8;margin:0">'+
+      '<p style="font-size:12.5px;color:var(--td);line-height:1.8;margin:0">'+
         'لا يُصدر MIZAN أي أمر شراء — مهما كان مبلغه — دون موافقتك الصريحة.<br>'+
-        'حتى لو كان المبلغ <b style="color:#E8CE8B">$1</b>، القرار النهائي لك وحدك.<br>'+
+        'حتى لو كان المبلغ <b style="color:var(--gb)">$1</b>، القرار النهائي لك وحدك.<br>'+
         'لا يوجد حد أدنى للموافقة، ولا مرور تلقائي.'+
       '</p>'+
-      '<div style="display:flex;gap:16px;font-size:11px;color:#4A5060;padding-top:8px;border-top:1px solid rgba(255,255,255,.05)">'+
+      '<div style="display:flex;gap:16px;font-size:11px;color:var(--tm);padding-top:8px;border-top:1px solid rgb(var(--w) / calc(.05 * var(--wk)))">'+
         '<span>🔒 غير قابل للتعطيل</span>'+
         '<span>🔒 غير قابل للتجاوز</span>'+
         '<span>🔒 بنية النظام</span>'+
@@ -282,7 +263,7 @@ function renderMandatorySection(){
         '<p class="setting-hint">إشعار خفيف للمبالغ الصغيرة</p>'+
       '</div>'+
       '<div style="display:flex;align-items:center;gap:8px">'+
-        '<span style="font-size:12px;color:#7A8090">$</span>'+
+        '<span style="font-size:12px;color:var(--td)">$</span>'+
         '<input type="number" class="input-min" id="mznSetAlertSmall" style="max-width:120px;text-align:left;direction:ltr">'+
       '</div>'+
     '</div>'+
@@ -293,7 +274,7 @@ function renderMandatorySection(){
         '<p class="setting-hint">إشعار قوي + اهتزاز للمبالغ الكبيرة</p>'+
       '</div>'+
       '<div style="display:flex;align-items:center;gap:8px">'+
-        '<span style="font-size:12px;color:#7A8090">$</span>'+
+        '<span style="font-size:12px;color:var(--td)">$</span>'+
         '<input type="number" class="input-min" id="mznSetAlertLarge" style="max-width:120px;text-align:left;direction:ltr">'+
       '</div>'+
     '</div>'+
@@ -304,7 +285,7 @@ function renderMandatorySection(){
         '<p class="setting-hint">إرسال إشعار لكل الفريق عند هذا المبلغ</p>'+
       '</div>'+
       '<div style="display:flex;align-items:center;gap:8px">'+
-        '<span style="font-size:12px;color:#7A8090">$</span>'+
+        '<span style="font-size:12px;color:var(--td)">$</span>'+
         '<input type="number" class="input-min" id="mznSetAlertTeam" style="max-width:120px;text-align:left;direction:ltr">'+
       '</div>'+
     '</div>';

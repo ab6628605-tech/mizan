@@ -43,7 +43,7 @@ function toast(m,t){
     var colors = {info:'#9DC4E8', success:'#6EE7A0', warning:'#F0C474', danger:'#F0A0B0'};
     var color = colors[t] || colors.info;
     var el = document.createElement('div');
-    el.style.cssText = 'padding:12px 22px;border-radius:99px;background:rgba(14,16,24,.95);backdrop-filter:blur(20px);border:1px solid rgba(201,169,97,.25);color:#EDEDED;font-size:13px;display:flex;align-items:center;gap:10px;max-width:90vw;box-shadow:0 20px 50px rgba(0,0,0,.6)';
+    el.style.cssText = 'padding:12px 22px;border-radius:99px;background:rgb(var(--surface-rgb) / .95);backdrop-filter:blur(20px);border:1px solid rgba(201,169,97,.25);color:var(--tx);font-size:13px;display:flex;align-items:center;gap:10px;max-width:90vw;box-shadow:0 20px 50px rgb(var(--sh) / calc(.6 * var(--shk)))';
     el.innerHTML = '<span style="width:6px;height:6px;border-radius:50%;background:'+color+';box-shadow:0 0 8px '+color+';flex-shrink:0"></span><span>'+m+'</span>';
     wrap.appendChild(el);
     setTimeout(function(){

@@ -48,7 +48,7 @@ function showToast(msg, type){
   var colors = {info:'#9DC4E8', success:'#6EE7A0', warning:'#F0C474', danger:'#F0A0B0'};
   var color = colors[type] || colors.info;
   var t = document.createElement('div');
-  t.style.cssText = 'padding:12px 22px;border-radius:99px;background:rgba(14,16,24,0.96);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(201,169,97,0.25);color:#EDEDED;font-family:"IBM Plex Sans Arabic",sans-serif;font-size:13px;display:flex;align-items:center;gap:12px;box-shadow:0 20px 50px rgba(0,0,0,0.6);white-space:nowrap;animation:mznToastIn .5s cubic-bezier(.16,1,.3,1)';
+  t.style.cssText = 'padding:12px 22px;border-radius:99px;background:rgb(var(--surface-rgb) / 0.96);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(201,169,97,0.25);color:var(--tx);font-family:"IBM Plex Sans Arabic",sans-serif;font-size:13px;display:flex;align-items:center;gap:12px;box-shadow:0 20px 50px rgb(var(--sh) / calc(0.6 * var(--shk)));white-space:nowrap;animation:mznToastIn .5s cubic-bezier(.16,1,.3,1)';
   t.innerHTML = '<span style="width:6px;height:6px;border-radius:50%;background:'+color+';box-shadow:0 0 8px '+color+';flex-shrink:0"></span><span>'+msg+'</span>';
   c.appendChild(t);
   setTimeout(function(){

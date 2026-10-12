@@ -58,13 +58,13 @@ function askPermission(){
 function showDeniedHelp(){
   var w=document.createElement('div');
   w.id='mznPermHelp';
-  w.style.cssText='position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.9);backdrop-filter:blur(8px);font-family:"IBM Plex Sans Arabic",sans-serif';
+  w.style.cssText='position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:20px;background:rgb(var(--ov) / calc(.9 * var(--ovk)));backdrop-filter:blur(8px);font-family:"IBM Plex Sans Arabic",sans-serif';
   w.innerHTML=
-    '<div style="background:linear-gradient(180deg,#0E1018,#08090E);border:1px solid rgba(201,169,97,.3);border-radius:20px;padding:28px 24px;max-width:420px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.8)">'+
-      '<div style="width:56px;height:56px;margin:0 auto 16px;border-radius:50%;background:rgba(240,196,116,.12);border:1px solid rgba(240,196,116,.3);display:flex;align-items:center;justify-content:center;color:#F0C474"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>'+
-      '<h3 style="color:#E8CE8B;font-size:17px;font-weight:400;margin:0 0 10px">الإشعارات محظورة</h3>'+
-      '<p style="color:#7A8090;font-size:12.5px;line-height:1.8;margin:0 0 18px">لتفعيل الإشعارات، افتح إعدادات Chrome:<br><br>⋮ القائمة ← الإعدادات ← إعدادات الموقع ← الإشعارات ← اسمح بـ mizan-pearl-nine.vercel.app</p>'+
-      '<button id="mznCloseHelp" style="padding:12px 32px;border-radius:99px;background:linear-gradient(135deg,#E8CE8B,#C9A961);color:#08090E;font-weight:600;font-size:13px;border:none;cursor:pointer;font-family:inherit">فهمت</button>'+
+    '<div style="background:linear-gradient(180deg,var(--surface),var(--bg));border:1px solid rgba(201,169,97,.3);border-radius:20px;padding:28px 24px;max-width:420px;width:100%;text-align:center;box-shadow:0 20px 60px rgb(var(--sh) / calc(.8 * var(--shk)))">'+
+      '<div style="width:56px;height:56px;margin:0 auto 16px;border-radius:50%;background:rgba(240,196,116,.12);border:1px solid rgba(240,196,116,.3);display:flex;align-items:center;justify-content:center;color:var(--am)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>'+
+      '<h3 style="color:var(--gb);font-size:17px;font-weight:400;margin:0 0 10px">الإشعارات محظورة</h3>'+
+      '<p style="color:var(--td);font-size:12.5px;line-height:1.8;margin:0 0 18px">لتفعيل الإشعارات، افتح إعدادات Chrome:<br><br>⋮ القائمة ← الإعدادات ← إعدادات الموقع ← الإشعارات ← اسمح بـ mizan-pearl-nine.vercel.app</p>'+
+      '<button id="mznCloseHelp" style="padding:12px 32px;border-radius:99px;background:linear-gradient(135deg,#E8CE8B,#C9A961);color:var(--btn-ink);font-weight:600;font-size:13px;border:none;cursor:pointer;font-family:inherit">فهمت</button>'+
     '</div>';
   document.body.appendChild(w);
   var btn=w.querySelector('#mznCloseHelp');

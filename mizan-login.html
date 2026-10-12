@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
 <title>MIZAN · دخول</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@200;300;400;500;600&family=Inter:wght@200;300;400;500&display=swap" rel="stylesheet">
+<script src="theme.js"></script>
 <style>
 :root{--bg:#08090E;--gold:#C9A961;--gb:#E8CE8B;--copper:#B87333;--tx:#EDEDED;--td:#7A8090;--tm:#4A5060;--em:#6EE7A0;--rose:#F0A0B0}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -26,14 +27,14 @@ radial-gradient(ellipse 60% 40% at 100% 100%,rgba(157,196,232,.06),transparent 6
 .logo-brand{font-family:'Inter',sans-serif;font-size:26px;letter-spacing:.35em;color:var(--gb);font-weight:300;margin-bottom:6px}
 .logo-sub{font-size:10px;letter-spacing:.35em;color:var(--tm);text-transform:uppercase;font-weight:500}
 
-.form-card{background:linear-gradient(160deg,rgba(255,255,255,.03),rgba(255,255,255,.005));border:1px solid rgba(201,169,97,.15);border-radius:24px;padding:36px 28px;box-shadow:0 30px 80px -30px rgba(0,0,0,.8);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);position:relative;overflow:hidden}
+.form-card{background:linear-gradient(160deg,rgb(var(--w) / calc(.03 * var(--wk))),rgb(var(--w) / calc(.005 * var(--wk))));border:1px solid rgba(201,169,97,.15);border-radius:24px;padding:36px 28px;box-shadow:0 30px 80px -30px rgb(var(--sh) / calc(.8 * var(--shk)));backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);position:relative;overflow:hidden}
 .form-card::before{content:'';position:absolute;top:0;right:15%;left:15%;height:1px;background:linear-gradient(90deg,transparent,var(--gb),transparent);opacity:.5}
 .form-title{font-size:22px;font-weight:400;color:var(--tx);text-align:center;margin-bottom:6px;letter-spacing:.02em}
 .form-sub{font-size:12px;color:var(--td);text-align:center;margin-bottom:28px;line-height:1.6}
 
 .field{margin-bottom:16px}
 .field label{display:block;font-size:10px;letter-spacing:.2em;color:var(--tm);text-transform:uppercase;font-weight:500;margin-bottom:8px;padding-right:4px}
-.field input{width:100%;padding:16px 18px;border-radius:14px;background:rgba(8,9,14,.6);border:1px solid rgba(255,255,255,.06);color:var(--tx);font-size:15px;font-family:inherit;outline:none;transition:all .3s ease;text-align:right}
+.field input{width:100%;padding:16px 18px;border-radius:14px;background:rgb(var(--bg-rgb) / .6);border:1px solid rgb(var(--w) / calc(.06 * var(--wk)));color:var(--tx);font-size:15px;font-family:inherit;outline:none;transition:all .3s ease;text-align:right}
 .field input::placeholder{color:var(--tm)}
 .field input:focus{border-color:rgba(201,169,97,.5);background:rgba(201,169,97,.04);box-shadow:0 0 0 4px rgba(201,169,97,.06)}
 
@@ -42,10 +43,10 @@ radial-gradient(ellipse 60% 40% at 100% 100%,rgba(157,196,232,.06),transparent 6
 .pass-toggle{position:absolute;left:14px;top:50%;transform:translateY(-50%);background:transparent;border:none;color:var(--td);cursor:pointer;padding:6px;display:flex;align-items:center}
 .pass-toggle:active{color:var(--gb)}
 
-.btn-login{width:100%;padding:17px 24px;border-radius:99px;background:linear-gradient(135deg,var(--gb),var(--gold),var(--copper));color:#08090E;font-weight:600;font-size:15px;border:none;cursor:pointer;font-family:inherit;letter-spacing:.03em;margin-top:8px;box-shadow:0 12px 32px -8px rgba(201,169,97,.55);transition:all .3s cubic-bezier(.16,1,.3,1);position:relative;overflow:hidden}
+.btn-login{width:100%;padding:17px 24px;border-radius:99px;background:var(--grad3);color:var(--btn-ink);font-weight:600;font-size:15px;border:none;cursor:pointer;font-family:inherit;letter-spacing:.03em;margin-top:8px;box-shadow:0 12px 32px -8px rgba(201,169,97,.55);transition:all .3s cubic-bezier(.16,1,.3,1);position:relative;overflow:hidden}
 .btn-login:active{transform:scale(.97);box-shadow:0 8px 24px -8px rgba(201,169,97,.7)}
 .btn-login:disabled{opacity:.6;cursor:not-allowed}
-.btn-login::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.3),transparent);transform:translateX(-100%);transition:transform .8s}
+.btn-login::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgb(var(--w) / calc(.3 * var(--wk))),transparent);transform:translateX(-100%);transition:transform .8s}
 .btn-login:not(:disabled):hover::after{transform:translateX(100%)}
 
 .spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(8,9,14,.2);border-top-color:#08090E;border-radius:50%;animation:spin .8s linear infinite;vertical-align:middle;margin-left:8px}

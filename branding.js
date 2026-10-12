@@ -44,6 +44,28 @@ var LOGO_PATHS={
   globe: '<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>'
 };
 
+/* ============ LIGHT-MODE COLOR HELPERS ============ */
+function _lum(r,g,b){
+  var f=function(c){c/=255;return c<=0.03928?c/12.92:Math.pow((c+0.055)/1.055,2.4)};
+  return 0.2126*f(r)+0.7152*f(g)+0.0722*f(b);
+}
+function readable(hex,minRatio){
+  try{
+    var h=String(hex||'').replace('#','');
+    if(h.length===3) h=h.split('').map(function(x){return x+x}).join('');
+    var r=parseInt(h.substr(0,2),16),g=parseInt(h.substr(2,2),16),b=parseInt(h.substr(4,2),16);
+    if(isNaN(r)||isNaN(g)||isNaN(b)) return '#856210';
+    var bgL=_lum(246,241,231);
+    for(var i=0;i<40;i++){
+      var L=_lum(r,g,b);
+      if((bgL+0.05)/(L+0.05)>=minRatio) break;
+      r=Math.round(r*0.94);g=Math.round(g*0.94);b=Math.round(b*0.94);
+    }
+    var x=function(n){return ('0'+n.toString(16)).slice(-2)};
+    return '#'+x(r)+x(g)+x(b);
+  }catch(e){ return '#856210'; }
+}
+
 /* ============ APPLY BRANDING ============ */
 function applyBranding(){
   var b=current;
@@ -53,11 +75,20 @@ function applyBranding(){
     style.id='mznBrandStyle';
     document.head.appendChild(style);
   }
+  /* الليلي: ألوان الهوية كما هي — النهاري: نسخ أغمق تلقائياً لضمان تباين مقروء تحت الشمس */
   style.textContent=
-    ':root{'+
+    'html:not([data-theme="light"]){'+
     '--gold:'+b.primary+' !important;'+
     '--gb:'+b.primaryBright+' !important;'+
+    '--gold-bright:'+b.primaryBright+' !important;'+
     '--copper:'+b.copper+' !important;'+
+    '}'+
+    'html[data-theme="light"]{'+
+    '--gold:'+readable(b.primary,4.7)+' !important;'+
+    '--gb:'+readable(b.primaryBright,6.2)+' !important;'+
+    '--gold-bright:'+readable(b.primaryBright,6.2)+' !important;'+
+    '--copper:'+readable(b.copper,4.6)+' !important;'+
+    '--cu:'+readable(b.copper,4.6)+' !important;'+
     '}';
 
   document.querySelectorAll('.logo-text,.brand-title,.logo-brand').forEach(function(el){
@@ -127,19 +158,19 @@ function openProfileEditor(){
   w.id='mznProfileEditor';
   w.style.cssText='position:fixed;inset:0;z-index:2147483647;display:flex;align-items:flex-end;justify-content:center;font-family:"IBM Plex Sans Arabic",sans-serif';
   w.innerHTML=
-    '<div class="mzn-prof-bd" style="position:absolute;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)"></div>'+
-    '<div style="position:relative;width:100%;max-width:520px;background:linear-gradient(180deg,#0E1018,#08090E);border-radius:24px 24px 0 0;border-top:1px solid rgba(201,169,97,.3);padding:28px 22px 40px;box-shadow:0 -20px 60px rgba(0,0,0,.8);max-height:90vh;overflow-y:auto;animation:mznProfIn .35s cubic-bezier(.16,1,.3,1)">'+
+    '<div class="mzn-prof-bd" style="position:absolute;inset:0;background:rgb(var(--ov) / calc(.85 * var(--ovk)));backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)"></div>'+
+    '<div style="position:relative;width:100%;max-width:520px;background:linear-gradient(180deg,var(--surface),var(--bg));border-radius:24px 24px 0 0;border-top:1px solid rgba(201,169,97,.3);padding:28px 22px 40px;box-shadow:0 -20px 60px rgb(var(--sh) / calc(.8 * var(--shk)));max-height:90vh;overflow-y:auto;animation:mznProfIn .35s cubic-bezier(.16,1,.3,1)">'+
       '<style>@keyframes mznProfIn{from{transform:translateY(100%)}to{transform:translateY(0)}}'+
-      '.mzn-prof-h{font-size:19px;color:#E8CE8B;font-weight:400;margin:0 0 6px;font-family:Inter,"IBM Plex Sans Arabic",sans-serif}'+
-      '.mzn-prof-sub{font-size:12px;color:#7A8090;margin-bottom:20px;line-height:1.7}'+
-      '.mzn-prof-l{display:block;font-size:10.5px;letter-spacing:.15em;color:#4A5060;text-transform:uppercase;font-weight:500;margin:14px 0 6px}'+
-      '.mzn-prof-i{width:100%;padding:13px 16px;border-radius:12px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.08);color:#EDEDED;font-size:13.5px;font-family:inherit;outline:none;box-sizing:border-box}'+
+      '.mzn-prof-h{font-size:19px;color:var(--gb);font-weight:400;margin:0 0 6px;font-family:Inter,"IBM Plex Sans Arabic",sans-serif}'+
+      '.mzn-prof-sub{font-size:12px;color:var(--td);margin-bottom:20px;line-height:1.7}'+
+      '.mzn-prof-l{display:block;font-size:10.5px;letter-spacing:.15em;color:var(--tm);text-transform:uppercase;font-weight:500;margin:14px 0 6px}'+
+      '.mzn-prof-i{width:100%;padding:13px 16px;border-radius:12px;background:rgb(var(--w) / calc(.02 * var(--wk)));border:1px solid rgb(var(--w) / calc(.08 * var(--wk)));color:var(--tx);font-size:13.5px;font-family:inherit;outline:none;box-sizing:border-box}'+
       '.mzn-prof-i:focus{border-color:rgba(201,169,97,.5);background:rgba(201,169,97,.03)}'+
-      '.mzn-prof-x{position:absolute;top:16px;left:16px;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.04);border:none;color:#7A8090;cursor:pointer;font-size:14px}'+
+      '.mzn-prof-x{position:absolute;top:16px;left:16px;width:34px;height:34px;border-radius:50%;background:rgb(var(--w) / calc(.04 * var(--wk)));border:none;color:var(--td);cursor:pointer;font-size:14px}'+
       '.mzn-prof-acts{display:flex;gap:12px;margin-top:24px}'+
-      '.mzn-prof-save{flex:1;padding:14px 24px;border-radius:99px;background:linear-gradient(135deg,#E8CE8B,#C9A961);color:#08090E;font-weight:600;font-size:13.5px;border:none;cursor:pointer;font-family:inherit;box-shadow:0 10px 30px -8px rgba(201,169,97,.5)}'+
-      '.mzn-prof-cancel{padding:14px 22px;border-radius:99px;background:transparent;color:#7A8090;font-size:13px;border:1px solid rgba(255,255,255,.08);cursor:pointer;font-family:inherit}'+
-      '.mzn-prof-hint{font-size:10.5px;color:#4A5060;margin-top:16px;line-height:1.7;text-align:center}'+
+      '.mzn-prof-save{flex:1;padding:14px 24px;border-radius:99px;background:linear-gradient(135deg,#E8CE8B,#C9A961);color:var(--btn-ink);font-weight:600;font-size:13.5px;border:none;cursor:pointer;font-family:inherit;box-shadow:0 10px 30px -8px rgba(201,169,97,.5)}'+
+      '.mzn-prof-cancel{padding:14px 22px;border-radius:99px;background:transparent;color:var(--td);font-size:13px;border:1px solid rgb(var(--w) / calc(.08 * var(--wk)));cursor:pointer;font-family:inherit}'+
+      '.mzn-prof-hint{font-size:10.5px;color:var(--tm);margin-top:16px;line-height:1.7;text-align:center}'+
       '</style>'+
       '<button class="mzn-prof-x" id="mznProfX">✕</button>'+
       '<h3 class="mzn-prof-h">تعديل الملف الشخصي</h3>'+
@@ -335,7 +366,7 @@ function hideOldEditButton(){
   if(!profileRow.querySelector('.mzn-edit-new')){
     var newBtn=document.createElement('button');
     newBtn.className='mzn-edit-new';
-    newBtn.style.cssText='background:transparent;border:1px solid rgba(201,169,97,.35);color:#E8CE8B;font-family:inherit;font-size:11.5px;padding:9px 18px;border-radius:99px;cursor:pointer;transition:all .25s ease;letter-spacing:.03em;flex-shrink:0;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;-webkit-tap-highlight-color:rgba(201,169,97,.25);font-weight:500;order:3;margin:0 auto';
+    newBtn.style.cssText='background:transparent;border:1px solid rgba(201,169,97,.35);color:var(--gb);font-family:inherit;font-size:11.5px;padding:9px 18px;border-radius:99px;cursor:pointer;transition:all .25s ease;letter-spacing:.03em;flex-shrink:0;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;-webkit-tap-highlight-color:rgba(201,169,97,.25);font-weight:500;order:3;margin:0 auto';
     newBtn.innerHTML=
       '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none">'+
       '<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>'+

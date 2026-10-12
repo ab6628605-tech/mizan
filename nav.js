@@ -118,11 +118,11 @@ style.textContent=
 '.back,.back-link,.back-btn,.back-arrow{display:none!important}'+
 
 /* ==== New nav ==== */
-'.mzn-nav{position:fixed!important;bottom:0!important;left:0!important;right:0!important;height:66px!important;background:rgba(8,9,14,0.99)!important;backdrop-filter:blur(24px)!important;-webkit-backdrop-filter:blur(24px)!important;border-top:1px solid rgba(201,169,97,0.2)!important;display:flex!important;align-items:center!important;justify-content:space-between!important;padding:0 4px!important;z-index:2147483647!important;box-shadow:0 -12px 48px rgba(0,0,0,0.8)!important;box-sizing:border-box!important;width:100%!important}'+
+'.mzn-nav{position:fixed!important;bottom:0!important;left:0!important;right:0!important;height:66px!important;background:rgb(var(--bg-rgb) / 0.99)!important;backdrop-filter:blur(24px)!important;-webkit-backdrop-filter:blur(24px)!important;border-top:1px solid rgba(201,169,97,0.2)!important;display:flex!important;align-items:center!important;justify-content:space-between!important;padding:0 4px!important;z-index:2147483647!important;box-shadow:0 -12px 48px rgb(var(--sh) / calc(0.8 * var(--shk)))!important;box-sizing:border-box!important;width:100%!important}'+
 '.mzn-item{display:flex!important;align-items:center!important;justify-content:center!important;flex:1 1 0!important;max-width:44px!important;height:44px!important;border-radius:12px!important;color:#5A6180!important;text-decoration:none!important;transition:all .2s ease!important;position:relative!important;margin:0!important;padding:0!important;-webkit-tap-highlight-color:rgba(201,169,97,0.2)!important;cursor:pointer!important;pointer-events:auto!important;touch-action:manipulation!important;user-select:none!important;-webkit-user-select:none!important;box-sizing:border-box!important}'+
 '.mzn-item svg{width:21px!important;height:21px!important;pointer-events:none!important;display:block!important}'+
-'.mzn-item:active{color:#E8CE8B!important;background:rgba(201,169,97,0.15)!important;transform:scale(0.92)!important}'+
-'.mzn-item.active{color:#E8CE8B!important;background:rgba(201,169,97,0.12)!important}'+
+'.mzn-item:active{color:var(--gb)!important;background:rgba(201,169,97,0.15)!important;transform:scale(0.92)!important}'+
+'.mzn-item.active{color:var(--gb)!important;background:rgba(201,169,97,0.12)!important}'+
 '.mzn-item.active::after{content:""!important;position:absolute!important;bottom:3px!important;left:50%!important;transform:translateX(-50%)!important;width:4px!important;height:4px!important;border-radius:50%!important;background:#E8CE8B!important;box-shadow:0 0 8px #E8CE8B!important}'+
 
 /* ==== Fix rows layout on mobile (RTL) ==== */
@@ -134,7 +134,7 @@ style.textContent=
 'gap:10px 16px!important;'+
 'padding:20px 8px!important;'+
 'align-items:center!important;'+
-'border-bottom:1px solid rgba(255,255,255,0.05)!important;'+
+'border-bottom:1px solid rgb(var(--w) / calc(0.05 * var(--wk)))!important;'+
 'text-align:right!important;'+
 '}'+
 '.doc-row>*:nth-child(1),.pr-row>*:nth-child(1),.po-row>*:nth-child(1){display:none!important}'+
@@ -218,7 +218,7 @@ setTimeout(function(){
   var backBtn=document.createElement('button');
   backBtn.id='mznBackBtn';
   backBtn.setAttribute('aria-label','العودة للرئيسية');
-  backBtn.style.cssText='position:fixed;top:18px;left:18px;z-index:2147483645;width:38px;height:38px;border-radius:50%;background:rgba(8,9,14,.88);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(201,169,97,.3);color:#E8CE8B;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .25s ease;-webkit-tap-highlight-color:rgba(201,169,97,.2);padding:0;box-shadow:0 8px 24px rgba(0,0,0,.5)';
+  backBtn.style.cssText='position:fixed;top:18px;left:18px;z-index:2147483645;width:38px;height:38px;border-radius:50%;background:rgb(var(--bg-rgb) / .88);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(201,169,97,.3);color:var(--gb);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .25s ease;-webkit-tap-highlight-color:rgba(201,169,97,.2);padding:0;box-shadow:0 8px 24px rgb(var(--sh) / calc(.5 * var(--shk)))';
   backBtn.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none;transform:scaleX(-1)"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>';
 
   function goHome(e){

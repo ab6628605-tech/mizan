@@ -213,7 +213,7 @@ function buildToolbar(){
   /* PDF Button */
   var pdfBtn=document.createElement('button');
   pdfBtn.className='mzn-exp-btn';
-  pdfBtn.style.cssText='pointer-events:auto;display:inline-flex;align-items:center;gap:6px;padding:10px 16px;border-radius:99px;background:rgba(8,9,14,.92);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid rgba(201,169,97,.35);color:#E8CE8B;font-family:Inter,"IBM Plex Sans Arabic",sans-serif;font-size:11.5px;font-weight:500;letter-spacing:.05em;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.5);white-space:nowrap;-webkit-tap-highlight-color:rgba(201,169,97,.25)';
+  pdfBtn.style.cssText='pointer-events:auto;display:inline-flex;align-items:center;gap:6px;padding:10px 16px;border-radius:99px;background:rgb(var(--bg-rgb) / .92);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid rgba(201,169,97,.35);color:var(--gb);font-family:Inter,"IBM Plex Sans Arabic",sans-serif;font-size:11.5px;font-weight:500;letter-spacing:.05em;cursor:pointer;box-shadow:0 8px 24px rgb(var(--sh) / calc(.5 * var(--shk)));white-space:nowrap;-webkit-tap-highlight-color:rgba(201,169,97,.25)';
   pdfBtn.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg><span style="pointer-events:none">تصدير PDF</span>';
   pdfBtn.addEventListener('click', function(e){
     e.preventDefault();
@@ -231,7 +231,7 @@ function buildToolbar(){
   /* CSV Button */
   var csvBtn=document.createElement('button');
   csvBtn.className='mzn-exp-btn';
-  csvBtn.style.cssText='pointer-events:auto;display:inline-flex;align-items:center;gap:6px;padding:10px 16px;border-radius:99px;background:rgba(8,9,14,.92);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid rgba(110,231,160,.35);color:#6EE7A0;font-family:Inter,"IBM Plex Sans Arabic",sans-serif;font-size:11.5px;font-weight:500;letter-spacing:.05em;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.5);white-space:nowrap;-webkit-tap-highlight-color:rgba(110,231,160,.25)';
+  csvBtn.style.cssText='pointer-events:auto;display:inline-flex;align-items:center;gap:6px;padding:10px 16px;border-radius:99px;background:rgb(var(--bg-rgb) / .92);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid rgba(110,231,160,.35);color:var(--em);font-family:Inter,"IBM Plex Sans Arabic",sans-serif;font-size:11.5px;font-weight:500;letter-spacing:.05em;cursor:pointer;box-shadow:0 8px 24px rgb(var(--sh) / calc(.5 * var(--shk)));white-space:nowrap;-webkit-tap-highlight-color:rgba(110,231,160,.25)';
   csvBtn.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg><span style="pointer-events:none">تصدير CSV</span>';
   csvBtn.addEventListener('click', function(e){
     e.preventDefault();
@@ -246,7 +246,7 @@ function buildToolbar(){
   if(isDetail){
     var detailBtn=document.createElement('button');
     detailBtn.className='mzn-exp-btn';
-    detailBtn.style.cssText='pointer-events:auto;display:inline-flex;align-items:center;gap:6px;padding:10px 16px;border-radius:99px;background:rgba(8,9,14,.92);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid rgba(157,196,232,.35);color:#9DC4E8;font-family:Inter,"IBM Plex Sans Arabic",sans-serif;font-size:11.5px;font-weight:500;letter-spacing:.05em;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.5);white-space:nowrap;-webkit-tap-highlight-color:rgba(157,196,232,.25)';
+    detailBtn.style.cssText='pointer-events:auto;display:inline-flex;align-items:center;gap:6px;padding:10px 16px;border-radius:99px;background:rgb(var(--bg-rgb) / .92);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid rgba(157,196,232,.35);color:var(--ice);font-family:Inter,"IBM Plex Sans Arabic",sans-serif;font-size:11.5px;font-weight:500;letter-spacing:.05em;cursor:pointer;box-shadow:0 8px 24px rgb(var(--sh) / calc(.5 * var(--shk)));white-space:nowrap;-webkit-tap-highlight-color:rgba(157,196,232,.25)';
     detailBtn.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span style="pointer-events:none">تفاصيل PDF</span>';
     detailBtn.addEventListener('click', function(e){
       e.preventDefault();
