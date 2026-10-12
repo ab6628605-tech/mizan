@@ -2,6 +2,7 @@
    MIZAN — Theme Engine (dark / light / auto)
    يُحمَّل في <head> بشكل متزامن لمنع الوميض عند فتح الصفحة.
    يقرأ الإعداد من mzn_settings.theme ويدعم: dark | light | auto
+   v2 — إصلاح ألوان الحالات والأزرار في الوضع النهاري
    ============================================================ */
 (function(){
 'use strict';
@@ -31,7 +32,7 @@ var CSS=[
 '--grad3:linear-gradient(135deg,#F1D88F,#D8B45E,#C48B3F);',
 '--btn-ink:#1C1A16;--surface-rgb:255 255 255;--ov:40 30 10;--ovk:.6;color-scheme:light}',
 
-/* ---------- تعديلات الوضع النهاري ---------- */
+/* ---------- تعديلات الوضع النهاري العامة ---------- */
 'html[data-theme="light"] body{background:var(--bg);color:var(--tx)}',
 'html[data-theme="light"] .aura{opacity:.55}',
 'html[data-theme="light"] .grain{opacity:.02}',
@@ -48,6 +49,102 @@ var CSS=[
 'html[data-theme="light"] #mznStatus span:first-child{background:#0B7A45!important;box-shadow:0 0 6px rgba(11,122,69,.5)!important}',
 'html[data-theme="light"] .mzn-nav{border-top-color:rgba(60,45,15,.16)!important}',
 'html[data-theme="light"] ::selection{background:rgba(133,98,16,.25)}',
+
+/* ============================================================
+   FIX: ألوان الحالات (Status Pills) في الوضع النهاري
+   ============================================================ */
+'html[data-theme="light"] .pill-draft{background:rgba(100,95,85,.15)!important;color:#3A362F!important;border:1px solid rgba(100,95,85,.3)!important}',
+'html[data-theme="light"] .pill-pending{background:rgba(190,130,10,.18)!important;color:#6B4500!important;border:1px solid rgba(190,130,10,.35)!important}',
+'html[data-theme="light"] .pill-approved{background:rgba(20,120,50,.15)!important;color:#0A6033!important;border:1px solid rgba(20,120,50,.35)!important}',
+'html[data-theme="light"] .pill-rejected{background:rgba(180,35,55,.15)!important;color:#8B1F30!important;border:1px solid rgba(180,35,55,.35)!important}',
+'html[data-theme="light"] .pill-converted{background:rgba(30,90,160,.15)!important;color:#1A4D82!important;border:1px solid rgba(30,90,160,.35)!important}',
+'html[data-theme="light"] .pill-sent{background:rgba(30,90,160,.15)!important;color:#1A4D82!important;border:1px solid rgba(30,90,160,.35)!important}',
+'html[data-theme="light"] .pill-confirmed{background:rgba(85,60,160,.15)!important;color:#432E80!important;border:1px solid rgba(85,60,160,.35)!important}',
+'html[data-theme="light"] .pill-progress{background:rgba(190,130,10,.18)!important;color:#6B4500!important;border:1px solid rgba(190,130,10,.35)!important}',
+'html[data-theme="light"] .pill-received{background:rgba(20,120,50,.15)!important;color:#0A6033!important;border:1px solid rgba(20,120,50,.35)!important}',
+'html[data-theme="light"] .pill-closed{background:rgba(20,100,40,.12)!important;color:#075C2A!important;border:1px solid rgba(20,100,40,.3)!important}',
+'html[data-theme="light"] .pill-cancelled{background:rgba(180,35,55,.15)!important;color:#8B1F30!important;border:1px solid rgba(180,35,55,.35)!important}',
+'html[data-theme="light"] .pill-inspect{background:rgba(85,60,160,.15)!important;color:#432E80!important;border:1px solid rgba(85,60,160,.35)!important}',
+'html[data-theme="light"] .pill-partial{background:rgba(30,90,160,.15)!important;color:#1A4D82!important;border:1px solid rgba(30,90,160,.35)!important}',
+'html[data-theme="light"] .pill-paid{background:rgba(20,120,50,.12)!important;color:#0A6033!important;border:1px solid rgba(20,120,50,.3)!important}',
+'html[data-theme="light"] .pill-unpaid{background:rgba(100,95,85,.15)!important;color:#3A362F!important;border:1px solid rgba(100,95,85,.3)!important}',
+'html[data-theme="light"] .pill-matched{background:rgba(20,120,50,.15)!important;color:#0A6033!important;border:1px solid rgba(20,120,50,.35)!important}',
+'html[data-theme="light"] .pill-variance{background:rgba(180,35,55,.15)!important;color:#8B1F30!important;border:1px solid rgba(180,35,55,.35)!important}',
+'html[data-theme="light"] .stat-pill .dot{box-shadow:none!important;opacity:.9!important}',
+
+/* ============================================================
+   FIX: Filter Chips — الفلاتر
+   ============================================================ */
+'html[data-theme="light"] .filter-chip{background:#FFFFFF!important;color:#5A5446!important;border:1px solid rgba(60,45,15,.15)!important}',
+'html[data-theme="light"] .filter-chip.active{background:#6F520A!important;color:#FFFFFF!important;border-color:#6F520A!important}',
+'html[data-theme="light"] .filter-chip .count{background:rgba(60,45,15,.08)!important;color:#5A5446!important}',
+'html[data-theme="light"] .filter-chip.active .count{background:rgba(255,255,255,.25)!important;color:#FFFFFF!important}',
+'html[data-theme="light"] .fchip{background:#FFFFFF!important;color:#5A5446!important;border:1px solid rgba(60,45,15,.15)!important}',
+'html[data-theme="light"] .fchip.active{background:#6F520A!important;color:#FFFFFF!important;border-color:#6F520A!important}',
+'html[data-theme="light"] .fchip .fcount{background:rgba(60,45,15,.08)!important;color:#5A5446!important}',
+'html[data-theme="light"] .fchip.active .fcount{background:rgba(255,255,255,.25)!important;color:#FFFFFF!important}',
+
+/* ============================================================
+   FIX: Buttons — الأزرار الرئيسية والثانوية
+   ============================================================ */
+'html[data-theme="light"] .btn-primary{background:linear-gradient(135deg,#D8A855,#B8843A)!important;color:#FFFFFF!important;border:none!important;box-shadow:0 8px 20px -6px rgba(120,80,20,.4)!important;font-weight:600!important}',
+'html[data-theme="light"] .btn-primary svg{stroke:#FFFFFF!important;fill:none!important}',
+'html[data-theme="light"] .btn-wa{background:rgba(20,120,50,.1)!important;color:#0A6033!important;border:1px solid rgba(20,120,50,.35)!important}',
+'html[data-theme="light"] .btn-outline{background:#FFFFFF!important;color:#6F520A!important;border:1px solid rgba(60,45,15,.2)!important}',
+'html[data-theme="light"] .btn-min{color:#6F520A!important}',
+
+/* ============================================================
+   FIX: FAB + Export buttons
+   ============================================================ */
+'html[data-theme="light"] .fab{background:linear-gradient(135deg,#D8A855,#B8843A)!important;color:#FFFFFF!important}',
+'html[data-theme="light"] .mzn-exp-btn{background:#FFFFFF!important;color:#4A4640!important;border:1px solid rgba(60,45,15,.18)!important;box-shadow:0 4px 12px rgba(70,50,15,.08)!important}',
+
+/* ============================================================
+   FIX: Back button + Side icons + Hero numbers
+   ============================================================ */
+'html[data-theme="light"] #mznBackBtn{background:#FFFFFF!important;color:#6F520A!important;border:1px solid rgba(60,45,15,.18)!important}',
+'html[data-theme="light"] .side-icon.active{color:#6F520A!important}',
+'html[data-theme="light"] .side-icon.active::after{background:#6F520A!important}',
+'html[data-theme="light"] .hero-num,html[data-theme="light"] .hero-number{background:linear-gradient(180deg,#1C1A16,#5A5446)!important;-webkit-background-clip:text!important;background-clip:text!important;-webkit-text-fill-color:transparent!important}',
+
+/* ============================================================
+   FIX: Tabs في المقارنة + الوقت في التقارير
+   ============================================================ */
+'html[data-theme="light"] .tab{color:#5A5446!important}',
+'html[data-theme="light"] .tab.active{background:rgba(133,98,16,.12)!important;color:#6F520A!important}',
+'html[data-theme="light"] .time-chip{color:#5A5446!important}',
+'html[data-theme="light"] .time-chip.active{background:rgba(133,98,16,.15)!important;color:#6F520A!important;border:1px solid rgba(133,98,16,.3)!important}',
+
+/* ============================================================
+   FIX: Toasts + Modals + Toggles + Inputs
+   ============================================================ */
+'html[data-theme="light"] .toast-min{background:rgba(255,255,255,.98)!important;border-color:rgba(60,45,15,.15)!important;color:#1C1A16!important;box-shadow:0 10px 30px rgba(70,50,15,.15)!important}',
+'html[data-theme="light"] .modal-sh{background:linear-gradient(180deg,#FFFFFF,#F6F1E7)!important;border-top-color:rgba(133,98,16,.3)!important}',
+'html[data-theme="light"] .modal-bd{background:rgba(40,30,10,.6)!important}',
+'html[data-theme="light"] .input-field,html[data-theme="light"] .mzn-prof-i{background:#FFFFFF!important;border-color:rgba(60,45,15,.2)!important;color:#1C1A16!important}',
+'html[data-theme="light"] .toggle{background:rgba(60,45,15,.15)!important}',
+'html[data-theme="light"] .toggle.on{background:linear-gradient(135deg,#D8B45E,#C48B3F)!important;border-color:#A06B20!important}',
+'html[data-theme="light"] .status-badge{background:rgba(20,120,50,.12)!important;color:#0A6033!important}',
+
+/* ============================================================
+   FIX: بطاقات الموردين + التقارير + الخزنة
+   ============================================================ */
+'html[data-theme="light"] .stat-mini-value{color:#1C1A16!important}',
+'html[data-theme="light"] .cat-name{color:#1C1A16!important}',
+'html[data-theme="light"] .cat-value{color:#6F520A!important}',
+'html[data-theme="light"] .sup-name{color:#1C1A16!important}',
+'html[data-theme="light"] .kpi-value{color:#1C1A16!important}',
+'html[data-theme="light"] .kpi-value.gold{color:#6F520A!important}',
+'html[data-theme="light"] .kpi-value.em{color:#0A6033!important}',
+'html[data-theme="light"] .kpi-value.ice{color:#1A4D82!important}',
+'html[data-theme="light"] .kpi-value.vi{color:#432E80!important}',
+'html[data-theme="light"] .kpi-value.amber{color:#6B4500!important}',
+'html[data-theme="light"] .hero-sub{color:#0A6033!important}',
+
+/* ============================================================
+   FIX: المقارنة — أزرار الإجراءات
+   ============================================================ */
+'html[data-theme="light"] .btn-min:hover{color:#1C1A16!important}',
 
 /* ---------- زر تبديل الوضع السريع ---------- */
 '#mznThemeBtn{position:fixed;top:18px;right:92px;z-index:2147483645;width:30px;height:30px;border-radius:50%;',
