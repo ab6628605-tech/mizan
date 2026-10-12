@@ -1,13 +1,12 @@
 /* ============================================================
    MIZAN — Service Worker
-   الإصدار: v31
+   الإصدار: v35
    ============================================================ */
 
-const CACHE = 'mizan-v34';
-const RUNTIME = 'mizan-runtime-v34';
+const CACHE = 'mizan-v35';
+const RUNTIME = 'mizan-runtime-v35';
 
-/* الملفات الأساسية التي تُخزّن مسبقاً */
-
+/* الملفات الأساسية — بدون theme.js */
 const PRECACHE = [
   './',
   './index.html',
@@ -19,7 +18,7 @@ const PRECACHE = [
 ];
 
 /* ============================================================
-   Install — تخزين مسبق
+   Install
    ============================================================ */
 self.addEventListener('install', function(event){
   console.log('[SW] Install v35');
@@ -35,7 +34,7 @@ self.addEventListener('install', function(event){
 });
 
 /* ============================================================
-   Activate — حذف الكاشات القديمة
+   Activate
    ============================================================ */
 self.addEventListener('activate', function(event){
   console.log('[SW] Activate v35');
@@ -56,23 +55,18 @@ self.addEventListener('activate', function(event){
 });
 
 /* ============================================================
-   Fetch — استراتيجيات ذكية
+   Fetch
    ============================================================ */
 self.addEventListener('fetch', function(event){
   const req = event.request;
   const url = new URL(req.url);
 
-  /* تجاهل الطلبات غير GET */
   if(req.method !== 'GET') return;
-
-  /* تجاهل Supabase — دائماً من الشبكة */
   if(url.hostname.indexOf('supabase.co') !== -1) return;
-
-  /* تجاهل Google Fonts و Gemini — من الشبكة */
   if(url.hostname.indexOf('googleapis.com') !== -1) return;
   if(url.hostname.indexOf('gstatic.com') !== -1) return;
 
-  /* تجاهل التنقل بين الصفحات — من الشبكة أولاً */
+  /* التنقل — من الشبكة أولاً */
   if(req.mode === 'navigate'){
     event.respondWith(
       fetch(req).then(function(res){
@@ -90,20 +84,19 @@ self.addEventListener('fetch', function(event){
     return;
   }
 
-  /* ملفات JS/CSS/SVG — Cache First */
+  /* ملفات JS/CSS/SVG — Network First (لتحديث أسرع) */
   if(/\.(js|css|svg|woff2?|ttf)$/i.test(url.pathname)){
     event.respondWith(
-      caches.match(req).then(function(cached){
-        if(cached) return cached;
-        return fetch(req).then(function(res){
-          if(res && res.status === 200){
-            const copy = res.clone();
-            caches.open(CACHE).then(function(cache){
-              cache.put(req, copy);
-            });
-          }
-          return res;
-        });
+      fetch(req).then(function(res){
+        if(res && res.status === 200){
+          const copy = res.clone();
+          caches.open(CACHE).then(function(cache){
+            cache.put(req, copy);
+          });
+        }
+        return res;
+      }).catch(function(){
+        return caches.match(req);
       })
     );
     return;
@@ -141,4 +134,4 @@ self.addEventListener('message', function(event){
   }
 });
 
-console.log('[SW] MIZAN v31 loaded');
+console.log('[SW] MIZAN v35 loaded');
