@@ -2,7 +2,7 @@
    MIZAN — Theme Engine (dark / light / auto)
    يُحمَّل في <head> بشكل متزامن لمنع الوميض عند فتح الصفحة.
    يقرأ الإعداد من mzn_settings.theme ويدعم: dark | light | auto
-   v3 — إصلاح ألوان الحالات via injectLate (يتغلّب على CSS الصفحات)
+   v4 — إصلاح حلقة MutationObserver اللانهائية
    ============================================================ */
 (function(){
 'use strict';
@@ -21,7 +21,7 @@ var CSS=[
 '--grad3:linear-gradient(135deg,#E8CE8B,#C9A961,#B87333);',
 '--btn-ink:#08090E;--surface-rgb:14 16 24;--ov:0 0 0;--ovk:1;color-scheme:dark}',
 
-/* ---------- Tokens: الوضع النهاري (عاجي دافئ، تباين WCAG AA) ---------- */
+/* ---------- Tokens: الوضع النهاري ---------- */
 'html[data-theme="light"]{',
 '--bg:#F6F1E7;--bg-rgb:246 241 231;--surface:#FFFFFF;',
 '--tx:#1C1A16;--td:#5A5446;--tm:#6B6455;--ln:rgba(60,45,15,.13);',
@@ -39,14 +39,9 @@ var CSS=[
 'html[data-theme="light"] body{background:var(--bg);color:var(--tx)}',
 'html[data-theme="light"] .aura{opacity:.55}',
 'html[data-theme="light"] .grain{opacity:.02}',
-'html[data-theme="light"] .card,html[data-theme="light"] .file-card,html[data-theme="light"] .file-item,',
-'html[data-theme="light"] .form-card,html[data-theme="light"] .kpi,html[data-theme="light"] .row,',
-'html[data-theme="light"] .sample{background:#FFFFFF!important;border-color:var(--ln)!important;',
-'box-shadow:0 1px 2px rgba(70,50,15,.06),0 10px 28px -14px rgba(70,50,15,.18)}',
-'html[data-theme="light"] input,html[data-theme="light"] select,html[data-theme="light"] textarea{',
-'border-color:rgba(60,45,15,.28);background-color:#FFFFFF;color:var(--tx)}',
-'html[data-theme="light"] input:focus,html[data-theme="light"] select:focus,html[data-theme="light"] textarea:focus{',
-'border-color:var(--gold)!important;box-shadow:0 0 0 3px rgba(133,98,16,.18)!important}',
+'html[data-theme="light"] .card,html[data-theme="light"] .file-card,html[data-theme="light"] .file-item,html[data-theme="light"] .form-card,html[data-theme="light"] .kpi,html[data-theme="light"] .row,html[data-theme="light"] .sample{background:#FFFFFF!important;border-color:var(--ln)!important;box-shadow:0 1px 2px rgba(70,50,15,.06),0 10px 28px -14px rgba(70,50,15,.18)}',
+'html[data-theme="light"] input,html[data-theme="light"] select,html[data-theme="light"] textarea{border-color:rgba(60,45,15,.28);background-color:#FFFFFF;color:var(--tx)}',
+'html[data-theme="light"] input:focus,html[data-theme="light"] select:focus,html[data-theme="light"] textarea:focus{border-color:var(--gold)!important;box-shadow:0 0 0 3px rgba(133,98,16,.18)!important}',
 'html[data-theme="light"] input::placeholder,html[data-theme="light"] textarea::placeholder{color:var(--tm)}',
 'html[data-theme="light"] #mznStatus{background:rgba(246,241,231,.94)!important;color:#0B7A45!important;border-color:rgba(11,122,69,.35)!important}',
 'html[data-theme="light"] #mznStatus span:first-child{background:#0B7A45!important;box-shadow:0 0 6px rgba(11,122,69,.5)!important}',
@@ -54,7 +49,7 @@ var CSS=[
 'html[data-theme="light"] ::selection{background:rgba(133,98,16,.25)}',
 
 /* ============================================================
-   FIX: ألوان الحالات (Status Pills) في الوضع النهاري
+   FIX: ألوان الحالات (Status Pills)
    ============================================================ */
 'html[data-theme="light"] .pill-draft{background:rgba(100,95,85,.15)!important;color:#3A362F!important;border:1px solid rgba(100,95,85,.3)!important}',
 'html[data-theme="light"] .pill-pending{background:rgba(190,130,10,.18)!important;color:#6B4500!important;border:1px solid rgba(190,130,10,.35)!important}',
@@ -76,7 +71,7 @@ var CSS=[
 'html[data-theme="light"] .stat-pill .dot{box-shadow:none!important;opacity:.9!important}',
 
 /* ============================================================
-   FIX: Filter Chips — الفلاتر
+   FIX: Filter Chips
    ============================================================ */
 'html[data-theme="light"] .filter-chip{background:#FFFFFF!important;color:#5A5446!important;border:1px solid rgba(60,45,15,.15)!important}',
 'html[data-theme="light"] .filter-chip.active{background:#6F520A!important;color:#FFFFFF!important;border-color:#6F520A!important}',
@@ -88,7 +83,7 @@ var CSS=[
 'html[data-theme="light"] .fchip.active .fcount{background:rgba(255,255,255,.25)!important;color:#FFFFFF!important}',
 
 /* ============================================================
-   FIX: Buttons — الأزرار الرئيسية والثانوية
+   FIX: Buttons
    ============================================================ */
 'html[data-theme="light"] .btn-primary{background:linear-gradient(135deg,#D8A855,#B8843A)!important;color:#FFFFFF!important;border:none!important;box-shadow:0 8px 20px -6px rgba(120,80,20,.4)!important;font-weight:600!important}',
 'html[data-theme="light"] .btn-primary svg{stroke:#FFFFFF!important;fill:none!important}',
@@ -180,44 +175,47 @@ function save(mode){
 }
 
 /* ============================================================
-   injectLate — يُحقن في نهاية <body> ليتغلّب على CSS الصفحات
+   محتوى CSS المتأخر — ثابت (يُبنى مرة واحدة)
    ============================================================ */
+var LATE_CSS=
+  '.pill-draft{background:rgba(100,95,85,.15)!important;color:#3A362F!important;border:1px solid rgba(100,95,85,.3)!important}'+
+  '.pill-pending{background:rgba(190,130,10,.18)!important;color:#6B4500!important;border:1px solid rgba(190,130,10,.35)!important}'+
+  '.pill-approved{background:rgba(20,120,50,.15)!important;color:#0A6033!important;border:1px solid rgba(20,120,50,.35)!important}'+
+  '.pill-rejected{background:rgba(180,35,55,.15)!important;color:#8B1F30!important;border:1px solid rgba(180,35,55,.35)!important}'+
+  '.pill-converted{background:rgba(30,90,160,.15)!important;color:#1A4D82!important;border:1px solid rgba(30,90,160,.35)!important}'+
+  '.pill-sent{background:rgba(30,90,160,.15)!important;color:#1A4D82!important;border:1px solid rgba(30,90,160,.35)!important}'+
+  '.pill-confirmed{background:rgba(85,60,160,.15)!important;color:#432E80!important;border:1px solid rgba(85,60,160,.35)!important}'+
+  '.pill-progress{background:rgba(190,130,10,.18)!important;color:#6B4500!important;border:1px solid rgba(190,130,10,.35)!important}'+
+  '.pill-received{background:rgba(20,120,50,.15)!important;color:#0A6033!important;border:1px solid rgba(20,120,50,.35)!important}'+
+  '.pill-closed{background:rgba(20,100,40,.12)!important;color:#075C2A!important;border:1px solid rgba(20,100,40,.3)!important}'+
+  '.pill-cancelled{background:rgba(180,35,55,.15)!important;color:#8B1F30!important;border:1px solid rgba(180,35,55,.35)!important}'+
+  '.pill-inspect{background:rgba(85,60,160,.15)!important;color:#432E80!important;border:1px solid rgba(85,60,160,.35)!important}'+
+  '.pill-partial{background:rgba(30,90,160,.15)!important;color:#1A4D82!important;border:1px solid rgba(30,90,160,.35)!important}'+
+  '.pill-paid{background:rgba(20,120,50,.12)!important;color:#0A6033!important;border:1px solid rgba(20,120,50,.3)!important}'+
+  '.pill-unpaid{background:rgba(100,95,85,.15)!important;color:#3A362F!important;border:1px solid rgba(100,95,85,.3)!important}'+
+  '.pill-matched{background:rgba(20,120,50,.15)!important;color:#0A6033!important;border:1px solid rgba(20,120,50,.35)!important}'+
+  '.pill-variance{background:rgba(180,35,55,.15)!important;color:#8B1F30!important;border:1px solid rgba(180,35,55,.35)!important}'+
+  '.stat-pill .dot{box-shadow:none!important;opacity:.9!important}';
+
+/* ============================================================
+   injectLate — نسخة آمنة من الحلقة اللانهائية
+   ============================================================ */
+var _lastInjected='';
 function injectLate(r){
+  if(!document.body) return;
   var inject=document.getElementById('mznThemeLate');
   if(!inject){
-    if(!document.body){
-      /* <body> غير موجود بعد — أعِد المحاولة لاحقاً */
-      return;
-    }
     inject=document.createElement('style');
     inject.id='mznThemeLate';
     document.body.appendChild(inject);
   }
   
-  if(r!=='light'){ 
-    inject.textContent=''; 
-    return; 
-  }
+  var newContent = (r==='light') ? LATE_CSS : '';
   
-  inject.textContent=
-    '.pill-draft{background:rgba(100,95,85,.15)!important;color:#3A362F!important;border:1px solid rgba(100,95,85,.3)!important}'+
-    '.pill-pending{background:rgba(190,130,10,.18)!important;color:#6B4500!important;border:1px solid rgba(190,130,10,.35)!important}'+
-    '.pill-approved{background:rgba(20,120,50,.15)!important;color:#0A6033!important;border:1px solid rgba(20,120,50,.35)!important}'+
-    '.pill-rejected{background:rgba(180,35,55,.15)!important;color:#8B1F30!important;border:1px solid rgba(180,35,55,.35)!important}'+
-    '.pill-converted{background:rgba(30,90,160,.15)!important;color:#1A4D82!important;border:1px solid rgba(30,90,160,.35)!important}'+
-    '.pill-sent{background:rgba(30,90,160,.15)!important;color:#1A4D82!important;border:1px solid rgba(30,90,160,.35)!important}'+
-    '.pill-confirmed{background:rgba(85,60,160,.15)!important;color:#432E80!important;border:1px solid rgba(85,60,160,.35)!important}'+
-    '.pill-progress{background:rgba(190,130,10,.18)!important;color:#6B4500!important;border:1px solid rgba(190,130,10,.35)!important}'+
-    '.pill-received{background:rgba(20,120,50,.15)!important;color:#0A6033!important;border:1px solid rgba(20,120,50,.35)!important}'+
-    '.pill-closed{background:rgba(20,100,40,.12)!important;color:#075C2A!important;border:1px solid rgba(20,100,40,.3)!important}'+
-    '.pill-cancelled{background:rgba(180,35,55,.15)!important;color:#8B1F30!important;border:1px solid rgba(180,35,55,.35)!important}'+
-    '.pill-inspect{background:rgba(85,60,160,.15)!important;color:#432E80!important;border:1px solid rgba(85,60,160,.35)!important}'+
-    '.pill-partial{background:rgba(30,90,160,.15)!important;color:#1A4D82!important;border:1px solid rgba(30,90,160,.35)!important}'+
-    '.pill-paid{background:rgba(20,120,50,.12)!important;color:#0A6033!important;border:1px solid rgba(20,120,50,.3)!important}'+
-    '.pill-unpaid{background:rgba(100,95,85,.15)!important;color:#3A362F!important;border:1px solid rgba(100,95,85,.3)!important}'+
-    '.pill-matched{background:rgba(20,120,50,.15)!important;color:#0A6033!important;border:1px solid rgba(20,120,50,.35)!important}'+
-    '.pill-variance{background:rgba(180,35,55,.15)!important;color:#8B1F30!important;border:1px solid rgba(180,35,55,.35)!important}'+
-    '.stat-pill .dot{box-shadow:none!important;opacity:.9!important}';
+  /* لا نُعيد الكتابة إن لم يتغير المحتوى — لمنع أي حلقة */
+  if(newContent === _lastInjected) return;
+  _lastInjected = newContent;
+  inject.textContent = newContent;
 }
 
 /* ============================================================
@@ -271,45 +269,29 @@ function mountBtn(){
    ============================================================ */
 apply();
 
-/* إعادة التطبيق عند تغيير الإعداد من نظام آخر */
 if(mq){
   var onChange=function(){ if(stored()==='auto') apply('auto'); };
   if(mq.addEventListener) mq.addEventListener('change',onChange);
   else if(mq.addListener) mq.addListener(onChange);
 }
 
-/* إعادة الحقن بعد تحميل الصفحة كاملة — لضمان التغلّب على CSS الصفحات */
-function scheduleInject(){
-  setTimeout(function(){ injectLate(root.getAttribute('data-theme')); }, 300);
-  setTimeout(function(){ injectLate(root.getAttribute('data-theme')); }, 1000);
-  setTimeout(function(){ injectLate(root.getAttribute('data-theme')); }, 2000);
-}
-
+/* إعادة الحقن مرة واحدة فقط بعد التحميل — بدون MutationObserver */
 if(document.readyState==='loading'){
   document.addEventListener('DOMContentLoaded', function(){
     mountBtn();
-    scheduleInject();
+    setTimeout(function(){ _lastInjected=''; injectLate(root.getAttribute('data-theme')); }, 400);
+    setTimeout(function(){ _lastInjected=''; injectLate(root.getAttribute('data-theme')); }, 1500);
   });
 } else {
   mountBtn();
-  scheduleInject();
+  setTimeout(function(){ _lastInjected=''; injectLate(root.getAttribute('data-theme')); }, 400);
+  setTimeout(function(){ _lastInjected=''; injectLate(root.getAttribute('data-theme')); }, 1500);
 }
 
-/* مراقبة تغييرات DOM — لإعادة الحقن عند إضافة عناصر جديدة */
-if(window.MutationObserver){
-  var obs=new MutationObserver(function(){
-    if(root.getAttribute('data-theme')==='light'){
-      injectLate('light');
-    }
-  });
-  obs.observe(document.body||root, {childList:true, subtree:true});
-}
-
-/* API عام */
 window.MZNTheme={
   apply:function(m){save(m);return apply(m);},
   current:function(){return root.getAttribute('data-theme');}
 };
 
-console.log('[MIZAN] Theme engine v3 ready');
+console.log('[MIZAN] Theme engine v4 ready');
 })();
