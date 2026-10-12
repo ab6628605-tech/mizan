@@ -168,7 +168,8 @@ function resolve(mode){
   if(mode==='light'||mode==='dark') return mode;
   return (mq&&mq.matches)?'dark':'light';
 }
-function apply(mode){
+
+   function apply(mode){
   mode=mode||stored();
   var r=resolve(mode);
   root.setAttribute('data-theme',r);
@@ -176,8 +177,49 @@ function apply(mode){
   var m=document.querySelector('meta[name="theme-color"]');
   if(m) m.setAttribute('content',r==='light'?'#F6F1E7':'#08090E');
   paintBtn(r);
+  /* حقن CSS في نهاية body للتغلّب على CSS الصفحات */
+  injectLate(r);
   return r;
 }
+
+function injectLate(r){
+  var inject=document.getElementById('mznThemeLate');
+  if(!inject){
+    inject=document.createElement('style');
+    inject.id='mznThemeLate';
+    if(document.body){
+      document.body.appendChild(inject);
+    } else {
+      document.addEventListener('DOMContentLoaded', function(){
+        document.body.appendChild(inject);
+        injectLate(r);
+      });
+      return;
+    }
+  }
+  /* قواعد متأخرة — أقوى من CSS الصفحات */
+  if(r!=='light'){ inject.textContent=''; return; }
+  inject.textContent=
+    'html[data-theme="light"] .pill-draft,.pill-draft{background:rgba(100,95,85,.15)!important;color:#3A362F!important;border:1px solid rgba(100,95,85,.3)!important}'+
+    'html[data-theme="light"] .pill-pending,.pill-pending{background:rgba(190,130,10,.18)!important;color:#6B4500!important;border:1px solid rgba(190,130,10,.35)!important}'+
+    'html[data-theme="light"] .pill-approved,.pill-approved{background:rgba(20,120,50,.15)!important;color:#0A6033!important;border:1px solid rgba(20,120,50,.35)!important}'+
+    'html[data-theme="light"] .pill-rejected,.pill-rejected{background:rgba(180,35,55,.15)!important;color:#8B1F30!important;border:1px solid rgba(180,35,55,.35)!important}'+
+    'html[data-theme="light"] .pill-converted,.pill-converted{background:rgba(30,90,160,.15)!important;color:#1A4D82!important;border:1px solid rgba(30,90,160,.35)!important}'+
+    'html[data-theme="light"] .pill-sent,.pill-sent{background:rgba(30,90,160,.15)!important;color:#1A4D82!important;border:1px solid rgba(30,90,160,.35)!important}'+
+    'html[data-theme="light"] .pill-confirmed,.pill-confirmed{background:rgba(85,60,160,.15)!important;color:#432E80!important;border:1px solid rgba(85,60,160,.35)!important}'+
+    'html[data-theme="light"] .pill-progress,.pill-progress{background:rgba(190,130,10,.18)!important;color:#6B4500!important;border:1px solid rgba(190,130,10,.35)!important}'+
+    'html[data-theme="light"] .pill-received,.pill-received{background:rgba(20,120,50,.15)!important;color:#0A6033!important;border:1px solid rgba(20,120,50,.35)!important}'+
+    'html[data-theme="light"] .pill-closed,.pill-closed{background:rgba(20,100,40,.12)!important;color:#075C2A!important;border:1px solid rgba(20,100,40,.3)!important}'+
+    'html[data-theme="light"] .pill-cancelled,.pill-cancelled{background:rgba(180,35,55,.15)!important;color:#8B1F30!important;border:1px solid rgba(180,35,55,.35)!important}'+
+    'html[data-theme="light"] .pill-inspect,.pill-inspect{background:rgba(85,60,160,.15)!important;color:#432E80!important;border:1px solid rgba(85,60,160,.35)!important}'+
+    'html[data-theme="light"] .pill-partial,.pill-partial{background:rgba(30,90,160,.15)!important;color:#1A4D82!important;border:1px solid rgba(30,90,160,.35)!important}'+
+    'html[data-theme="light"] .pill-paid,.pill-paid{background:rgba(20,120,50,.12)!important;color:#0A6033!important;border:1px solid rgba(20,120,50,.3)!important}'+
+    'html[data-theme="light"] .pill-unpaid,.pill-unpaid{background:rgba(100,95,85,.15)!important;color:#3A362F!important;border:1px solid rgba(100,95,85,.3)!important}'+
+    'html[data-theme="light"] .pill-matched,.pill-matched{background:rgba(20,120,50,.15)!important;color:#0A6033!important;border:1px solid rgba(20,120,50,.35)!important}'+
+    'html[data-theme="light"] .pill-variance,.pill-variance{background:rgba(180,35,55,.15)!important;color:#8B1F30!important;border:1px solid rgba(180,35,55,.35)!important}'+
+    'html[data-theme="light"] .stat-pill .dot{box-shadow:none!important;opacity:.9!important}';
+}
+   
 function save(mode){
   try{
     var d=JSON.parse(localStorage.getItem(KEY)||'{}');
