@@ -22,7 +22,7 @@ const PRECACHE = [
    Install — تخزين مسبق
    ============================================================ */
 self.addEventListener('install', function(event){
-  console.log('[SW] Install v31');
+  console.log('[SW] Install v35');
   event.waitUntil(
     caches.open(CACHE).then(function(cache){
       return cache.addAll(PRECACHE).catch(function(err){
@@ -38,7 +38,7 @@ self.addEventListener('install', function(event){
    Activate — حذف الكاشات القديمة
    ============================================================ */
 self.addEventListener('activate', function(event){
-  console.log('[SW] Activate v31');
+  console.log('[SW] Activate v35');
   event.waitUntil(
     caches.keys().then(function(keys){
       return Promise.all(
