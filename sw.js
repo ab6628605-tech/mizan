@@ -3,8 +3,8 @@
    الإصدار: v31
    ============================================================ */
 
-const CACHE = 'mizan-v33';
-const RUNTIME = 'mizan-runtime-v33';
+const CACHE = 'mizan-v34';
+const RUNTIME = 'mizan-runtime-v34';
 
 /* الملفات الأساسية التي تُخزّن مسبقاً */
 const PRECACHE = [
