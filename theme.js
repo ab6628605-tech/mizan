@@ -275,18 +275,38 @@ if(mq){
   else if(mq.addListener) mq.addListener(onChange);
 }
 
-/* إعادة الحقن مرة واحدة فقط بعد التحميل — بدون MutationObserver */
+/* إعادة الحقن دورياً — لضمان التغلّب على CSS الصفحات */
+function _startReinject(){
+  var count = 0;
+  var timer = setInterval(function(){
+    count++;
+    _lastInjected = '';
+    injectLate(root.getAttribute('data-theme'));
+    if(count >= 10) clearInterval(timer);
+  }, 800);
+}
+
 if(document.readyState==='loading'){
   document.addEventListener('DOMContentLoaded', function(){
     mountBtn();
-    setTimeout(function(){ _lastInjected=''; injectLate(root.getAttribute('data-theme')); }, 400);
-    setTimeout(function(){ _lastInjected=''; injectLate(root.getAttribute('data-theme')); }, 1500);
+    _startReinject();
   });
 } else {
   mountBtn();
-  setTimeout(function(){ _lastInjected=''; injectLate(root.getAttribute('data-theme')); }, 400);
-  setTimeout(function(){ _lastInjected=''; injectLate(root.getAttribute('data-theme')); }, 1500);
+  _startReinject();
 }
+
+/* حقن إضافي عند اكتمال تحميل الصفحة */
+window.addEventListener('load', function(){
+  setTimeout(function(){
+    _lastInjected = '';
+    injectLate(root.getAttribute('data-theme'));
+  }, 200);
+  setTimeout(function(){
+    _lastInjected = '';
+    injectLate(root.getAttribute('data-theme'));
+  }, 1000);
+});
 
 window.MZNTheme={
   apply:function(m){save(m);return apply(m);},
