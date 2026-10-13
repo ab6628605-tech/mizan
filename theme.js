@@ -49,27 +49,28 @@ var CSS=[
 'html[data-theme="light"] ::selection{background:rgba(133,98,16,.25)}',
 
 /* ============================================================
-   FIX: ألوان الحالات (Status Pills)
+   FIX: ألوان الحالات (Status Pills) — light mode
+   ألوان واضحة، حدود قوية، تباين عالٍ
    ============================================================ */
-'html[data-theme="light"] .pill-draft{background:rgba(100,95,85,.15)!important;color:#3A362F!important;border:1px solid rgba(100,95,85,.3)!important}',
-'html[data-theme="light"] .pill-pending{background:rgba(190,130,10,.18)!important;color:#6B4500!important;border:1px solid rgba(190,130,10,.35)!important}',
-'html[data-theme="light"] .pill-approved{background:rgba(20,120,50,.15)!important;color:#0A6033!important;border:1px solid rgba(20,120,50,.35)!important}',
-'html[data-theme="light"] .pill-rejected{background:rgba(180,35,55,.15)!important;color:#8B1F30!important;border:1px solid rgba(180,35,55,.35)!important}',
-'html[data-theme="light"] .pill-converted{background:rgba(30,90,160,.15)!important;color:#1A4D82!important;border:1px solid rgba(30,90,160,.35)!important}',
-'html[data-theme="light"] .pill-sent{background:rgba(30,90,160,.15)!important;color:#1A4D82!important;border:1px solid rgba(30,90,160,.35)!important}',
-'html[data-theme="light"] .pill-confirmed{background:rgba(85,60,160,.15)!important;color:#432E80!important;border:1px solid rgba(85,60,160,.35)!important}',
-'html[data-theme="light"] .pill-progress{background:rgba(190,130,10,.18)!important;color:#6B4500!important;border:1px solid rgba(190,130,10,.35)!important}',
-'html[data-theme="light"] .pill-received{background:rgba(20,120,50,.15)!important;color:#0A6033!important;border:1px solid rgba(20,120,50,.35)!important}',
-'html[data-theme="light"] .pill-closed{background:rgba(20,100,40,.12)!important;color:#075C2A!important;border:1px solid rgba(20,100,40,.3)!important}',
-'html[data-theme="light"] .pill-cancelled{background:rgba(180,35,55,.15)!important;color:#8B1F30!important;border:1px solid rgba(180,35,55,.35)!important}',
-'html[data-theme="light"] .pill-inspect{background:rgba(85,60,160,.15)!important;color:#432E80!important;border:1px solid rgba(85,60,160,.35)!important}',
-'html[data-theme="light"] .pill-partial{background:rgba(30,90,160,.15)!important;color:#1A4D82!important;border:1px solid rgba(30,90,160,.35)!important}',
-'html[data-theme="light"] .pill-paid{background:rgba(20,120,50,.12)!important;color:#0A6033!important;border:1px solid rgba(20,120,50,.3)!important}',
-'html[data-theme="light"] .pill-unpaid{background:rgba(100,95,85,.15)!important;color:#3A362F!important;border:1px solid rgba(100,95,85,.3)!important}',
-'html[data-theme="light"] .pill-matched{background:rgba(20,120,50,.15)!important;color:#0A6033!important;border:1px solid rgba(20,120,50,.35)!important}',
-'html[data-theme="light"] .pill-variance{background:rgba(180,35,55,.15)!important;color:#8B1F30!important;border:1px solid rgba(180,35,55,.35)!important}',
+'html[data-theme="light"] .pill-draft{background:#EDEAE2!important;color:#4A4640!important;border:1px solid #C9C2B2!important;font-weight:600!important}',
+'html[data-theme="light"] .pill-pending{background:#FEF3C7!important;color:#7A4A00!important;border:1px solid #E0B655!important;font-weight:600!important}',
+'html[data-theme="light"] .pill-approved{background:#D1FAE5!important;color:#065F46!important;border:1px solid #4ADE80!important;font-weight:600!important}',
+'html[data-theme="light"] .pill-rejected{background:#FEE2E2!important;color:#991B1B!important;border:1px solid #F87171!important;font-weight:600!important}',
+'html[data-theme="light"] .pill-converted{background:#DBEAFE!important;color:#1E40AF!important;border:1px solid #60A5FA!important;font-weight:600!important}',
+'html[data-theme="light"] .pill-sent{background:#DBEAFE!important;color:#1E40AF!important;border:1px solid #60A5FA!important;font-weight:600!important}',
+'html[data-theme="light"] .pill-confirmed{background:#EDE9FE!important;color:#5B21B6!important;border:1px solid #A78BFA!important;font-weight:600!important}',
+'html[data-theme="light"] .pill-progress{background:#FEF3C7!important;color:#7A4A00!important;border:1px solid #E0B655!important;font-weight:600!important}',
+'html[data-theme="light"] .pill-received{background:#D1FAE5!important;color:#065F46!important;border:1px solid #4ADE80!important;font-weight:600!important}',
+'html[data-theme="light"] .pill-closed{background:#D1FAE5!important;color:#065F46!important;border:1px solid #34D399!important;font-weight:600!important}',
+'html[data-theme="light"] .pill-cancelled{background:#FEE2E2!important;color:#991B1B!important;border:1px solid #F87171!important;font-weight:600!important}',
+'html[data-theme="light"] .pill-inspect{background:#EDE9FE!important;color:#5B21B6!important;border:1px solid #A78BFA!important;font-weight:600!important}',
+'html[data-theme="light"] .pill-partial{background:#DBEAFE!important;color:#1E40AF!important;border:1px solid #60A5FA!important;font-weight:600!important}',
+'html[data-theme="light"] .pill-paid{background:#D1FAE5!important;color:#065F46!important;border:1px solid #34D399!important;font-weight:600!important}',
+'html[data-theme="light"] .pill-unpaid{background:#EDEAE2!important;color:#4A4640!important;border:1px solid #C9C2B2!important;font-weight:600!important}',
+'html[data-theme="light"] .pill-matched{background:#D1FAE5!important;color:#065F46!important;border:1px solid #4ADE80!important;font-weight:600!important}',
+'html[data-theme="light"] .pill-variance{background:#FEE2E2!important;color:#991B1B!important;border:1px solid #F87171!important;font-weight:600!important}',
 'html[data-theme="light"] .stat-pill .dot{box-shadow:none!important;opacity:.9!important}',
-
+   
 /* ============================================================
    FIX: Filter Chips
    ============================================================ */
@@ -174,29 +175,10 @@ function save(mode){
   }catch(e){}
 }
 
-/* ============================================================
-   محتوى CSS المتأخر — ثابت (يُبنى مرة واحدة)
-   ============================================================ */
-var LATE_CSS=
-  '.pill-draft{background:rgba(100,95,85,.15)!important;color:#3A362F!important;border:1px solid rgba(100,95,85,.3)!important}'+
-  '.pill-pending{background:rgba(190,130,10,.18)!important;color:#6B4500!important;border:1px solid rgba(190,130,10,.35)!important}'+
-  '.pill-approved{background:rgba(20,120,50,.15)!important;color:#0A6033!important;border:1px solid rgba(20,120,50,.35)!important}'+
-  '.pill-rejected{background:rgba(180,35,55,.15)!important;color:#8B1F30!important;border:1px solid rgba(180,35,55,.35)!important}'+
-  '.pill-converted{background:rgba(30,90,160,.15)!important;color:#1A4D82!important;border:1px solid rgba(30,90,160,.35)!important}'+
-  '.pill-sent{background:rgba(30,90,160,.15)!important;color:#1A4D82!important;border:1px solid rgba(30,90,160,.35)!important}'+
-  '.pill-confirmed{background:rgba(85,60,160,.15)!important;color:#432E80!important;border:1px solid rgba(85,60,160,.35)!important}'+
-  '.pill-progress{background:rgba(190,130,10,.18)!important;color:#6B4500!important;border:1px solid rgba(190,130,10,.35)!important}'+
-  '.pill-received{background:rgba(20,120,50,.15)!important;color:#0A6033!important;border:1px solid rgba(20,120,50,.35)!important}'+
-  '.pill-closed{background:rgba(20,100,40,.12)!important;color:#075C2A!important;border:1px solid rgba(20,100,40,.3)!important}'+
-  '.pill-cancelled{background:rgba(180,35,55,.15)!important;color:#8B1F30!important;border:1px solid rgba(180,35,55,.35)!important}'+
-  '.pill-inspect{background:rgba(85,60,160,.15)!important;color:#432E80!important;border:1px solid rgba(85,60,160,.35)!important}'+
-  '.pill-partial{background:rgba(30,90,160,.15)!important;color:#1A4D82!important;border:1px solid rgba(30,90,160,.35)!important}'+
-  '.pill-paid{background:rgba(20,120,50,.12)!important;color:#0A6033!important;border:1px solid rgba(20,120,50,.3)!important}'+
-  '.pill-unpaid{background:rgba(100,95,85,.15)!important;color:#3A362F!important;border:1px solid rgba(100,95,85,.3)!important}'+
-  '.pill-matched{background:rgba(20,120,50,.15)!important;color:#0A6033!important;border:1px solid rgba(20,120,50,.35)!important}'+
-  '.pill-variance{background:rgba(180,35,55,.15)!important;color:#8B1F30!important;border:1px solid rgba(180,35,55,.35)!important}'+
-  '.stat-pill .dot{box-shadow:none!important;opacity:.9!important}';
-
+/* Pill colors handled by rules in the main CSS block above.
+   LATE_CSS kept only for late-injection overrides if needed. */
+var LATE_CSS='';
+   
 /* ============================================================
    injectLate — نسخة آمنة من الحلقة اللانهائية
    ============================================================ */
