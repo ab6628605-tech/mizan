@@ -1,27 +1,28 @@
 /* ============================================================
    MIZAN — Service Worker
-   الإصدار: v37
+   الإصدار: v31
    ============================================================ */
 
-const CACHE = 'mizan-v37';
-const RUNTIME = 'mizan-runtime-v37';
+const CACHE = 'mizan-v31';
+const RUNTIME = 'mizan-runtime-v31';
 
-/* الملفات الأساسية — بدون theme.js */
+/* الملفات الأساسية التي تُخزّن مسبقاً */
 const PRECACHE = [
   './',
   './index.html',
   './mizan-login.html',
   './dashboard.html',
   './mizan-vault.html',
+  './theme.js',
   './icon.svg',
   './manifest.json'
 ];
 
 /* ============================================================
-   Install
+   Install — تخزين مسبق
    ============================================================ */
 self.addEventListener('install', function(event){
-  console.log('[SW] Install v35');
+  console.log('[SW] Install v31');
   event.waitUntil(
     caches.open(CACHE).then(function(cache){
       return cache.addAll(PRECACHE).catch(function(err){
@@ -34,10 +35,10 @@ self.addEventListener('install', function(event){
 });
 
 /* ============================================================
-   Activate
+   Activate — حذف الكاشات القديمة
    ============================================================ */
 self.addEventListener('activate', function(event){
-  console.log('[SW] Activate v35');
+  console.log('[SW] Activate v31');
   event.waitUntil(
     caches.keys().then(function(keys){
       return Promise.all(
@@ -55,18 +56,23 @@ self.addEventListener('activate', function(event){
 });
 
 /* ============================================================
-   Fetch
+   Fetch — استراتيجيات ذكية
    ============================================================ */
 self.addEventListener('fetch', function(event){
   const req = event.request;
   const url = new URL(req.url);
 
+  /* تجاهل الطلبات غير GET */
   if(req.method !== 'GET') return;
+
+  /* تجاهل Supabase — دائماً من الشبكة */
   if(url.hostname.indexOf('supabase.co') !== -1) return;
+
+  /* تجاهل Google Fonts و Gemini — من الشبكة */
   if(url.hostname.indexOf('googleapis.com') !== -1) return;
   if(url.hostname.indexOf('gstatic.com') !== -1) return;
 
-  /* التنقل — من الشبكة أولاً */
+  /* تجاهل التنقل بين الصفحات — من الشبكة أولاً */
   if(req.mode === 'navigate'){
     event.respondWith(
       fetch(req).then(function(res){
@@ -84,19 +90,20 @@ self.addEventListener('fetch', function(event){
     return;
   }
 
-  /* ملفات JS/CSS/SVG — Network First (لتحديث أسرع) */
+  /* ملفات JS/CSS/SVG — Cache First */
   if(/\.(js|css|svg|woff2?|ttf)$/i.test(url.pathname)){
     event.respondWith(
-      fetch(req).then(function(res){
-        if(res && res.status === 200){
-          const copy = res.clone();
-          caches.open(CACHE).then(function(cache){
-            cache.put(req, copy);
-          });
-        }
-        return res;
-      }).catch(function(){
-        return caches.match(req);
+      caches.match(req).then(function(cached){
+        if(cached) return cached;
+        return fetch(req).then(function(res){
+          if(res && res.status === 200){
+            const copy = res.clone();
+            caches.open(CACHE).then(function(cache){
+              cache.put(req, copy);
+            });
+          }
+          return res;
+        });
       })
     );
     return;
@@ -134,4 +141,4 @@ self.addEventListener('message', function(event){
   }
 });
 
-console.log('[SW] MIZAN v35 loaded');
+console.log('[SW] MIZAN v31 loaded');
