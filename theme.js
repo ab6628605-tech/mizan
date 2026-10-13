@@ -2,7 +2,7 @@
    MIZAN — Theme Engine (dark / light / auto)
    يُحمَّل في <head> بشكل متزامن لمنع الوميض عند فتح الصفحة.
    يقرأ الإعداد من mzn_settings.theme ويدعم: dark | light | auto
-   v4 — إصلاح حلقة MutationObserver اللانهائية
+   v5 — حقن tokens في نهاية <body> للتغلّب على CSS الصفحات
    ============================================================ */
 (function(){
 'use strict';
@@ -11,7 +11,7 @@ var root=document.documentElement;
 var mq=window.matchMedia?window.matchMedia('(prefers-color-scheme: dark)'):null;
 
 /* ============================================================
-   القواعد الأساسية — تُحقَن في <head> فوراً
+   القواعد الأساسية — تُحقَن في نهاية <body> فوراً
    ============================================================ */
 var CSS=[
 /* ---------- Tokens: الوضع الليلي (الافتراضي) ---------- */
@@ -70,7 +70,7 @@ var CSS=[
 'html[data-theme="light"] .pill-matched{background:#D1FAE5!important;color:#065F46!important;border:1px solid #4ADE80!important;font-weight:600!important}',
 'html[data-theme="light"] .pill-variance{background:#FEE2E2!important;color:#991B1B!important;border:1px solid #F87171!important;font-weight:600!important}',
 'html[data-theme="light"] .stat-pill .dot{box-shadow:none!important;opacity:.9!important}',
-   
+
 /* ============================================================
    FIX: Filter Chips
    ============================================================ */
@@ -151,11 +151,32 @@ var CSS=[
 'html[data-theme="light"] #mznThemeBtn{border-color:rgba(133,98,16,.4)}'
 ].join('');
 
-/* حقن <style> أساسي في <head> */
+/* ============================================================
+   حقن <style> أساسي — نُدرجه في نهاية <body> ليتغلّب على CSS الصفحة
+   ============================================================ */
 var st=document.createElement('style');
 st.id='mznThemeTokens';
 st.textContent=CSS;
-(document.head||root).insertBefore(st,(document.head||root).firstChild);
+
+function _insertTokens(){
+  /* نُدرجه في نهاية <head> ثم نُعيد إدراجه في نهاية <body> لضمان الأولوية المطلقة */
+  if(document.head){
+    document.head.appendChild(st);
+  }
+  if(document.body){
+    document.body.appendChild(st);
+  }
+}
+
+if(document.body){
+  _insertTokens();
+}else{
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',_insertTokens);
+  }else{
+    _insertTokens();
+  }
+}
 
 /* ============================================================
    دوال مساعدة
@@ -175,12 +196,25 @@ function save(mode){
   }catch(e){}
 }
 
-/* Pill colors handled by rules in the main CSS block above.
-   LATE_CSS kept only for late-injection overrides if needed. */
-var LATE_CSS='';
-   
 /* ============================================================
-   injectLate — نسخة آمنة من الحلقة اللانهائية
+   LATE_CSS — طبقة تأمين تُحقن في نهاية <body> بعد كل شيء
+   تُطبَّق فقط في الوضع النهاري
+   ============================================================ */
+var LATE_CSS =
+  'html[data-theme="light"] .pill-draft{background:#EDEAE2!important;color:#4A4640!important;border:1px solid #C9C2B2!important;font-weight:600!important}' +
+  'html[data-theme="light"] .pill-pending{background:#FEF3C7!important;color:#7A4A00!important;border:1px solid #E0B655!important;font-weight:600!important}' +
+  'html[data-theme="light"] .pill-approved{background:#D1FAE5!important;color:#065F46!important;border:1px solid #4ADE80!important;font-weight:600!important}' +
+  'html[data-theme="light"] .pill-rejected{background:#FEE2E2!important;color:#991B1B!important;border:1px solid #F87171!important;font-weight:600!important}' +
+  'html[data-theme="light"] .pill-converted{background:#DBEAFE!important;color:#1E40AF!important;border:1px solid #60A5FA!important;font-weight:600!important}' +
+  'html[data-theme="light"] .pill-sent{background:#DBEAFE!important;color:#1E40AF!important;border:1px solid #60A5FA!important;font-weight:600!important}' +
+  'html[data-theme="light"] .pill-confirmed{background:#EDE9FE!important;color:#5B21B6!important;border:1px solid #A78BFA!important;font-weight:600!important}' +
+  'html[data-theme="light"] .pill-progress{background:#FEF3C7!important;color:#7A4A00!important;border:1px solid #E0B655!important;font-weight:600!important}' +
+  'html[data-theme="light"] .pill-received{background:#D1FAE5!important;color:#065F46!important;border:1px solid #4ADE80!important;font-weight:600!important}' +
+  'html[data-theme="light"] .pill-closed{background:#D1FAE5!important;color:#065F46!important;border:1px solid #34D399!important;font-weight:600!important}' +
+  'html[data-theme="light"] .pill-cancelled{background:#FEE2E2!important;color:#991B1B!important;border:1px solid #F87171!important;font-weight:600!important}';
+
+/* ============================================================
+   injectLate — حقن طبقة التأمين في نهاية <body>
    ============================================================ */
 var _lastInjected='';
 function injectLate(r){
@@ -191,10 +225,7 @@ function injectLate(r){
     inject.id='mznThemeLate';
     document.body.appendChild(inject);
   }
-  
   var newContent = (r==='light') ? LATE_CSS : '';
-  
-  /* لا نُعيد الكتابة إن لم يتغير المحتوى — لمنع أي حلقة */
   if(newContent === _lastInjected) return;
   _lastInjected = newContent;
   inject.textContent = newContent;
@@ -262,6 +293,10 @@ function _startReinject(){
   var count = 0;
   var timer = setInterval(function(){
     count++;
+    /* نُعيد إدراج st في نهاية <body> كل مرة — لضمان أنه آخر عنصر */
+    if(document.body && st.parentNode !== document.body){
+      document.body.appendChild(st);
+    }
     _lastInjected = '';
     injectLate(root.getAttribute('data-theme'));
     if(count >= 10) clearInterval(timer);
@@ -281,10 +316,16 @@ if(document.readyState==='loading'){
 /* حقن إضافي عند اكتمال تحميل الصفحة */
 window.addEventListener('load', function(){
   setTimeout(function(){
+    if(document.body && st.parentNode !== document.body){
+      document.body.appendChild(st);
+    }
     _lastInjected = '';
     injectLate(root.getAttribute('data-theme'));
   }, 200);
   setTimeout(function(){
+    if(document.body && st.parentNode !== document.body){
+      document.body.appendChild(st);
+    }
     _lastInjected = '';
     injectLate(root.getAttribute('data-theme'));
   }, 1000);
@@ -295,5 +336,5 @@ window.MZNTheme={
   current:function(){return root.getAttribute('data-theme');}
 };
 
-console.log('[MIZAN] Theme engine v4 ready');
+console.log('[MIZAN] Theme engine v5 ready');
 })();
