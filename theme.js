@@ -2,7 +2,7 @@
    MIZAN — Theme Engine (dark / light / auto)
    يُحمَّل في <head> بشكل متزامن لمنع الوميض عند فتح الصفحة.
    يقرأ الإعداد من mzn_settings.theme ويدعم: dark | light | auto
-   v5 — حقن tokens في نهاية <body> للتغلّب على CSS الصفحات
+   v5 — حقن tokens في نهاية <body> + ألوان Status Pills داكنة
    ============================================================ */
 (function(){
 'use strict';
@@ -49,27 +49,26 @@ var CSS=[
 'html[data-theme="light"] ::selection{background:rgba(133,98,16,.25)}',
 
 /* ============================================================
-   FIX: ألوان الحالات (Status Pills) — light mode
-   ألوان واضحة، حدود قوية، تباين عالٍ
+   FIX: ألوان الحالات (Status Pills) — داكنة واضحة
    ============================================================ */
-'html[data-theme="light"] .pill-draft{background:#EDEAE2!important;color:#4A4640!important;border:1px solid #C9C2B2!important;font-weight:600!important}',
-'html[data-theme="light"] .pill-pending{background:#FEF3C7!important;color:#7A4A00!important;border:1px solid #E0B655!important;font-weight:600!important}',
-'html[data-theme="light"] .pill-approved{background:#D1FAE5!important;color:#065F46!important;border:1px solid #4ADE80!important;font-weight:600!important}',
-'html[data-theme="light"] .pill-rejected{background:#FEE2E2!important;color:#991B1B!important;border:1px solid #F87171!important;font-weight:600!important}',
-'html[data-theme="light"] .pill-converted{background:#DBEAFE!important;color:#1E40AF!important;border:1px solid #60A5FA!important;font-weight:600!important}',
-'html[data-theme="light"] .pill-sent{background:#DBEAFE!important;color:#1E40AF!important;border:1px solid #60A5FA!important;font-weight:600!important}',
-'html[data-theme="light"] .pill-confirmed{background:#EDE9FE!important;color:#5B21B6!important;border:1px solid #A78BFA!important;font-weight:600!important}',
-'html[data-theme="light"] .pill-progress{background:#FEF3C7!important;color:#7A4A00!important;border:1px solid #E0B655!important;font-weight:600!important}',
-'html[data-theme="light"] .pill-received{background:#D1FAE5!important;color:#065F46!important;border:1px solid #4ADE80!important;font-weight:600!important}',
-'html[data-theme="light"] .pill-closed{background:#D1FAE5!important;color:#065F46!important;border:1px solid #34D399!important;font-weight:600!important}',
-'html[data-theme="light"] .pill-cancelled{background:#FEE2E2!important;color:#991B1B!important;border:1px solid #F87171!important;font-weight:600!important}',
-'html[data-theme="light"] .pill-inspect{background:#EDE9FE!important;color:#5B21B6!important;border:1px solid #A78BFA!important;font-weight:600!important}',
-'html[data-theme="light"] .pill-partial{background:#DBEAFE!important;color:#1E40AF!important;border:1px solid #60A5FA!important;font-weight:600!important}',
-'html[data-theme="light"] .pill-paid{background:#D1FAE5!important;color:#065F46!important;border:1px solid #34D399!important;font-weight:600!important}',
-'html[data-theme="light"] .pill-unpaid{background:#EDEAE2!important;color:#4A4640!important;border:1px solid #C9C2B2!important;font-weight:600!important}',
-'html[data-theme="light"] .pill-matched{background:#D1FAE5!important;color:#065F46!important;border:1px solid #4ADE80!important;font-weight:600!important}',
-'html[data-theme="light"] .pill-variance{background:#FEE2E2!important;color:#991B1B!important;border:1px solid #F87171!important;font-weight:600!important}',
-'html[data-theme="light"] .stat-pill .dot{box-shadow:none!important;opacity:.9!important}',
+'html[data-theme="light"] .pill-draft{background:#E8E4DA!important;color:#2A2620!important;border:1px solid #B8B0A0!important;font-weight:700!important}',
+'html[data-theme="light"] .pill-pending{background:#FCEFC7!important;color:#4A2F00!important;border:1px solid #C9962E!important;font-weight:700!important}',
+'html[data-theme="light"] .pill-approved{background:#C9EDD5!important;color:#04391F!important;border:1px solid #2E9A5C!important;font-weight:700!important}',
+'html[data-theme="light"] .pill-rejected{background:#F7D5D5!important;color:#6B0F0F!important;border:1px solid #C44040!important;font-weight:700!important}',
+'html[data-theme="light"] .pill-converted{background:#D5E6F7!important;color:#0A2E5C!important;border:1px solid #3A78B8!important;font-weight:700!important}',
+'html[data-theme="light"] .pill-sent{background:#D5E6F7!important;color:#0A2E5C!important;border:1px solid #3A78B8!important;font-weight:700!important}',
+'html[data-theme="light"] .pill-confirmed{background:#E4DCF7!important;color:#2E1F5C!important;border:1px solid #6E5BB8!important;font-weight:700!important}',
+'html[data-theme="light"] .pill-progress{background:#FCEFC7!important;color:#4A2F00!important;border:1px solid #C9962E!important;font-weight:700!important}',
+'html[data-theme="light"] .pill-received{background:#C9EDD5!important;color:#04391F!important;border:1px solid #2E9A5C!important;font-weight:700!important}',
+'html[data-theme="light"] .pill-closed{background:#C9EDD5!important;color:#04391F!important;border:1px solid #2E9A5C!important;font-weight:700!important}',
+'html[data-theme="light"] .pill-cancelled{background:#F7D5D5!important;color:#6B0F0F!important;border:1px solid #C44040!important;font-weight:700!important}',
+'html[data-theme="light"] .pill-inspect{background:#E4DCF7!important;color:#2E1F5C!important;border:1px solid #6E5BB8!important;font-weight:700!important}',
+'html[data-theme="light"] .pill-partial{background:#D5E6F7!important;color:#0A2E5C!important;border:1px solid #3A78B8!important;font-weight:700!important}',
+'html[data-theme="light"] .pill-paid{background:#C9EDD5!important;color:#04391F!important;border:1px solid #2E9A5C!important;font-weight:700!important}',
+'html[data-theme="light"] .pill-unpaid{background:#E8E4DA!important;color:#2A2620!important;border:1px solid #B8B0A0!important;font-weight:700!important}',
+'html[data-theme="light"] .pill-matched{background:#C9EDD5!important;color:#04391F!important;border:1px solid #2E9A5C!important;font-weight:700!important}',
+'html[data-theme="light"] .pill-variance{background:#F7D5D5!important;color:#6B0F0F!important;border:1px solid #C44040!important;font-weight:700!important}',
+'html[data-theme="light"] .stat-pill .dot{box-shadow:none!important;opacity:.95!important}',
 
 /* ============================================================
    FIX: Filter Chips
@@ -159,7 +158,6 @@ st.id='mznThemeTokens';
 st.textContent=CSS;
 
 function _insertTokens(){
-  /* نُدرجه في نهاية <head> ثم نُعيد إدراجه في نهاية <body> لضمان الأولوية المطلقة */
   if(document.head){
     document.head.appendChild(st);
   }
@@ -197,21 +195,20 @@ function save(mode){
 }
 
 /* ============================================================
-   LATE_CSS — طبقة تأمين تُحقن في نهاية <body> بعد كل شيء
-   تُطبَّق فقط في الوضع النهاري
+   LATE_CSS — طبقة تأمين بألوان داكنة واضحة (الوضع النهاري)
    ============================================================ */
 var LATE_CSS =
-  'html[data-theme="light"] .pill-draft{background:#EDEAE2!important;color:#4A4640!important;border:1px solid #C9C2B2!important;font-weight:600!important}' +
-  'html[data-theme="light"] .pill-pending{background:#FEF3C7!important;color:#7A4A00!important;border:1px solid #E0B655!important;font-weight:600!important}' +
-  'html[data-theme="light"] .pill-approved{background:#D1FAE5!important;color:#065F46!important;border:1px solid #4ADE80!important;font-weight:600!important}' +
-  'html[data-theme="light"] .pill-rejected{background:#FEE2E2!important;color:#991B1B!important;border:1px solid #F87171!important;font-weight:600!important}' +
-  'html[data-theme="light"] .pill-converted{background:#DBEAFE!important;color:#1E40AF!important;border:1px solid #60A5FA!important;font-weight:600!important}' +
-  'html[data-theme="light"] .pill-sent{background:#DBEAFE!important;color:#1E40AF!important;border:1px solid #60A5FA!important;font-weight:600!important}' +
-  'html[data-theme="light"] .pill-confirmed{background:#EDE9FE!important;color:#5B21B6!important;border:1px solid #A78BFA!important;font-weight:600!important}' +
-  'html[data-theme="light"] .pill-progress{background:#FEF3C7!important;color:#7A4A00!important;border:1px solid #E0B655!important;font-weight:600!important}' +
-  'html[data-theme="light"] .pill-received{background:#D1FAE5!important;color:#065F46!important;border:1px solid #4ADE80!important;font-weight:600!important}' +
-  'html[data-theme="light"] .pill-closed{background:#D1FAE5!important;color:#065F46!important;border:1px solid #34D399!important;font-weight:600!important}' +
-  'html[data-theme="light"] .pill-cancelled{background:#FEE2E2!important;color:#991B1B!important;border:1px solid #F87171!important;font-weight:600!important}';
+  'html[data-theme="light"] .pill-draft{background:#E8E4DA!important;color:#2A2620!important;border:1px solid #B8B0A0!important;font-weight:700!important}' +
+  'html[data-theme="light"] .pill-pending{background:#FCEFC7!important;color:#4A2F00!important;border:1px solid #C9962E!important;font-weight:700!important}' +
+  'html[data-theme="light"] .pill-approved{background:#C9EDD5!important;color:#04391F!important;border:1px solid #2E9A5C!important;font-weight:700!important}' +
+  'html[data-theme="light"] .pill-rejected{background:#F7D5D5!important;color:#6B0F0F!important;border:1px solid #C44040!important;font-weight:700!important}' +
+  'html[data-theme="light"] .pill-converted{background:#D5E6F7!important;color:#0A2E5C!important;border:1px solid #3A78B8!important;font-weight:700!important}' +
+  'html[data-theme="light"] .pill-sent{background:#D5E6F7!important;color:#0A2E5C!important;border:1px solid #3A78B8!important;font-weight:700!important}' +
+  'html[data-theme="light"] .pill-confirmed{background:#E4DCF7!important;color:#2E1F5C!important;border:1px solid #6E5BB8!important;font-weight:700!important}' +
+  'html[data-theme="light"] .pill-progress{background:#FCEFC7!important;color:#4A2F00!important;border:1px solid #C9962E!important;font-weight:700!important}' +
+  'html[data-theme="light"] .pill-received{background:#C9EDD5!important;color:#04391F!important;border:1px solid #2E9A5C!important;font-weight:700!important}' +
+  'html[data-theme="light"] .pill-closed{background:#C9EDD5!important;color:#04391F!important;border:1px solid #2E9A5C!important;font-weight:700!important}' +
+  'html[data-theme="light"] .pill-cancelled{background:#F7D5D5!important;color:#6B0F0F!important;border:1px solid #C44040!important;font-weight:700!important}';
 
 /* ============================================================
    injectLate — حقن طبقة التأمين في نهاية <body>
@@ -293,7 +290,6 @@ function _startReinject(){
   var count = 0;
   var timer = setInterval(function(){
     count++;
-    /* نُعيد إدراج st في نهاية <body> كل مرة — لضمان أنه آخر عنصر */
     if(document.body && st.parentNode !== document.body){
       document.body.appendChild(st);
     }
