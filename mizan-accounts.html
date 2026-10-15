@@ -173,6 +173,19 @@ html[data-theme="light"] .ac-pill-partial{background:#FCEFC7;color:#4A2F00}
 html[data-theme="light"] .ac-pill-paid{background:#C9EDD5;color:#04391F}
 html[data-theme="light"] .ac-pill-cancelled{background:#E8E4DA;color:#2A2620}
 html[data-theme="light"] .btn-outline{border-color:rgba(60,45,15,.2);color:#6F520A}
+   /* ===== Modal & Nav fix — أزرار النافذة لا تُغطَّى ===== */
+body.ac-modal-open .mzn-nav,
+body.ac-modal-open [class*="bottom-nav"],
+body.ac-modal-open #mzn-nav{
+  display: none !important;
+}
+body.ac-modal-open{
+  overflow: hidden !important;
+}
+#acModal .acm-body{
+  padding-bottom: 30px;
+  padding-bottom: calc(30px + env(safe-area-inset-bottom, 0px));
+}
 </style>
 </head>
 <body>
