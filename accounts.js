@@ -236,11 +236,13 @@ function openForm(){
   if($('fItems')) $('fItems').innerHTML = '';
   addItem();
   modal.classList.add('open');
+  document.body.classList.add('ac-modal-open');
 }
 
 function closeForm(){
   var modal = $('acModal');
   if(modal) modal.classList.remove('open');
+  document.body.classList.remove('ac-modal-open');
 }
 
 async function saveInvoice(){
