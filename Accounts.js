@@ -66,9 +66,8 @@ function esc(s){
 function sb(){
   return window.MZN_DB || null;
 }
-   
+
 /* ===== Load Invoices ===== */
-async function loadInvoices(){
 async function loadInvoices(){
   state.loading = true;
   renderContent();
@@ -89,7 +88,7 @@ async function loadInvoices(){
   state.loading = false;
   renderKPIs();
   renderContent();
-   }
+}
 
 /* ===== KPIs ===== */
 function renderKPIs(){
@@ -190,15 +189,15 @@ function initFab(){
 function init(){
   initTabs();
   initFab();
-  /* انتظر تحميل supabase.js */
+  /* انتظر تحميل supabase.js (MZN_DB) */
   var tries = 0;
   var t = setInterval(function(){
     tries++;
-    if(window.MZN_SB || tries>=20){
+    if((window.MZN_DB && window.MZN_DB.list) || tries>=40){
       clearInterval(t);
       loadInvoices();
     }
-  }, 250);
+  }, 150);
 }
 
 if(document.readyState==='loading'){
