@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>MIZAN — الحسابات والمالية</title>
+<meta name="theme-color" content="#08090E">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg">
+<link rel="apple-touch-icon" href="icon.svg">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MIZAN">
+<script src="theme.js"></script>
+<style>
+/* ============================================================
+   MIZAN — Accounts Page Styles
+   ============================================================ */
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  font-family:'Segoe UI','Tahoma',system-ui,-apple-system,sans-serif;
+  background:var(--bg,#08090E);color:var(--tx,#fff);
+  padding:80px 16px 100px;overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* Aura background */
+.aura{position:fixed;inset:0;pointer-events:none;z-index:-1;overflow:hidden}
+.aura::before{
+  content:'';position:absolute;top:-20%;right:-10%;width:60vw;height:60vw;
+  background:radial-gradient(circle,rgba(201,169,97,.15),transparent 70%);
+  border-radius:50%;filter:blur(60px);
+}
+.aura::after{
+  content:'';position:absolute;bottom:-20%;left:-10%;width:50vw;height:50vw;
+  background:radial-gradient(circle,rgba(184,115,51,.12),transparent 70%);
+  border-radius:50%;filter:blur(60px);
+}
+.grain{position:fixed;inset:0;pointer-events:none;z-index:-1;opacity:.03;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Header */
+.ac-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:20px;gap:12px;
+}
+.ac-title{font-size:22px;font-weight:700;letter-spacing:-.02em;
+  background:linear-gradient(135deg,#E8CE8B,#C9A961);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+}
+.ac-sub{font-size:12px;color:var(--tm,#6A7080);margin-top:4px;letter-spacing:.08em}
+
+/* Tabs */
+.ac-tabs{
+  display:flex;gap:6px;margin-bottom:20px;padding:4px;
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);
+  border-radius:14px;overflow-x:auto;scrollbar-width:none;
+}
+.ac-tabs::-webkit-scrollbar{display:none}
+.ac-tab{
+  flex:1;min-width:fit-content;padding:10px 14px;border-radius:10px;
+  font-size:12px;font-weight:600;color:var(--tm);text-align:center;
+  cursor:pointer;white-space:nowrap;transition:all .2s;
+  border:none;background:transparent;font-family:inherit;
+}
+.ac-tab.active{
+  background:linear-gradient(135deg,#E8CE8B,#C9A961);
+  color:#08090E;box-shadow:0 4px 12px -4px rgba(201,169,97,.4);
+}
+
+/* KPI Cards */
+.ac-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:20px}
+.ac-kpi{
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);
+  border-radius:14px;padding:14px;position:relative;overflow:hidden;
+}
+.ac-kpi::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,#C9A961,transparent);opacity:.5;
+}
+.ac-kpi-label{font-size:10px;color:var(--tm);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px}
+.ac-kpi-value{font-size:18px;font-weight:700;letter-spacing:-.02em;line-height:1.2}
+.ac-kpi-value.jod{color:#C9A961}
+.ac-kpi-value.usd{color:#6EE7A0}
+.ac-kpi-value.eur{color:#9DC4E8}
+
+/* Card */
+.ac-card{
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);
+  border-radius:16px;padding:16px;margin-bottom:12px;
+}
+.ac-card-title{font-size:14px;font-weight:700;margin-bottom:12px;color:var(--tx)}
+
+/* Buttons */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  padding:10px 16px;border-radius:10px;font-size:13px;font-weight:600;
+  cursor:pointer;border:none;font-family:inherit;transition:all .2s;
+}
+.btn-primary{
+  background:linear-gradient(135deg,#E8CE8B,#C9A961);color:#08090E;
+  box-shadow:0 6px 16px -6px rgba(201,169,97,.5);
+}
+.btn-primary:active{transform:scale(.97)}
+.btn-outline{
+  background:transparent;color:var(--tx);
+  border:1px solid rgba(255,255,255,.15);
+}
+
+/* FAB */
+.ac-fab{
+  position:fixed;bottom:90px;left:20px;width:56px;height:56px;border-radius:50%;
+  background:linear-gradient(135deg,#E8CE8B,#C9A961);color:#08090E;
+  display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:300;
+  box-shadow:0 8px 24px -8px rgba(201,169,97,.6);z-index:100;cursor:pointer;
+  border:none;transition:transform .2s;
+}
+.ac-fab:active{transform:scale(.9)}
+
+/* Empty state */
+.ac-empty{
+  text-align:center;padding:40px 20px;color:var(--tm);font-size:13px;
+}
+
+/* Loading */
+.ac-loading{text-align:center;padding:30px;color:var(--tm);font-size:13px}
+.ac-loading::after{
+  content:'';display:inline-block;width:16px;height:16px;margin-right:8px;
+  border:2px solid rgba(201,169,97,.3);border-top-color:#C9A961;
+  border-radius:50%;animation:spin .8s linear infinite;vertical-align:middle;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Invoice row */
+.ac-inv{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:12px;border-radius:12px;background:rgba(255,255,255,.02);
+  border:1px solid rgba(255,255,255,.05);margin-bottom:8px;
+  cursor:pointer;transition:all .2s;
+}
+.ac-inv:active{background:rgba(255,255,255,.05)}
+.ac-inv-info{flex:1;min-width:0}
+.ac-inv-no{font-size:13px;font-weight:700;color:var(--tx);margin-bottom:2px}
+.ac-inv-supplier{font-size:11px;color:var(--tm);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ac-inv-amount{text-align:left;flex-shrink:0;margin-right:10px}
+.ac-inv-total{font-size:14px;font-weight:700;color:var(--tx)}
+.ac-inv-currency{font-size:10px;color:var(--tm);letter-spacing:.06em}
+
+/* Status pills */
+.ac-pill{
+  display:inline-block;padding:3px 9px;border-radius:99px;
+  font-size:10px;font-weight:700;letter-spacing:.02em;
+  margin-top:4px;
+}
+.ac-pill-unpaid{background:rgba(240,160,176,.14);color:#F0A0B0}
+.ac-pill-partial{background:rgba(240,196,116,.16);color:#F0C474}
+.ac-pill-paid{background:rgba(110,231,160,.14);color:#6EE7A0}
+.ac-pill-cancelled{background:rgba(120,120,120,.14);color:#A0A0A0}
+
+/* Light mode overrides */
+html[data-theme="light"] .ac-tabs{background:#FFFFFF;border-color:rgba(60,45,15,.1)}
+html[data-theme="light"] .ac-tab{color:#5A5446}
+html[data-theme="light"] .ac-tab.active{background:linear-gradient(135deg,#D8B45E,#C48B3F);color:#FFFFFF}
+html[data-theme="light"] .ac-kpi,
+html[data-theme="light"] .ac-card{background:#FFFFFF;border-color:rgba(60,45,15,.1);box-shadow:0 2px 8px rgba(70,50,15,.04)}
+html[data-theme="light"] .ac-inv{background:#FAF7F0;border-color:rgba(60,45,15,.08)}
+html[data-theme="light"] .ac-inv:active{background:#F0EBE0}
+html[data-theme="light"] .ac-inv-no{color:#1C1A16}
+html[data-theme="light"] .ac-pill-unpaid{background:#F7D5D5;color:#6B0F0F}
+html[data-theme="light"] .ac-pill-partial{background:#FCEFC7;color:#4A2F00}
+html[data-theme="light"] .ac-pill-paid{background:#C9EDD5;color:#04391F}
+html[data-theme="light"] .ac-pill-cancelled{background:#E8E4DA;color:#2A2620}
+html[data-theme="light"] .btn-outline{border-color:rgba(60,45,15,.2);color:#6F520A}
+</style>
+</head>
+<body>
+
+<div class="aura"></div>
+<div class="grain"></div>
+
+<!-- Header -->
+<div class="ac-header">
+  <div>
+    <div class="ac-title">الحسابات والمالية</div>
+    <div class="ac-sub">ACCOUNTS & FINANCE</div>
+  </div>
+</div>
+
+<!-- Tabs -->
+<div class="ac-tabs" id="acTabs">
+  <button class="ac-tab active" data-tab="invoices">📄 الفواتير</button>
+  <button class="ac-tab" data-tab="payments">💳 المدفوعات</button>
+  <button class="ac-tab" data-tab="supplier">📊 كشف المورد</button>
+  <button class="ac-tab" data-tab="due">⏰ المستحقات</button>
+</div>
+
+<!-- KPIs -->
+<div class="ac-kpis" id="acKpis">
+  <div class="ac-kpi">
+    <div class="ac-kpi-label">مستحقات JOD</div>
+    <div class="ac-kpi-value jod" id="kpiJod">—</div>
+  </div>
+  <div class="ac-kpi">
+    <div class="ac-kpi-label">مستحقات USD</div>
+    <div class="ac-kpi-value usd" id="kpiUsd">—</div>
+  </div>
+  <div class="ac-kpi">
+    <div class="ac-kpi-label">مستحقات EUR</div>
+    <div class="ac-kpi-value eur" id="kpiEur">—</div>
+  </div>
+</div>
+
+<!-- Content -->
+<div id="acContent">
+  <div class="ac-loading">جاري التحميل</div>
+</div>
+
+<!-- FAB -->
+<button class="ac-fab" id="acFab" title="فاتورة جديدة">+</button>
+
+<!-- Scripts -->
+<script src="supabase.js"></script>
+<script src="branding.js"></script>
+<script src="nav.js"></script>
+<script src="accounts.js"></script>
+
+</body>
+</html>
