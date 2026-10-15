@@ -1,19 +1,17 @@
 /* ============================================================
-   MIZAN — Accounts Module (v1)
+   MIZAN — Accounts Module (v2)
    قسم الحسابات والمالية — الفواتير والمدفوعات
    ============================================================ */
 (function(){
 'use strict';
 
-/* ===== State ===== */
 var state = {
   invoices: [],
-  payments: [],
   currentTab: 'invoices',
-  loading: false,
+  loading: true,
+  error: null
 };
 
-/* ===== Utilities ===== */
 function $(id){return document.getElementById(id);}
 
 function fmtAmount(n, currency){
@@ -27,19 +25,8 @@ function fmtDate(d){
   if(!d) return '—';
   try{
     var dt = new Date(d);
-    var y = dt.getFullYear();
-    var m = String(dt.getMonth()+1).padStart(2,'0');
-    var day = String(dt.getDate()).padStart(2,'0');
-    return y+'-'+m+'-'+day;
+    return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');
   }catch(e){return d;}
-}
-
-function today(){
-  var d = new Date();
-  var y = d.getFullYear();
-  var m = String(d.getMonth()+1).padStart(2,'0');
-  var day = String(d.getDate()).padStart(2,'0');
-  return y+'-'+m+'-'+day;
 }
 
 function statusLabel(s){
@@ -47,12 +34,8 @@ function statusLabel(s){
     'unpaid':'غير مدفوعة',
     'partial':'مدفوعة جزئياً',
     'paid':'مدفوعة',
-    'cancelled':'ملغاة',
-    'pending':'بانتظار المطابقة',
-    'matched':'مطابقة',
-    'variance':'فرق',
-    'unmatched':'غير مطابقة'
-  })[s] || s;
+    'cancelled':'ملغاة'
+  })[s] || s || '—';
 }
 
 function esc(s){
@@ -62,42 +45,53 @@ function esc(s){
   });
 }
 
-/* ===== Supabase Helper ===== */
-function sb(){
-  return window.MZN_DB || null;
-}
-
-/* ===== Load Invoices ===== */
-async function loadInvoices(){
-  state.loading = true;
-  renderContent();
-  var client = sb();
-  if(!client || !client.list){
-    state.invoices = [];
-    state.loading = false;
-    renderContent();
+function renderContent(){
+  var el = $('acContent');
+  if(!el) return;
+  if(state.error){
+    el.innerHTML = '<div class="ac-empty">⚠️ '+esc(state.error)+'</div>';
     return;
   }
-  try{
-    var data = await client.list('invoices');
-    state.invoices = data || [];
-  }catch(e){
-    console.error('[accounts] loadInvoices error:', e);
-    state.invoices = [];
+  if(state.loading){
+    el.innerHTML = '<div class="ac-loading">جاري التحميل</div>';
+    return;
   }
-  state.loading = false;
-  renderKPIs();
-  renderContent();
+  if(state.currentTab==='invoices'){
+    if(!state.invoices.length){
+      el.innerHTML = '<div class="ac-empty">لا توجد فواتير بعد<br><small>اضغط + لإضافة فاتورة</small></div>';
+      return;
+    }
+    var html = '';
+    state.invoices.forEach(function(inv){
+      var statusClass = 'ac-pill-'+(inv.status||'unpaid');
+      html += '<div class="ac-inv">';
+      html += '<div class="ac-inv-info">';
+      html += '<div class="ac-inv-no">'+esc(inv.invoice_no||'بدون رقم')+'</div>';
+      html += '<div class="ac-inv-supplier">'+esc(inv.supplier_name||'—')+' · '+esc(fmtDate(inv.invoice_date))+'</div>';
+      html += '<div><span class="ac-pill '+statusClass+'">'+esc(statusLabel(inv.status))+'</span></div>';
+      html += '</div>';
+      html += '<div class="ac-inv-amount">';
+      html += '<div class="ac-inv-total">'+esc(fmtAmount(inv.total, inv.currency))+'</div>';
+      html += '<div class="ac-inv-currency">'+esc(inv.currency||'')+'</div>';
+      html += '</div></div>';
+    });
+    el.innerHTML = html;
+  }else if(state.currentTab==='payments'){
+    el.innerHTML = '<div class="ac-empty">💳<br>سجل المدفوعات<br><small>سيُبنى في الجلسة 3</small></div>';
+  }else if(state.currentTab==='supplier'){
+    el.innerHTML = '<div class="ac-empty">📊<br>كشف حساب الموردين<br><small>سيُبنى في الجلسة 4</small></div>';
+  }else if(state.currentTab==='due'){
+    el.innerHTML = '<div class="ac-empty">⏰<br>الفواتير المستحقة<br><small>سيُبنى في الجلسة 4</small></div>';
+  }
 }
 
-/* ===== KPIs ===== */
 function renderKPIs(){
   var sums = {JOD:0, USD:0, EUR:0};
   state.invoices.forEach(function(inv){
-    if(inv.status==='paid' || inv.status==='cancelled') return;
+    if(inv.status==='paid'||inv.status==='cancelled') return;
     var remaining = Number(inv.total||0) - Number(inv.paid_amount||0);
     if(remaining>0 && sums[inv.currency]!==undefined){
-      sums[inv.currency] += remaining;
+      sums[inv.currency]+=remaining;
     }
   });
   var jodEl = $('kpiJod'), usdEl = $('kpiUsd'), eurEl = $('kpiEur');
@@ -106,64 +100,35 @@ function renderKPIs(){
   if(eurEl) eurEl.textContent = fmtAmount(sums.EUR,'EUR');
 }
 
-/* ===== Render Content by Tab ===== */
-function renderContent(){
-  var el = $('acContent');
-  if(!el) return;
-  if(state.loading){
-    el.innerHTML = '<div class="ac-loading">جاري التحميل</div>';
+async function loadInvoices(){
+  console.log('[accounts] waiting for MZN_DB...');
+  var tries = 0;
+  while((!window.MZN_DB || typeof window.MZN_DB.list !== 'function') && tries < 66){
+    await new Promise(function(r){ setTimeout(r, 150); });
+    tries++;
+  }
+  if(!window.MZN_DB || typeof window.MZN_DB.list !== 'function'){
+    console.error('[accounts] MZN_DB not available');
+    state.loading = false;
+    state.error = 'لم يتم تحميل supabase.js — أعد تحميل الصفحة';
+    renderContent();
     return;
   }
-  if(state.currentTab==='invoices'){
-    el.innerHTML = renderInvoices();
-  }else if(state.currentTab==='payments'){
-    el.innerHTML = renderPayments();
-  }else if(state.currentTab==='supplier'){
-    el.innerHTML = renderSupplier();
-  }else if(state.currentTab==='due'){
-    el.innerHTML = renderDue();
+  console.log('[accounts] MZN_DB found — loading invoices');
+  try{
+    var data = await window.MZN_DB.list('invoices');
+    console.log('[accounts] loaded invoices:', data ? data.length : 0);
+    state.invoices = data || [];
+  }catch(e){
+    console.error('[accounts] error:', e);
+    state.invoices = [];
+    state.error = 'فشل الاتصال: ' + (e && e.message ? e.message : 'خطأ');
   }
+  state.loading = false;
+  renderKPIs();
+  renderContent();
 }
 
-/* ===== Tab: Invoices ===== */
-function renderInvoices(){
-  if(state.invoices.length===0){
-    return '<div class="ac-empty">لا توجد فواتير بعد<br><small>اضغط + لإضافة فاتورة</small></div>';
-  }
-  var html = '';
-  state.invoices.forEach(function(inv){
-    var statusClass = 'ac-pill-'+(inv.status||'unpaid');
-    html += '<div class="ac-inv" data-id="'+esc(inv.id)+'">';
-    html += '  <div class="ac-inv-info">';
-    html += '    <div class="ac-inv-no">'+esc(inv.invoice_no||'بدون رقم')+'</div>';
-    html += '    <div class="ac-inv-supplier">'+esc(inv.supplier_name||'—')+' · '+esc(fmtDate(inv.invoice_date))+'</div>';
-    html += '    <div><span class="ac-pill '+statusClass+'">'+esc(statusLabel(inv.status))+'</span></div>';
-    html += '  </div>';
-    html += '  <div class="ac-inv-amount">';
-    html += '    <div class="ac-inv-total">'+esc(fmtAmount(inv.total, inv.currency))+'</div>';
-    html += '    <div class="ac-inv-currency">'+esc(inv.currency||'')+'</div>';
-    html += '  </div>';
-    html += '</div>';
-  });
-  return html;
-}
-
-/* ===== Tab: Payments ===== */
-function renderPayments(){
-  return '<div class="ac-empty">💳<br>سجل المدفوعات<br><small>سيُبنى في الجلسة 3</small></div>';
-}
-
-/* ===== Tab: Supplier ===== */
-function renderSupplier(){
-  return '<div class="ac-empty">📊<br>كشف حساب الموردين<br><small>سيُبنى في الجلسة 4</small></div>';
-}
-
-/* ===== Tab: Due ===== */
-function renderDue(){
-  return '<div class="ac-empty">⏰<br>الفواتير المستحقة<br><small>سيُبنى في الجلسة 4</small></div>';
-}
-
-/* ===== Tab switching ===== */
 function initTabs(){
   var tabs = document.querySelectorAll('.ac-tab');
   tabs.forEach(function(t){
@@ -176,7 +141,6 @@ function initTabs(){
   });
 }
 
-/* ===== FAB — placeholder ===== */
 function initFab(){
   var fab = $('acFab');
   if(!fab) return;
@@ -185,19 +149,12 @@ function initFab(){
   });
 }
 
-/* ===== Init ===== */
 function init(){
+  console.log('[accounts] init v2');
   initTabs();
   initFab();
-  /* انتظر تحميل supabase.js (MZN_DB) */
-  var tries = 0;
-  var t = setInterval(function(){
-    tries++;
-    if((window.MZN_DB && window.MZN_DB.list) || tries>=40){
-      clearInterval(t);
-      loadInvoices();
-    }
-  }, 150);
+  renderContent();
+  loadInvoices();
 }
 
 if(document.readyState==='loading'){
@@ -206,19 +163,10 @@ if(document.readyState==='loading'){
   init();
 }
 
-/* ===== Expose for future use ===== */
 window.MZNAccounts = {
   state: state,
-  loadInvoices: loadInvoices,
-  renderKPIs: renderKPIs,
-  renderContent: renderContent,
-  fmtAmount: fmtAmount,
-  fmtDate: fmtDate,
-  today: today,
-  statusLabel: statusLabel,
-  esc: esc,
-  sb: sb,
+  loadInvoices: loadInvoices
 };
 
-console.log('[MIZAN] Accounts module v1 ready');
+console.log('[MIZAN] Accounts module v2 ready');
 })();
