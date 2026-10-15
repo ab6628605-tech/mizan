@@ -62,28 +62,26 @@ function esc(s){
   });
 }
 
-/* ===== Supabase client ===== */
+/* ===== Supabase Helper ===== */
 function sb(){
-  if(!window.MZN_SB && !window.supabase) return null;
-  if(window.MZN_SB) return window.MZN_SB;
-  return null;
+  return window.MZN_DB || null;
 }
-
+   
 /* ===== Load Invoices ===== */
+async function loadInvoices(){
 async function loadInvoices(){
   state.loading = true;
   renderContent();
   var client = sb();
-  if(!client){
+  if(!client || !client.list){
     state.invoices = [];
     state.loading = false;
     renderContent();
     return;
   }
   try{
-    var res = await client.from('invoices').select('*').order('created_at',{ascending:false}).limit(200);
-    if(res.error) throw res.error;
-    state.invoices = res.data || [];
+    var data = await client.list('invoices');
+    state.invoices = data || [];
   }catch(e){
     console.error('[accounts] loadInvoices error:', e);
     state.invoices = [];
@@ -91,7 +89,7 @@ async function loadInvoices(){
   state.loading = false;
   renderKPIs();
   renderContent();
-}
+   }
 
 /* ===== KPIs ===== */
 function renderKPIs(){
