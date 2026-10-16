@@ -605,7 +605,7 @@ function renderContent(){
   if(state.currentTab==='invoices'){ el.innerHTML = renderInvoices(); }
   else if(state.currentTab==='payments'){ el.innerHTML = renderPayments(); }
   else if(state.currentTab==='supplier'){ el.innerHTML = renderSupplier(); }
-  else if(state.currentTab==='due'){ el.innerHTML = '<div class="ac-empty">⏰<br>الفواتير المستحقة<br><small>سيُبنى في الجلسة 7</small></div>'; }
+  else if(state.currentTab==='due'){ el.innerHTML = renderDue(); }
 }
 
 function renderInvoices(){
@@ -678,6 +678,136 @@ function renderSupplier(){
   return html;
 }
 
+/* ===== Due Dates ===== */
+function daysUntil(dateStr){
+  if(!dateStr) return null;
+  try{
+    var today = new Date();
+    today.setHours(0,0,0,0);
+    var due = new Date(dateStr);
+    due.setHours(0,0,0,0);
+    var diff = Math.round((due - today) / 86400000);
+    return diff;
+  }catch(e){ return null; }
+}
+
+function buildDueGroups(){
+  var groups = {
+    overdue: [],
+    week: [],
+    month: [],
+    far: [],
+    noDate: []
+  };
+  state.invoices.forEach(function(inv){
+    if(inv.status === 'paid' || inv.status === 'cancelled') return;
+    var remaining = Number(inv.total||0) - Number(inv.paid_amount||0);
+    if(remaining <= 0) return;
+    if(!inv.due_date){
+      groups.noDate.push(inv);
+      return;
+    }
+    var d = daysUntil(inv.due_date);
+    if(d === null){ groups.noDate.push(inv); return; }
+    if(d < 0){ groups.overdue.push({inv: inv, days: d}); }
+    else if(d <= 7){ groups.week.push({inv: inv, days: d}); }
+    else if(d <= 30){ groups.month.push({inv: inv, days: d}); }
+    else { groups.far.push({inv: inv, days: d}); }
+  });
+  return groups;
+}
+
+function renderDue(){
+  var g = buildDueGroups();
+  var total = g.overdue.length + g.week.length + g.month.length + g.far.length + g.noDate.length;
+  if(total === 0){
+    return '<div class="ac-empty">⏰<br>لا توجد فواتير مستحقة<br><small>كل الفواتير مدفوعة</small></div>';
+  }
+  
+  var html = '';
+  
+  /* ملخص */
+  var weekSum = {JOD:0, USD:0, EUR:0};
+  g.week.forEach(function(x){
+    var cur = x.inv.currency;
+    var rem = Number(x.inv.total||0) - Number(x.inv.paid_amount||0);
+    if(weekSum[cur]!==undefined) weekSum[cur] += rem;
+  });
+  var weekTotal = 0;
+  ['JOD','USD','EUR'].forEach(function(cur){
+    if(weekSum[cur] > 0) weekTotal++;
+  });
+  if(weekTotal > 0){
+    html += '<div class="acm-info" style="margin-bottom:12px">';
+    html += '<div style="font-size:11px;letter-spacing:.06em;margin-bottom:6px">📅 سيولة الأسبوع القادم</div>';
+    ['JOD','USD','EUR'].forEach(function(cur){
+      if(weekSum[cur] > 0){
+        html += '<div class="acm-info-row"><span>'+cur+'</span><span style="font-weight:700">'+esc(fmtAmount(weekSum[cur], cur))+'</span></div>';
+      }
+    });
+    html += '</div>';
+  }
+  
+  /* Render helper */
+  function renderGroup(title, color, items, showDays){
+    if(!items.length) return '';
+    var s = '<div style="font-size:12px;font-weight:700;color:'+color+';letter-spacing:.06em;margin:14px 0 6px">'+title+' ('+items.length+')</div>';
+    items.forEach(function(x){
+      var inv = x.inv;
+      var d = x.days;
+      var statusClass = 'ac-pill-'+(inv.status||'unpaid');
+      s += '<div class="ac-inv" style="cursor:default">';
+      s += '<div class="ac-inv-info">';
+      s += '<div class="ac-inv-no">'+esc(inv.invoice_no||'—')+'</div>';
+      s += '<div class="ac-inv-supplier">'+esc(inv.supplier_name||'—')+' · استحقاق '+esc(fmtDate(inv.due_date))+'</div>';
+      if(showDays && d !== null){
+        var txt = d < 0 ? ('متأخرة '+Math.abs(d)+' يوم') : (d === 0 ? 'تستحق اليوم' : ('بعد '+d+' يوم'));
+        s += '<div style="font-size:10px;color:'+color+';margin-top:3px;font-weight:600">'+txt+'</div>';
+      }
+      s += '<div style="margin-top:3px"><span class="ac-pill '+statusClass+'">'+esc(statusLabel(inv.status))+'</span></div>';
+      s += '</div>';
+      s += '<div class="ac-inv-amount">';
+      s += '<div class="ac-inv-total">'+esc(fmtAmount(Number(inv.total||0)-Number(inv.paid_amount||0), inv.currency))+'</div>';
+      s += '<div class="ac-inv-currency">متبقٍ</div>';
+      s += '</div></div>';
+    });
+    return s;
+  }
+  
+  /* عرض المجموعات */
+  var overdueItems = g.overdue.sort(function(a,b){ return a.days - b.days; });
+  html += renderGroup('🔴 متأخرة', '#F0A0B0', overdueItems, true);
+  
+  var weekItems = g.week.sort(function(a,b){ return a.days - b.days; });
+  html += renderGroup('🟡 خلال 7 أيام', '#F0C474', weekItems, true);
+  
+  var monthItems = g.month.sort(function(a,b){ return a.days - b.days; });
+  html += renderGroup('🟢 خلال 30 يوم', '#6EE7A0', monthItems, true);
+  
+  var farItems = g.far.sort(function(a,b){ return a.days - b.days; });
+  html += renderGroup('⚪ بعيدة', '#A0A0A0', farItems, true);
+  
+  if(g.noDate.length){
+    html += '<div style="font-size:12px;font-weight:700;color:#6A7080;letter-spacing:.06em;margin:14px 0 6px">⚫ بدون تاريخ استحقاق ('+g.noDate.length+')</div>';
+    g.noDate.forEach(function(inv){
+      var statusClass = 'ac-pill-'+(inv.status||'unpaid');
+      html += '<div class="ac-inv" style="cursor:default">';
+      html += '<div class="ac-inv-info">';
+      html += '<div class="ac-inv-no">'+esc(inv.invoice_no||'—')+'</div>';
+      html += '<div class="ac-inv-supplier">'+esc(inv.supplier_name||'—')+'</div>';
+      html += '<div><span class="ac-pill '+statusClass+'">'+esc(statusLabel(inv.status))+'</span></div>';
+      html += '</div>';
+      html += '<div class="ac-inv-amount">';
+      html += '<div class="ac-inv-total">'+esc(fmtAmount(Number(inv.total||0)-Number(inv.paid_amount||0), inv.currency))+'</div>';
+      html += '<div class="ac-inv-currency">متبقٍ</div>';
+      html += '</div></div>';
+    });
+  }
+  
+  return html;
+       }
+   
+   
 function renderKPIs(){
   var sums = {JOD:0, USD:0, EUR:0};
   state.invoices.forEach(function(inv){
@@ -825,5 +955,5 @@ window.MZNAccounts = {
   openSupplierDetail: openSupplierDetail
 };
 
-console.log('[MIZAN] Accounts module v6 ready');
+console.log('[MIZAN] Accounts module v7 ready');
 })();
