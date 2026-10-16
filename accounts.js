@@ -429,6 +429,51 @@ async function savePayment(){
   }
 }
 
+/* ===== Delete Invoice ===== */
+async function deleteInvoice(invoiceId){
+  var client = sb();
+  if(!client || !client.remove){ 
+    alert('لا يوجد اتصال بـ Supabase'); 
+    return; 
+  }
+  
+  var inv = null;
+  for(var i=0;i<state.invoices.length;i++){
+    if(String(state.invoices[i].id) === String(invoiceId)){
+      inv = state.invoices[i];
+      break;
+    }
+  }
+  if(!inv){ alert('لم يتم العثور على الفاتورة'); return; }
+  
+  var confirmText = 'حذف الفاتورة ' + (inv.invoice_no||'') + ' بمبلغ ' + fmtAmount(inv.total, inv.currency) + '؟\n\nسيتم حذف كل بنودها ومدفوعاتها نهائياً.';
+  if(!confirm(confirmText)) return;
+  
+  try{
+    /* حذف المدفوعات أولاً */
+    await client.remove('payments', 'invoice_id', invoiceId);
+    /* حذف البنود */
+    await client.remove('invoice_items', 'invoice_id', invoiceId);
+    /* حذف الفاتورة */
+    await client.remove('invoices', 'id', invoiceId);
+    
+    /* تحديث القائمة */
+    var newList = [];
+    for(var k=0;k<state.invoices.length;k++){
+      if(String(state.invoices[k].id) !== String(invoiceId)){
+        newList.push(state.invoices[k]);
+      }
+    }
+    state.invoices = newList;
+    renderKPIs();
+    renderContent();
+    alert('✅ تم حذف الفاتورة');
+  }catch(e){
+    console.error('[accounts] deleteInvoice error:', e);
+    alert('فشل الحذف: ' + (e && e.message ? e.message : 'خطأ'));
+  }
+                                          }
+                                                                                   
 /* ===== Render ===== */
 function renderContent(){
   var el = $('acContent');
@@ -449,7 +494,8 @@ function renderInvoices(){
   state.invoices.forEach(function(inv){
     var statusClass = 'ac-pill-'+(inv.status||'unpaid');
     var remaining = Number(inv.total||0) - Number(inv.paid_amount||0);
-    html += '<div class="ac-inv" data-id="'+esc(inv.id)+'" style="cursor:pointer">';
+    html += '<div class="ac-inv" data-id="'+esc(inv.id)+'" style="cursor:pointer;position:relative">';
+    html += '<button class="ac-del-btn" data-del="'+esc(inv.id)+'" title="حذف" style="position:absolute;top:6px;left:6px;background:transparent;border:none;color:#F0A0B0;font-size:16px;cursor:pointer;padding:4px 8px;border-radius:6px;z-index:2">🗑️</button>';
     html += '<div class="ac-inv-info">';
     html += '<div class="ac-inv-no">'+esc(inv.invoice_no||'بدون رقم')+'</div>';
     html += '<div class="ac-inv-supplier">'+esc(inv.supplier_name||'—')+' · '+esc(fmtDate(inv.invoice_date))+'</div>';
@@ -565,6 +611,14 @@ function initCardClick(){
   var el = $('acContent');
   if(!el) return;
   el.addEventListener('click', function(e){
+    /* زر الحذف له الأولوية */
+    var delBtn = e.target.closest('.ac-del-btn');
+    if(delBtn){
+      e.stopPropagation();
+      deleteInvoice(delBtn.getAttribute('data-del'));
+      return;
+    }
+    /* الضغط على البطاقة يفتح الدفعة */
     var card = e.target.closest('.ac-inv[data-id]');
     if(card){ openPaymentForm(card.getAttribute('data-id')); }
   });
@@ -597,5 +651,5 @@ window.MZNAccounts = {
   openPaymentForm: openPaymentForm
 };
 
-console.log('[MIZAN] Accounts module v4 ready');
+console.log('[MIZAN] Accounts module v5 ready');
 })();
