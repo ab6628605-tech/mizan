@@ -1,6 +1,6 @@
 /* ============================================================
-   MIZAN — Accounts Module (v5)
-   الفواتير + المدفوعات + حذف الفواتير
+   MIZAN — Accounts Module (v6)
+   الفواتير + المدفوعات + الحذف + ربط الموردين + كشف الحساب
    ============================================================ */
 (function(){
 'use strict';
@@ -8,8 +8,10 @@
 var state = {
   invoices: [],
   payments: [],
+  suppliers: [],
   currentTab: 'invoices',
   currentInvoice: null,
+  currentSupplier: null,
   loading: true,
   error: null
 };
@@ -87,6 +89,8 @@ function injectGlobalStyles(){
     '.acm-btn-danger{background:linear-gradient(135deg,#F87171,#DC2626);color:#FFFFFF}',
     '.acm-info{background:rgba(201,169,97,.08);border:1px solid rgba(201,169,97,.2);border-radius:10px;padding:10px;margin-bottom:12px;font-size:12px;color:#C9A961}',
     '.acm-info-row{display:flex;justify-content:space-between;margin-bottom:4px}',
+    '.ac-inv-supplier-name{font-size:14px;font-weight:700;margin-bottom:2px}',
+    '.ac-kpi-mini{display:flex;justify-content:space-between;font-size:11px;color:#6A7080;margin-top:4px;padding-top:4px;border-top:1px solid rgba(255,255,255,.05)}',
     'body.ac-modal-open .mzn-nav,body.ac-modal-open [class*="bottom-nav"],body.ac-modal-open .ac-fab,body.ac-modal-open #mznThemeBtn{display:none!important}',
     'body.ac-modal-open{overflow:hidden!important}',
     'html[data-theme="light"] .acm-overlay{background:rgba(40,30,10,.5)}',
@@ -99,7 +103,8 @@ function injectGlobalStyles(){
     'html[data-theme="light"] .acm-total-row{color:#5A5446}',
     'html[data-theme="light"] .acm-total-row.grand{color:#6F520A}',
     'html[data-theme="light"] .acm-btn-cancel{background:#FFFFFF;color:#1C1A16;border-color:rgba(60,45,15,.15)}',
-    'html[data-theme="light"] .acm-info{color:#6F520A}'
+    'html[data-theme="light"] .acm-info{color:#6F520A}',
+    'html[data-theme="light"] .ac-kpi-mini{border-top-color:rgba(60,45,15,.08)}'
   ].join('');
   document.head.appendChild(style);
 }
@@ -112,12 +117,9 @@ function injectInvoiceModal(){
   modal.className = 'acm-overlay';
   modal.innerHTML = [
     '<div class="acm-body">',
-    '<div class="acm-head">',
-    '<div class="acm-title">📄 فاتورة جديدة</div>',
-    '<button class="acm-close" type="button">✕</button>',
-    '</div>',
+    '<div class="acm-head"><div class="acm-title">📄 فاتورة جديدة</div><button class="acm-close" type="button">✕</button></div>',
     '<div class="acm-group"><label class="acm-label">رقم الفاتورة *</label><input class="acm-input" id="fInvoiceNo" type="text" placeholder="INV-001" lang="en" dir="ltr"></div>',
-    '<div class="acm-group"><label class="acm-label">اسم المورد</label><input class="acm-input" id="fSupplier" type="text" placeholder="اسم المورد"></div>',
+    '<div class="acm-group"><label class="acm-label">المورد *</label><select class="acm-input" id="fSupplierId"><option value="">— اختر مورداً —</option></select><input class="acm-input" id="fSupplier" type="text" placeholder="اكتب اسم المورد الجديد" style="display:none;margin-top:8px"></div>',
     '<div class="acm-row">',
     '<div class="acm-group"><label class="acm-label">تاريخ الفاتورة *</label><input class="acm-input" id="fDate" type="date" lang="en-GB" dir="ltr"></div>',
     '<div class="acm-group"><label class="acm-label">تاريخ الاستحقاق</label><input class="acm-input" id="fDue" type="date" lang="en-GB" dir="ltr"></div>',
@@ -140,7 +142,33 @@ function injectInvoiceModal(){
   $('fCancel').addEventListener('click', closeInvoiceForm);
   $('fSave').addEventListener('click', saveInvoice);
   $('fAddItem').addEventListener('click', function(){ addItem(); });
+  $('fSupplierId').addEventListener('change', onSupplierChange);
   modal.addEventListener('click', function(e){ if(e.target === modal) closeInvoiceForm(); });
+}
+
+function onSupplierChange(){
+  var sel = $('fSupplierId');
+  var custom = $('fSupplier');
+  if(!sel || !custom) return;
+  if(sel.value === '__new__'){
+    custom.style.display = 'block';
+    custom.value = '';
+    custom.focus();
+  }else{
+    custom.style.display = 'none';
+    custom.value = '';
+  }
+}
+
+function populateSuppliersDropdown(){
+  var sel = $('fSupplierId');
+  if(!sel) return;
+  var options = '<option value="">— اختر مورداً —</option>';
+  state.suppliers.forEach(function(s){
+    options += '<option value="'+esc(s.id)+'">'+esc(s.name||'بدون اسم')+'</option>';
+  });
+  options += '<option value="__new__">➕ مورد جديد (يدوي)</option>';
+  sel.innerHTML = options;
 }
 
 /* ===== Payment Modal ===== */
@@ -151,17 +179,14 @@ function injectPaymentModal(){
   modal.className = 'acm-overlay';
   modal.innerHTML = [
     '<div class="acm-body">',
-    '<div class="acm-head">',
-    '<div class="acm-title">💳 تسجيل دفعة</div>',
-    '<button class="acm-close" type="button">✕</button>',
-    '</div>',
+    '<div class="acm-head"><div class="acm-title">💳 تسجيل دفعة</div><button class="acm-close" type="button">✕</button></div>',
     '<div class="acm-info" id="pInfo"></div>',
     '<div class="acm-group"><label class="acm-label">المبلغ *</label><input class="acm-input" id="pAmount" type="number" step="0.01" min="0" placeholder="0.00" lang="en" dir="ltr"></div>',
     '<div class="acm-row">',
     '<div class="acm-group"><label class="acm-label">تاريخ الدفع *</label><input class="acm-input" id="pDate" type="date" lang="en-GB" dir="ltr"></div>',
     '<div class="acm-group"><label class="acm-label">طريقة الدفع</label><select class="acm-input" id="pMethod"><option value="bank_transfer">حوالة بنكية</option><option value="cash">نقدي</option><option value="cheque">شيك</option><option value="other">أخرى</option></select></div>',
     '</div>',
-    '<div class="acm-group"><label class="acm-label">المرجع (رقم الحوالة/الشيك)</label><input class="acm-input" id="pRef" type="text" placeholder="T/T-1234" lang="en" dir="ltr"></div>',
+    '<div class="acm-group"><label class="acm-label">المرجع</label><input class="acm-input" id="pRef" type="text" placeholder="T/T-1234" lang="en" dir="ltr"></div>',
     '<div class="acm-actions">',
     '<button class="acm-btn acm-btn-cancel" type="button" id="pCancel">إلغاء</button>',
     '<button class="acm-btn acm-btn-save" type="button" id="pSave">حفظ الدفعة</button>',
@@ -175,7 +200,7 @@ function injectPaymentModal(){
   modal.addEventListener('click', function(e){ if(e.target === modal) closePaymentForm(); });
 }
 
-/* ===== Confirm Delete Modal ===== */
+/* ===== Delete Modal ===== */
 function injectDeleteModal(){
   if($('acDelModal')) return;
   var modal = document.createElement('div');
@@ -183,10 +208,7 @@ function injectDeleteModal(){
   modal.className = 'acm-overlay';
   modal.innerHTML = [
     '<div class="acm-body">',
-    '<div class="acm-head">',
-    '<div class="acm-title">🗑️ حذف الفاتورة</div>',
-    '<button class="acm-close" type="button">✕</button>',
-    '</div>',
+    '<div class="acm-head"><div class="acm-title">🗑️ حذف الفاتورة</div><button class="acm-close" type="button">✕</button></div>',
     '<div style="font-size:14px;margin-bottom:8px">هل أنت متأكد من الحذف؟</div>',
     '<div class="acm-info" id="dInfo"></div>',
     '<div style="font-size:11px;color:#F0A0B0;margin-top:8px;line-height:1.6">⚠️ سيتم حذف الفاتورة وكل بنودها ومدفوعاتها نهائياً. لا يمكن التراجع.</div>',
@@ -201,6 +223,26 @@ function injectDeleteModal(){
   $('dCancel').addEventListener('click', closeDeleteForm);
   $('dConfirm').addEventListener('click', confirmDelete);
   modal.addEventListener('click', function(e){ if(e.target === modal) closeDeleteForm(); });
+}
+
+/* ===== Supplier Detail Modal ===== */
+function injectSupplierModal(){
+  if($('acSupModal')) return;
+  var modal = document.createElement('div');
+  modal.id = 'acSupModal';
+  modal.className = 'acm-overlay';
+  modal.innerHTML = [
+    '<div class="acm-body">',
+    '<div class="acm-head"><div class="acm-title">📊 كشف حساب مورد</div><button class="acm-close" type="button">✕</button></div>',
+    '<div id="supDetailInfo" style="font-size:12px;margin-bottom:12px"></div>',
+    '<div id="supDetailList"></div>',
+    '<div class="acm-actions"><button class="acm-btn acm-btn-cancel" type="button" id="supClose">إغلاق</button></div>',
+    '</div>'
+  ].join('');
+  document.body.appendChild(modal);
+  modal.querySelector('.acm-close').addEventListener('click', closeSupplierDetail);
+  $('supClose').addEventListener('click', closeSupplierDetail);
+  modal.addEventListener('click', function(e){ if(e.target === modal) closeSupplierDetail(); });
 }
 
 /* ===== Items ===== */
@@ -220,9 +262,7 @@ function addItem(){
     '</div>'
   ].join('');
   wrap.appendChild(div);
-  div.querySelector('.acm-item-del').addEventListener('click', function(){
-    div.remove(); renumberItems(); recalcTotals();
-  });
+  div.querySelector('.acm-item-del').addEventListener('click', function(){ div.remove(); renumberItems(); recalcTotals(); });
   var inputs = div.querySelectorAll('input');
   for(var i=0;i<inputs.length;i++){ inputs[i].addEventListener('input', recalcTotals); }
   recalcTotals();
@@ -260,8 +300,9 @@ function recalcTotals(){
 function openInvoiceForm(){
   var modal = $('acModal');
   if(!modal) return;
+  populateSuppliersDropdown();
   if($('fInvoiceNo')) $('fInvoiceNo').value = '';
-  if($('fSupplier')) $('fSupplier').value = '';
+  if($('fSupplier')) { $('fSupplier').value = ''; $('fSupplier').style.display = 'none'; }
   if($('fDate')) $('fDate').value = today();
   if($('fDue')) $('fDue').value = '';
   if($('fCurrency')) $('fCurrency').value = 'JOD';
@@ -282,6 +323,23 @@ async function saveInvoice(){
   if(!client || !client.create){ alert('لا يوجد اتصال بـ Supabase'); return; }
   var invoiceNo = ($('fInvoiceNo').value||'').trim();
   if(!invoiceNo){ alert('رقم الفاتورة مطلوب'); return; }
+  var sel = $('fSupplierId');
+  var supplierId = null, supplierName = null;
+  if(sel.value === '__new__'){
+    supplierName = ($('fSupplier').value||'').trim();
+    if(!supplierName){ alert('اكتب اسم المورد الجديد'); return; }
+  }else if(sel.value){
+    supplierId = Number(sel.value);
+    for(var s=0;s<state.suppliers.length;s++){
+      if(String(state.suppliers[s].id) === String(supplierId)){
+        supplierName = state.suppliers[s].name;
+        break;
+      }
+    }
+  }else{
+    alert('اختر مورداً');
+    return;
+  }
   var currency = $('fCurrency').value;
   var invDate = $('fDate').value || today();
   var items = [];
@@ -302,7 +360,8 @@ async function saveInvoice(){
   var total = subtotal + taxTotal;
   var invoice = {
     invoice_no: invoiceNo,
-    supplier_name: ($('fSupplier').value||'').trim() || null,
+    supplier_id: supplierId,
+    supplier_name: supplierName,
     invoice_date: invDate,
     due_date: $('fDue').value || null,
     currency: currency,
@@ -343,6 +402,7 @@ function openPaymentForm(invoiceId){
   if(info){
     info.innerHTML =
       '<div class="acm-info-row"><span>الفاتورة:</span><span>'+esc(inv.invoice_no||'—')+'</span></div>'+
+      '<div class="acm-info-row"><span>المورد:</span><span>'+esc(inv.supplier_name||'—')+'</span></div>'+
       '<div class="acm-info-row"><span>الإجمالي:</span><span>'+esc(fmtAmount(inv.total, inv.currency))+'</span></div>'+
       '<div class="acm-info-row"><span>المدفوع:</span><span>'+esc(fmtAmount(inv.paid_amount||0, inv.currency))+'</span></div>'+
       '<div class="acm-info-row" style="font-weight:700"><span>المتبقي:</span><span>'+esc(fmtAmount(remaining, inv.currency))+'</span></div>';
@@ -388,10 +448,7 @@ async function savePayment(){
     var newStatus = 'partial';
     if(newPaid >= Number(inv.total||0) - 0.01) newStatus = 'paid';
     if(newPaid <= 0) newStatus = 'unpaid';
-    await client.update('invoices', inv.id, {
-      paid_amount: Number(newPaid.toFixed(2)),
-      status: newStatus
-    });
+    await client.update('invoices', inv.id, { paid_amount: Number(newPaid.toFixed(2)), status: newStatus });
     closePaymentForm();
     await loadInvoices();
     await loadPayments();
@@ -437,9 +494,7 @@ async function confirmDelete(){
     await client.remove('invoices', inv.id);
     var newList = [];
     for(var k=0;k<state.invoices.length;k++){
-      if(String(state.invoices[k].id) !== String(inv.id)){
-        newList.push(state.invoices[k]);
-      }
+      if(String(state.invoices[k].id) !== String(inv.id)){ newList.push(state.invoices[k]); }
     }
     state.invoices = newList;
     closeDeleteForm();
@@ -452,6 +507,95 @@ async function confirmDelete(){
   }
 }
 
+/* ===== Supplier Detail ===== */
+function openSupplierDetail(supplierKey){
+  var invoices = getSupplierInvoices(supplierKey);
+  if(!invoices.length) return;
+  state.currentSupplier = supplierKey;
+  var first = invoices[0];
+  var info = $('supDetailInfo');
+  var totals = {JOD:0, USD:0, EUR:0};
+  var unpaid = {JOD:0, USD:0, EUR:0};
+  invoices.forEach(function(inv){
+    if(totals[inv.currency]!==undefined) totals[inv.currency] += Number(inv.total||0);
+    var rem = Number(inv.total||0) - Number(inv.paid_amount||0);
+    if(rem>0 && unpaid[inv.currency]!==undefined) unpaid[inv.currency] += rem;
+  });
+  var infoHtml = '<div style="font-size:15px;font-weight:700;margin-bottom:8px">'+esc(first.supplier_name||'—')+'</div>';
+  infoHtml += '<div class="acm-info">';
+  ['JOD','USD','EUR'].forEach(function(cur){
+    if(totals[cur] > 0){
+      infoHtml += '<div class="acm-info-row"><span>إجمالي '+cur+':</span><span>'+esc(fmtAmount(totals[cur], cur))+'</span></div>';
+      if(unpaid[cur] > 0){
+        infoHtml += '<div class="acm-info-row" style="color:#F0A0B0"><span>متبقٍ '+cur+':</span><span>'+esc(fmtAmount(unpaid[cur], cur))+'</span></div>';
+      }
+    }
+  });
+  infoHtml += '</div>';
+  if(info) info.innerHTML = infoHtml;
+  
+  var listHtml = '<div style="font-size:11px;color:#6A7080;letter-spacing:.06em;margin-bottom:6px">الفواتير ('+invoices.length+')</div>';
+  invoices.forEach(function(inv){
+    var statusClass = 'ac-pill-'+(inv.status||'unpaid');
+    listHtml += '<div class="ac-inv" style="cursor:default">';
+    listHtml += '<div class="ac-inv-info">';
+    listHtml += '<div class="ac-inv-no">'+esc(inv.invoice_no||'—')+'</div>';
+    listHtml += '<div class="ac-inv-supplier">'+esc(fmtDate(inv.invoice_date))+'</div>';
+    listHtml += '<div><span class="ac-pill '+statusClass+'">'+esc(statusLabel(inv.status))+'</span></div>';
+    listHtml += '</div>';
+    listHtml += '<div class="ac-inv-amount">';
+    listHtml += '<div class="ac-inv-total">'+esc(fmtAmount(inv.total, inv.currency))+'</div>';
+    listHtml += '<div class="ac-inv-currency">'+esc(inv.currency||'')+'</div>';
+    listHtml += '</div></div>';
+  });
+  $('supDetailList').innerHTML = listHtml;
+  $('acSupModal').classList.add('open');
+  document.body.classList.add('ac-modal-open');
+}
+
+function closeSupplierDetail(){
+  var modal = $('acSupModal');
+  if(modal) modal.classList.remove('open');
+  document.body.classList.remove('ac-modal-open');
+  state.currentSupplier = null;
+}
+
+/* ===== Supplier Helpers ===== */
+function supplierKey(inv){
+  if(inv.supplier_id) return 'id:'+inv.supplier_id;
+  return 'name:'+(inv.supplier_name||'—');
+}
+
+function getSupplierInvoices(key){
+  return state.invoices.filter(function(inv){ return supplierKey(inv) === key; });
+}
+
+function buildSupplierMap(){
+  var map = {};
+  state.invoices.forEach(function(inv){
+    var key = supplierKey(inv);
+    if(!map[key]){
+      map[key] = {
+        key: key,
+        id: inv.supplier_id || null,
+        name: inv.supplier_name || '—',
+        count: 0,
+        totals: {JOD:0, USD:0, EUR:0},
+        unpaid: {JOD:0, USD:0, EUR:0}
+      };
+    }
+    var m = map[key];
+    m.count++;
+    if(m.totals[inv.currency]!==undefined) m.totals[inv.currency] += Number(inv.total||0);
+    var rem = Number(inv.total||0) - Number(inv.paid_amount||0);
+    if(rem>0 && m.unpaid[inv.currency]!==undefined) m.unpaid[inv.currency] += rem;
+  });
+  var list = [];
+  for(var k in map){ if(map.hasOwnProperty(k)) list.push(map[k]); }
+  list.sort(function(a,b){ return (a.name||'').localeCompare(b.name||''); });
+  return list;
+}
+
 /* ===== Render ===== */
 function renderContent(){
   var el = $('acContent');
@@ -460,8 +604,8 @@ function renderContent(){
   if(state.loading){ el.innerHTML = '<div class="ac-loading">جاري التحميل</div>'; return; }
   if(state.currentTab==='invoices'){ el.innerHTML = renderInvoices(); }
   else if(state.currentTab==='payments'){ el.innerHTML = renderPayments(); }
-  else if(state.currentTab==='supplier'){ el.innerHTML = '<div class="ac-empty">📊<br>كشف حساب الموردين<br><small>سيُبنى في الجلسة 6</small></div>'; }
-  else if(state.currentTab==='due'){ el.innerHTML = '<div class="ac-empty">⏰<br>الفواتير المستحقة<br><small>سيُبنى في الجلسة 6</small></div>'; }
+  else if(state.currentTab==='supplier'){ el.innerHTML = renderSupplier(); }
+  else if(state.currentTab==='due'){ el.innerHTML = '<div class="ac-empty">⏰<br>الفواتير المستحقة<br><small>سيُبنى في الجلسة 7</small></div>'; }
 }
 
 function renderInvoices(){
@@ -508,6 +652,32 @@ function renderPayments(){
   return html;
 }
 
+function renderSupplier(){
+  var list = buildSupplierMap();
+  if(!list.length){
+    return '<div class="ac-empty">📊<br>لا يوجد موردون بعد<br><small>أضف فاتورة لربطها بمورد</small></div>';
+  }
+  var html = '';
+  list.forEach(function(s){
+    html += '<div class="ac-inv ac-sup-row" data-sup="'+esc(s.key)+'" style="cursor:pointer;position:relative">';
+    html += '<div class="ac-inv-info">';
+    html += '<div class="ac-inv-supplier-name">'+esc(s.name)+'</div>';
+    html += '<div class="ac-inv-supplier">'+s.count+' فاتورة</div>';
+    html += '<div class="ac-kpi-mini">';
+    ['JOD','USD','EUR'].forEach(function(cur){
+      if(s.unpaid[cur] > 0){
+        html += '<span style="color:#F0A0B0">'+esc(fmtAmount(s.unpaid[cur], cur))+'</span>';
+      }
+    });
+    html += '</div>';
+    html += '</div>';
+    html += '<div class="ac-inv-amount" style="text-align:center">';
+    html += '<div style="font-size:18px">👤</div>';
+    html += '</div></div>';
+  });
+  return html;
+}
+
 function renderKPIs(){
   var sums = {JOD:0, USD:0, EUR:0};
   state.invoices.forEach(function(inv){
@@ -521,6 +691,7 @@ function renderKPIs(){
   if(eurEl) eurEl.textContent = fmtAmount(sums.EUR,'EUR');
 }
 
+/* ===== Data Loaders ===== */
 async function waitForDB(){
   var tries = 0;
   while((!window.MZN_DB || typeof window.MZN_DB.list !== 'function') && tries < 66){
@@ -564,6 +735,19 @@ async function loadPayments(){
   if(state.currentTab==='payments') renderContent();
 }
 
+async function loadSuppliers(){
+  var db = await waitForDB();
+  if(!db || !db.list) return;
+  try{
+    var data = await db.list('suppliers');
+    state.suppliers = data || [];
+    console.log('[accounts] suppliers loaded:', state.suppliers.length);
+  }catch(e){
+    console.error('[accounts] loadSuppliers error:', e);
+    state.suppliers = [];
+  }
+}
+
 /* ===== Events ===== */
 function initTabs(){
   var tabs = document.querySelectorAll('.ac-tab');
@@ -588,6 +772,7 @@ function initCardClick(){
   var el = $('acContent');
   if(!el) return;
   el.addEventListener('click', function(e){
+    /* زر الحذف */
     var delBtn = e.target.closest('.ac-del-btn');
     if(delBtn){
       e.stopPropagation();
@@ -595,6 +780,13 @@ function initCardClick(){
       openDeleteForm(delBtn.getAttribute('data-del'));
       return;
     }
+    /* صف مورد */
+    var supRow = e.target.closest('.ac-sup-row');
+    if(supRow){
+      openSupplierDetail(supRow.getAttribute('data-sup'));
+      return;
+    }
+    /* بطاقة فاتورة */
     var card = e.target.closest('.ac-inv[data-id]');
     if(card){ openPaymentForm(card.getAttribute('data-id')); }
   });
@@ -602,16 +794,18 @@ function initCardClick(){
 
 /* ===== Init ===== */
 function init(){
-  console.log('[accounts] init v5');
+  console.log('[accounts] init v6');
   injectGlobalStyles();
   injectInvoiceModal();
   injectPaymentModal();
   injectDeleteModal();
+  injectSupplierModal();
   initTabs();
   initFab();
   initCardClick();
   renderContent();
   loadInvoices();
+  loadSuppliers();
 }
 
 if(document.readyState==='loading'){
@@ -624,10 +818,12 @@ window.MZNAccounts = {
   state: state,
   loadInvoices: loadInvoices,
   loadPayments: loadPayments,
+  loadSuppliers: loadSuppliers,
   openInvoiceForm: openInvoiceForm,
   openPaymentForm: openPaymentForm,
-  openDeleteForm: openDeleteForm
+  openDeleteForm: openDeleteForm,
+  openSupplierDetail: openSupplierDetail
 };
 
-console.log('[MIZAN] Accounts module v5 ready');
+console.log('[MIZAN] Accounts module v6 ready');
 })();
