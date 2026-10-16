@@ -93,7 +93,9 @@ grn:'<path d="M21 8v13H3V8"/><path d="M1 3h22v5H1z"/><path d="M10 12h4"/>',
 users:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>',
 chart:'<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>',
 settings:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>'
+calc: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="11" x2="10" y2="11"/><line x1="14" y1="11" x2="16" y2="11"/><line x1="8" y1="15" x2="10" y2="15"/><line x1="14" y1="15" x2="16" y2="15"/><line x1="8" y1="19" x2="10" y2="19"/><line x1="14" y1="19" x2="16" y2="19"/></svg>'
 };
+  
 var items=[
 {href:'index.html',icon:'home',label:'الرئيسية'},
 {href:'dashboard.html',icon:'grid',label:'لوحة'},
@@ -209,12 +211,14 @@ var HUB_GROUPS=[
     {href:'mizan-po.html',icon:'po',label:'أوامر الشراء',sub:'PO'},
     {href:'mizan-grn.html',icon:'grn',label:'سندات الاستلام',sub:'GRN'}
   ]},
-  {title:'الإدارة والتحليل',accent:'ice',list:[
+{title:'الإدارة والتحليل',accent:'ice',list:[
     {href:'dashboard.html',icon:'grid',label:'لوحة التحكم',sub:'المؤشرات'},
+    {href:'mizan-accounts.html',icon:'chart',label:'الحسابات والمالية',sub:'الفواتير والمدفوعات'},
     {href:'mizan-suppliers.html',icon:'users',label:'الموردون',sub:'التقييم'},
     {href:'mizan-reports.html',icon:'chart',label:'التقارير',sub:'التوفير'},
     {href:'mizan-vault.html',icon:'vault',label:'خزنة الملفات',sub:'المستندات'}
   ]},
+
   {title:'النظام',accent:'vi',list:[
     {href:'index.html',icon:'home',label:'الرئيسية',sub:'البوابة'},
     {href:'mizan-settings.html',icon:'settings',label:'الإعدادات',sub:'الأصوات والصلاحيات'}
