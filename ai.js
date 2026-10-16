@@ -266,7 +266,7 @@ function showSetup(){
     '<h3>ضبط مساعد MIZAN</h3>'+
     '<p>للحصول على تحليل ذكي وقرارات ذكية، أدخل مفتاح Gemini الخاص بك.<br>المفتاح لن يُرفع إلى الإنترنت — يبقى في جهازك فقط.</p>'+
     '<div id="mznSetupError" style="display:none;padding:10px 14px;border-radius:10px;background:rgb(var(--bad-a) / .1);border:1px solid rgb(var(--bad-a) / .25);color:var(--ro);font-size:12px;margin-bottom:14px;text-align:center"></div>'+
-    '<input type="password" id="mznApiKeyInput" placeholder="AIzaSy..." autocomplete="off" spellcheck="false">'+
+    '<input type="password" id="mznApiKeyInput" placeholder="ألصق مفتاح Gemini هنا..." autocomplete="off" spellcheck="false">'+
     '<p class="hint">لم تحصل على مفتاح بعد؟<br>اذهب إلى <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a></p>'+
     '<button class="save-btn" id="mznSaveKey">حفظ المفتاح</button>'+
     '<p class="footer-note">🔒 مفتاحك مخزّن في متصفحك فقط.</p>';
@@ -280,9 +280,10 @@ function showSetup(){
   setTimeout(function(){ if(keyInput) keyInput.focus(); }, 300);
   saveBtn.addEventListener('click', function(){
     var k=(keyInput.value||'').trim();
+    /* التحقق المرن — لا نفرض بادئة معينة لأن Google تُصدر مفاتيح بأشكال مختلفة */
     if(!k){ showErr('أدخل المفتاح أولاً'); tone(330,.15); return; }
-    if(k.length<20){ showErr('المفتاح قصير جداً'); tone(330,.15); return; }
-    if(k.indexOf('AIza')!==0){ showErr('يجب أن يبدأ المفتاح بـ AIza'); tone(330,.15); return; }
+    if(k.length < 20){ showErr('المفتاح قصير جداً — تأكد من نسخه كاملاً'); tone(330,.15); return; }
+    if(/\s/.test(k)){ showErr('المفتاح يحتوي مسافات — تأكد من النسخ'); tone(330,.15); return; }
     setApiKey(k);
     tone(880,.12); setTimeout(function(){tone(1174,.15)},90);
     updateStatus();
@@ -600,5 +601,5 @@ function sendMessage(){
   });
 }
 
-console.log('[MIZAN] AI assistant v2 ready — history, voice, copy');
+console.log('[MIZAN] AI assistant v3 ready — flexible key validation');
 })();
