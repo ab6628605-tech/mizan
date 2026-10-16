@@ -1,6 +1,6 @@
 /* ============================================================
-   MIZAN — Accounts Module (v4)
-   الفواتير + المدفوعات + تحديث تلقائي للحالة
+   MIZAN — Accounts Module (v5)
+   الفواتير + المدفوعات + حذف الفواتير
    ============================================================ */
 (function(){
 'use strict';
@@ -37,21 +37,11 @@ function today(){
 }
 
 function statusLabel(s){
-  return ({
-    'unpaid':'غير مدفوعة',
-    'partial':'مدفوعة جزئياً',
-    'paid':'مدفوعة',
-    'cancelled':'ملغاة'
-  })[s] || s || '—';
+  return ({'unpaid':'غير مدفوعة','partial':'مدفوعة جزئياً','paid':'مدفوعة','cancelled':'ملغاة'})[s] || s || '—';
 }
 
 function methodLabel(m){
-  return ({
-    'cash':'نقدي',
-    'bank_transfer':'حوالة بنكية',
-    'cheque':'شيك',
-    'other':'أخرى'
-  })[m] || m || '—';
+  return ({'cash':'نقدي','bank_transfer':'حوالة بنكية','cheque':'شيك','other':'أخرى'})[m] || m || '—';
 }
 
 function esc(s){
@@ -63,7 +53,7 @@ function esc(s){
 
 function sb(){ return window.MZN_DB || null; }
 
-/* ===== Global Modal Styles (once) ===== */
+/* ===== Global Styles ===== */
 function injectGlobalStyles(){
   if($('acGlobalStyle')) return;
   var style = document.createElement('style');
@@ -94,6 +84,7 @@ function injectGlobalStyles(){
     '.acm-btn{flex:1;padding:12px;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;border:none}',
     '.acm-btn-save{background:linear-gradient(135deg,#E8CE8B,#C9A961);color:#08090E}',
     '.acm-btn-cancel{background:rgba(255,255,255,.06);color:#fff;border:1px solid rgba(255,255,255,.1)}',
+    '.acm-btn-danger{background:linear-gradient(135deg,#F87171,#DC2626);color:#FFFFFF}',
     '.acm-info{background:rgba(201,169,97,.08);border:1px solid rgba(201,169,97,.2);border-radius:10px;padding:10px;margin-bottom:12px;font-size:12px;color:#C9A961}',
     '.acm-info-row{display:flex;justify-content:space-between;margin-bottom:4px}',
     'body.ac-modal-open .mzn-nav,body.ac-modal-open [class*="bottom-nav"]{display:none!important}',
@@ -125,37 +116,14 @@ function injectInvoiceModal(){
     '<div class="acm-title">📄 فاتورة جديدة</div>',
     '<button class="acm-close" type="button">✕</button>',
     '</div>',
-    '<div class="acm-group">',
-    '<label class="acm-label">رقم الفاتورة *</label>',
-    '<input class="acm-input" id="fInvoiceNo" type="text" placeholder="INV-001" lang="en" dir="ltr">',
-    '</div>',
-    '<div class="acm-group">',
-    '<label class="acm-label">اسم المورد</label>',
-    '<input class="acm-input" id="fSupplier" type="text" placeholder="اسم المورد">',
-    '</div>',
+    '<div class="acm-group"><label class="acm-label">رقم الفاتورة *</label><input class="acm-input" id="fInvoiceNo" type="text" placeholder="INV-001" lang="en" dir="ltr"></div>',
+    '<div class="acm-group"><label class="acm-label">اسم المورد</label><input class="acm-input" id="fSupplier" type="text" placeholder="اسم المورد"></div>',
     '<div class="acm-row">',
-    '<div class="acm-group">',
-    '<label class="acm-label">تاريخ الفاتورة *</label>',
-    '<input class="acm-input" id="fDate" type="date" lang="en-GB" dir="ltr">',
+    '<div class="acm-group"><label class="acm-label">تاريخ الفاتورة *</label><input class="acm-input" id="fDate" type="date" lang="en-GB" dir="ltr"></div>',
+    '<div class="acm-group"><label class="acm-label">تاريخ الاستحقاق</label><input class="acm-input" id="fDue" type="date" lang="en-GB" dir="ltr"></div>',
     '</div>',
-    '<div class="acm-group">',
-    '<label class="acm-label">تاريخ الاستحقاق</label>',
-    '<input class="acm-input" id="fDue" type="date" lang="en-GB" dir="ltr">',
-    '</div>',
-    '</div>',
-    '<div class="acm-group">',
-    '<label class="acm-label">العملة</label>',
-    '<select class="acm-input" id="fCurrency">',
-    '<option value="JOD">دينار أردني (JOD)</option>',
-    '<option value="USD">دولار أمريكي (USD)</option>',
-    '<option value="EUR">يورو (EUR)</option>',
-    '</select>',
-    '</div>',
-    '<div class="acm-group">',
-    '<label class="acm-label">البنود</label>',
-    '<div id="fItems"></div>',
-    '<button type="button" class="acm-add" id="fAddItem">+ إضافة بند</button>',
-    '</div>',
+    '<div class="acm-group"><label class="acm-label">العملة</label><select class="acm-input" id="fCurrency"><option value="JOD">دينار أردني (JOD)</option><option value="USD">دولار أمريكي (USD)</option><option value="EUR">يورو (EUR)</option></select></div>',
+    '<div class="acm-group"><label class="acm-label">البنود</label><div id="fItems"></div><button type="button" class="acm-add" id="fAddItem">+ إضافة بند</button></div>',
     '<div class="acm-total">',
     '<div class="acm-total-row"><span>المجموع الفرعي</span><span id="fSubtotal">0.00</span></div>',
     '<div class="acm-total-row"><span>الضريبة</span><span id="fTax">0.00</span></div>',
@@ -188,29 +156,12 @@ function injectPaymentModal(){
     '<button class="acm-close" type="button">✕</button>',
     '</div>',
     '<div class="acm-info" id="pInfo"></div>',
-    '<div class="acm-group">',
-    '<label class="acm-label">المبلغ *</label>',
-    '<input class="acm-input" id="pAmount" type="number" step="0.01" min="0" placeholder="0.00" lang="en" dir="ltr">',
-    '</div>',
+    '<div class="acm-group"><label class="acm-label">المبلغ *</label><input class="acm-input" id="pAmount" type="number" step="0.01" min="0" placeholder="0.00" lang="en" dir="ltr"></div>',
     '<div class="acm-row">',
-    '<div class="acm-group">',
-    '<label class="acm-label">تاريخ الدفع *</label>',
-    '<input class="acm-input" id="pDate" type="date" lang="en-GB" dir="ltr">',
+    '<div class="acm-group"><label class="acm-label">تاريخ الدفع *</label><input class="acm-input" id="pDate" type="date" lang="en-GB" dir="ltr"></div>',
+    '<div class="acm-group"><label class="acm-label">طريقة الدفع</label><select class="acm-input" id="pMethod"><option value="bank_transfer">حوالة بنكية</option><option value="cash">نقدي</option><option value="cheque">شيك</option><option value="other">أخرى</option></select></div>',
     '</div>',
-    '<div class="acm-group">',
-    '<label class="acm-label">طريقة الدفع</label>',
-    '<select class="acm-input" id="pMethod">',
-    '<option value="bank_transfer">حوالة بنكية</option>',
-    '<option value="cash">نقدي</option>',
-    '<option value="cheque">شيك</option>',
-    '<option value="other">أخرى</option>',
-    '</select>',
-    '</div>',
-    '</div>',
-    '<div class="acm-group">',
-    '<label class="acm-label">المرجع (رقم الحوالة/الشيك)</label>',
-    '<input class="acm-input" id="pRef" type="text" placeholder="T/T-1234" lang="en" dir="ltr">',
-    '</div>',
+    '<div class="acm-group"><label class="acm-label">المرجع (رقم الحوالة/الشيك)</label><input class="acm-input" id="pRef" type="text" placeholder="T/T-1234" lang="en" dir="ltr"></div>',
     '<div class="acm-actions">',
     '<button class="acm-btn acm-btn-cancel" type="button" id="pCancel">إلغاء</button>',
     '<button class="acm-btn acm-btn-save" type="button" id="pSave">حفظ الدفعة</button>',
@@ -224,6 +175,34 @@ function injectPaymentModal(){
   modal.addEventListener('click', function(e){ if(e.target === modal) closePaymentForm(); });
 }
 
+/* ===== Confirm Delete Modal ===== */
+function injectDeleteModal(){
+  if($('acDelModal')) return;
+  var modal = document.createElement('div');
+  modal.id = 'acDelModal';
+  modal.className = 'acm-overlay';
+  modal.innerHTML = [
+    '<div class="acm-body">',
+    '<div class="acm-head">',
+    '<div class="acm-title">🗑️ حذف الفاتورة</div>',
+    '<button class="acm-close" type="button">✕</button>',
+    '</div>',
+    '<div style="font-size:14px;margin-bottom:8px">هل أنت متأكد من الحذف؟</div>',
+    '<div class="acm-info" id="dInfo"></div>',
+    '<div style="font-size:11px;color:#F0A0B0;margin-top:8px;line-height:1.6">⚠️ سيتم حذف الفاتورة وكل بنودها ومدفوعاتها نهائياً. لا يمكن التراجع.</div>',
+    '<div class="acm-actions">',
+    '<button class="acm-btn acm-btn-cancel" type="button" id="dCancel">إلغاء</button>',
+    '<button class="acm-btn acm-btn-danger" type="button" id="dConfirm">حذف نهائي</button>',
+    '</div>',
+    '</div>'
+  ].join('');
+  document.body.appendChild(modal);
+  modal.querySelector('.acm-close').addEventListener('click', closeDeleteForm);
+  $('dCancel').addEventListener('click', closeDeleteForm);
+  $('dConfirm').addEventListener('click', confirmDelete);
+  modal.addEventListener('click', function(e){ if(e.target === modal) closeDeleteForm(); });
+}
+
 /* ===== Items ===== */
 function addItem(){
   var wrap = $('fItems');
@@ -232,13 +211,8 @@ function addItem(){
   var div = document.createElement('div');
   div.className = 'acm-item';
   div.innerHTML = [
-    '<div class="acm-item-head">',
-    '<span class="acm-item-num">بند #'+num+'</span>',
-    '<button type="button" class="acm-item-del">حذف</button>',
-    '</div>',
-    '<div class="acm-group">',
-    '<input class="acm-input item-desc" type="text" placeholder="وصف البند">',
-    '</div>',
+    '<div class="acm-item-head"><span class="acm-item-num">بند #'+num+'</span><button type="button" class="acm-item-del">حذف</button></div>',
+    '<div class="acm-group"><input class="acm-input item-desc" type="text" placeholder="وصف البند"></div>',
     '<div class="acm-row-3">',
     '<input class="acm-input item-qty" type="number" step="0.001" min="0" placeholder="الكمية" value="1" lang="en" dir="ltr">',
     '<input class="acm-input item-price" type="number" step="0.01" min="0" placeholder="السعر" value="0" lang="en" dir="ltr">',
@@ -274,8 +248,7 @@ function recalcTotals(){
     var qty = parseFloat(it.querySelector('.item-qty').value) || 0;
     var price = parseFloat(it.querySelector('.item-price').value) || 0;
     var taxRate = parseFloat(it.querySelector('.item-tax').value) || 0;
-    var line = qty * price;
-    var tax = line * taxRate / 100;
+    var line = qty * price, tax = line * taxRate / 100;
     subtotal += line; taxTotal += tax;
   }
   if($('fSubtotal')) $('fSubtotal').textContent = subtotal.toFixed(2);
@@ -430,41 +403,46 @@ async function savePayment(){
 }
 
 /* ===== Delete Invoice ===== */
-async function deleteInvoice(invoiceId){
-  var client = sb();
-  if(!client || !client.remove){ 
-    alert('لا يوجد اتصال بـ Supabase'); 
-    return; 
-  }
-  
+function openDeleteForm(invoiceId){
   var inv = null;
   for(var i=0;i<state.invoices.length;i++){
-    if(String(state.invoices[i].id) === String(invoiceId)){
-      inv = state.invoices[i];
-      break;
-    }
+    if(String(state.invoices[i].id) === String(invoiceId)){ inv = state.invoices[i]; break; }
   }
   if(!inv){ alert('لم يتم العثور على الفاتورة'); return; }
-  
-  var confirmText = 'حذف الفاتورة ' + (inv.invoice_no||'') + ' بمبلغ ' + fmtAmount(inv.total, inv.currency) + '؟\n\nسيتم حذف كل بنودها ومدفوعاتها نهائياً.';
-  if(!confirm(confirmText)) return;
-  
+  state.currentInvoice = inv;
+  var info = $('dInfo');
+  if(info){
+    info.innerHTML =
+      '<div class="acm-info-row"><span>الفاتورة:</span><span>'+esc(inv.invoice_no||'—')+'</span></div>'+
+      '<div class="acm-info-row"><span>المورد:</span><span>'+esc(inv.supplier_name||'—')+'</span></div>'+
+      '<div class="acm-info-row"><span>المبلغ:</span><span>'+esc(fmtAmount(inv.total, inv.currency))+'</span></div>';
+  }
+  $('acDelModal').classList.add('open');
+  document.body.classList.add('ac-modal-open');
+}
+
+function closeDeleteForm(){
+  var modal = $('acDelModal');
+  if(modal) modal.classList.remove('open');
+  document.body.classList.remove('ac-modal-open');
+  state.currentInvoice = null;
+}
+
+async function confirmDelete(){
+  var client = sb();
+  if(!client || !client.remove){ alert('لا يوجد اتصال بـ Supabase'); return; }
+  var inv = state.currentInvoice;
+  if(!inv){ alert('خطأ: لم يتم تحديد الفاتورة'); return; }
   try{
-    /* حذف المدفوعات أولاً */
-    await client.remove('payments', 'invoice_id', invoiceId);
-    /* حذف البنود */
-    await client.remove('invoice_items', 'invoice_id', invoiceId);
-    /* حذف الفاتورة */
-    await client.remove('invoices', 'id', invoiceId);
-    
-    /* تحديث القائمة */
+    await client.remove('invoices', inv.id);
     var newList = [];
     for(var k=0;k<state.invoices.length;k++){
-      if(String(state.invoices[k].id) !== String(invoiceId)){
+      if(String(state.invoices[k].id) !== String(inv.id)){
         newList.push(state.invoices[k]);
       }
     }
     state.invoices = newList;
+    closeDeleteForm();
     renderKPIs();
     renderContent();
     alert('✅ تم حذف الفاتورة');
@@ -472,8 +450,8 @@ async function deleteInvoice(invoiceId){
     console.error('[accounts] deleteInvoice error:', e);
     alert('فشل الحذف: ' + (e && e.message ? e.message : 'خطأ'));
   }
-                                          }
-                                                                                   
+}
+
 /* ===== Render ===== */
 function renderContent(){
   var el = $('acContent');
@@ -482,8 +460,8 @@ function renderContent(){
   if(state.loading){ el.innerHTML = '<div class="ac-loading">جاري التحميل</div>'; return; }
   if(state.currentTab==='invoices'){ el.innerHTML = renderInvoices(); }
   else if(state.currentTab==='payments'){ el.innerHTML = renderPayments(); }
-  else if(state.currentTab==='supplier'){ el.innerHTML = '<div class="ac-empty">📊<br>كشف حساب الموردين<br><small>سيُبنى في الجلسة 5</small></div>'; }
-  else if(state.currentTab==='due'){ el.innerHTML = '<div class="ac-empty">⏰<br>الفواتير المستحقة<br><small>سيُبنى في الجلسة 5</small></div>'; }
+  else if(state.currentTab==='supplier'){ el.innerHTML = '<div class="ac-empty">📊<br>كشف حساب الموردين<br><small>سيُبنى في الجلسة 6</small></div>'; }
+  else if(state.currentTab==='due'){ el.innerHTML = '<div class="ac-empty">⏰<br>الفواتير المستحقة<br><small>سيُبنى في الجلسة 6</small></div>'; }
 }
 
 function renderInvoices(){
@@ -494,8 +472,8 @@ function renderInvoices(){
   state.invoices.forEach(function(inv){
     var statusClass = 'ac-pill-'+(inv.status||'unpaid');
     var remaining = Number(inv.total||0) - Number(inv.paid_amount||0);
-    html += '<div class="ac-inv" data-id="'+esc(inv.id)+'" style="cursor:pointer;position:relative">';
-    html += '<button class="ac-del-btn" data-del="'+esc(inv.id)+'" title="حذف" style="position:absolute;top:6px;left:6px;background:transparent;border:none;color:#F0A0B0;font-size:16px;cursor:pointer;padding:4px 8px;border-radius:6px;z-index:2">🗑️</button>';
+    html += '<div class="ac-inv" data-id="'+esc(inv.id)+'" style="cursor:pointer;position:relative;padding-left:44px">';
+    html += '<button class="ac-del-btn" data-del="'+esc(inv.id)+'" title="حذف" style="position:absolute;top:50%;left:8px;transform:translateY(-50%);background:rgba(240,160,176,.12);border:1px solid rgba(240,160,176,.3);color:#F0A0B0;font-size:14px;cursor:pointer;padding:6px 8px;border-radius:8px;line-height:1">🗑️</button>';
     html += '<div class="ac-inv-info">';
     html += '<div class="ac-inv-no">'+esc(inv.invoice_no||'بدون رقم')+'</div>';
     html += '<div class="ac-inv-supplier">'+esc(inv.supplier_name||'—')+' · '+esc(fmtDate(inv.invoice_date))+'</div>';
@@ -524,9 +502,8 @@ function renderPayments(){
     html += '<div class="ac-inv-supplier">'+esc(methodLabel(p.method))+' · '+esc(fmtDate(p.payment_date))+'</div>';
     if(p.reference){ html += '<div style="font-size:10px;color:#6A7080;margin-top:2px">مرجع: '+esc(p.reference)+'</div>'; }
     html += '</div>';
-    html += '<div class="ac-inv-amount" style="text-align:center">';
-    html += '<div style="font-size:18px">💳</div>';
-    html += '</div></div>';
+    html += '<div class="ac-inv-amount" style="text-align:center"><div style="font-size:18px">💳</div></div>';
+    html += '</div>';
   });
   return html;
 }
@@ -611,14 +588,13 @@ function initCardClick(){
   var el = $('acContent');
   if(!el) return;
   el.addEventListener('click', function(e){
-    /* زر الحذف له الأولوية */
     var delBtn = e.target.closest('.ac-del-btn');
     if(delBtn){
       e.stopPropagation();
-      deleteInvoice(delBtn.getAttribute('data-del'));
+      e.preventDefault();
+      openDeleteForm(delBtn.getAttribute('data-del'));
       return;
     }
-    /* الضغط على البطاقة يفتح الدفعة */
     var card = e.target.closest('.ac-inv[data-id]');
     if(card){ openPaymentForm(card.getAttribute('data-id')); }
   });
@@ -626,10 +602,11 @@ function initCardClick(){
 
 /* ===== Init ===== */
 function init(){
-  console.log('[accounts] init v4');
+  console.log('[accounts] init v5');
   injectGlobalStyles();
   injectInvoiceModal();
   injectPaymentModal();
+  injectDeleteModal();
   initTabs();
   initFab();
   initCardClick();
@@ -648,7 +625,8 @@ window.MZNAccounts = {
   loadInvoices: loadInvoices,
   loadPayments: loadPayments,
   openInvoiceForm: openInvoiceForm,
-  openPaymentForm: openPaymentForm
+  openPaymentForm: openPaymentForm,
+  openDeleteForm: openDeleteForm
 };
 
 console.log('[MIZAN] Accounts module v5 ready');
